@@ -60,6 +60,9 @@ build-iPhoneSimulator/
 # only the gemspec gets checked in, ignore machine/developer specific lock files
 Gemfile.lock
 
+# bundle the test gems on each machine
+Gemfile_test.lock
+
 # don't commit the home dir
 nr-security-home/
 
