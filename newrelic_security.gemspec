@@ -27,11 +27,12 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency 'minitest', '~> 5.18'
-  spec.add_development_dependency 'rubocop', '~> 1.49'
-  spec.add_development_dependency 'rubocop-minitest', '~> 0.29'
-  spec.add_development_dependency 'rubocop-rake', '~> 0.6'
-  spec.add_development_dependency 'simplecov', '~> 0.22'
+  spec.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '~> 5.18' : '4.7.5'}"
+
+  spec.add_development_dependency 'rubocop', "#{RUBY_VERSION < '2.6.0' ? '< 1.49.0' : '~> 1.49.0'}"
+  spec.add_development_dependency 'rubocop-minitest', '~> 0.29' if RUBY_VERSION >= '2.6.0'
+  spec.add_development_dependency 'rubocop-rake', '~> 0.6' if RUBY_VERSION >= '2.5.0'
+  spec.add_development_dependency 'simplecov', '~> 0.22' if RUBY_VERSION >= '2.5.0'
 
   spec.add_runtime_dependency 'websocket'
 end
