@@ -1,5 +1,5 @@
 module NewRelic
   module Security
-    VERSION = "1.0.0-limited-preview"
+    VERSION = "0.0.1"
   end
 end
