@@ -1,37 +1,78 @@
-#  *The New Relic csec-ruby-agent is in preview and licensed under the New Relic Pre-Release Software Notice.*
+# New Relic Ruby security agent
 
-# New Relic csec-ruby-agent [build badges go here when available]
+The New Relic security agent for Ruby is in limited preview and is not generally available.This module enables instrumentation of Ruby applications for interactive application security analysis (IAST) and exposes exploitable vulnerabilities. 
 
-The New Relic csec-ruby-agent is not generally available.  To participate in the csec-ruby-agent preview, follow the steps outlined here.
-
->[Brief description - what is the project and value does it provide? How often should users expect to get releases? How is versioning set up? Where does this project want to go?]
+**Note:** The IAST capability should only be used in pre-production environments and never in production. 
 
 ## Installation
 
-> [Link to the relevant information for this agent on docs.newrelic.com. Create a bulleted list with links to install, usage, and getting started info on docs. Avoid duplicating information from docs in the open source content to ensure there's no inconsistency between the two.]
+The software is meant to be used along with the [New Relic Ruby Agent](https://github.com/newrelic/newrelic-ruby-agent). You can see New Relic ruby agent install instructions [here](https://github.com/newrelic/newrelic-ruby-agent#installing-and-using).
+
+#### With Bundler
+For using with Bundler, add the Ruby agent to your project's Gemfile.
+
+```
+gem 'newrelic_security', require: false
+```
+
+and run `bundle install` to activate the new gem.
+
+#### Without Bundler
+If you are not using Bundler, install the gem with:
+
+```
+gem install newrelic_security
+```
 
 ## Getting Started
->[Simple steps to start working with the software similar to a "Hello World"]
+The newrelic_security must be explicitly enabled in order to perform IAST analysis of the application. In the newrelic.yml, set the following parameters:
 
-## Usage
->[**Optional** - Include more thorough instructions on how to use the software. This section might not be needed if the Getting Started section is enough. Remove this section if it's not needed.]
+```
+ security:
+   agent:
+     enabled: true
+   enabled: true
+   mode: IAST
+   validator_service_url: wss://csec.nr-data.net
+```
 
-
-## Building
-
->[**Optional** - Include this section if users will need to follow specific instructions to build the software from source. Be sure to include any third party build dependencies that need to be installed separately. Remove this section if it's not needed.]
+## Support Matrix
+### Ruby Versions
+- CRuby: 2.4 & above
+- JRuby: 9.2 & above
+### Web frameworks
+- Rails: 6 & above
+- Sinatra: 3 & above
+### Web servers
+- Puma: 3 & above
+- Unicorn: 5 & above
+- Webrick: 1.6 & above
+- Thin: 1.8 & above
+- Passenger: 6 & above
+### Databases
+- Sqlite3
+- Mysql2
+- PostgreSql
+- MongoDB
 
 ## Testing
+We use Minitest for the Ruby Security agent.
+#### Prerequisite
+```
+rake test_bundle
+```
+#### Running All Unit tests
+The following command runs all the unit tests without Rails:
+```
+rake test
+```
+#### Running Specific Tests
+To run a single unit test file use the command like:
+```
+ruby test/newrelic_security/instrumentation-security/kernel/kernel_test.rb
+```
 
->[**Optional** - Include instructions on how to run tests if we include tests with the codebase. Remove this section if it's not needed.]
-
-## Support
-
-New Relic hosts and moderates an online forum where you can interact with New Relic employees as well as other customers to get help and share best practices. You can find this project's topic/threads here:
-
->Add the url for the support thread here: discuss.newrelic.com
-
-## Feedback
+## Feedback or Contribute
 
 Any feedback provided to New Relic about the New Relic csec-ruby-agent, including feedback provided as source code, comments, or other copyrightable or patentable material, is provided to New Relic under the terms of the Apache Software License, version 2. If you do not provide attribution information or a copy of the license with your feedback, you waive the performance of those requirements of the Apache License with respect to New Relic. The license grant regarding any feedback is irrevocable and persists past the termination of the preview license.
 
