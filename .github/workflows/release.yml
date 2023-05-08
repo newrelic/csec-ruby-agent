@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      repository-projects: write
+    steps:
+    - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      with:
+        fetch-depth: 0
+
+    - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+      with:
+        ruby-version: 3.2
+
+    - name: Install onetimepass
+      run: pip install onetimepass==1.0.1
+
+    - name: Configure gem credentials
+      run: |
+        echo "GEM_HOST_API_KEY=${{ secrets.RUBYGEMS_API_KEY }}" >> $GITHUB_ENV
+        echo "RUBYGEMS_MFA_KEY=${{ secrets.RUBYGEMS_MFA_KEY }}" >> $GITHUB_ENV
+
+    - name: Build newrelic_security gem
+      run: gem build newrelic_security.gemspec
+
+    - name: Determine version
+      run: |
+        echo "VERSION=$(ls newrelic_security-*.gem | ruby -pe 'sub(/newrelic_security\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
+
+    - name: Create github release
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # tag v0.1.15
+      if: $(git tag -l ${{ env.VERSION }}) == false
+      with:
+        tag_name: ${{ env.VERSION }}
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Obtain OTP to publish newrelic_security to rubygems.org
+      run: echo "RUBYGEMS_OTP=$(python ./.github/workflows/scripts/rubygems-authenticate.py RUBYGEMS_MFA_KEY)" >> $GITHUB_ENV
+
+    - name: Publish newrelic_security to rubygems.org
+      run: ruby ./.github/workflows/scripts/rubygems-publish.rb newrelic_security
+
+    - name: Update system configuration page
+      run: |
+        PAYLOAD="{
+             \"system_configuration\": {
+               \"key\":   \"ruby_agent_version\",
+               \"value\": \"${{ env.VERSION }}\"
+            }
+          }"
+        CONTENT_TYPE='Content-Type: application/json'
+
+        # STAGING
+        curl -X POST 'https://staging-api.newrelic.com/v2/system_configuration.json' \
+          -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_STAGING }}" -i \
+          -H "$CONTENT_TYPE" \
+          -d "$PAYLOAD"
+
+        # PRODUCTION
+        curl -X POST 'https://api.newrelic.com/v2/system_configuration.json' \
+          -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+          -H "$CONTENT_TYPE" \
+          -d "$PAYLOAD"
+
+        # EU PRODUCTION
+        curl -X POST 'https://api.eu.newrelic.com/v2/system_configuration.json' \
+          -H "X-Api-Key:$ {{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+          -H "$CONTENT_TYPE" \
+          -d "$PAYLOAD"
