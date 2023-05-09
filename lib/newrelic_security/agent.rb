@@ -50,6 +50,7 @@ module NewRelic::Security
     
     @agent = NewRelic::Security::Agent::Agent.new unless @agent
     NewRelic::Security::Agent.logger.debug "Creating security agent instance initially : #{@agent.inspect}"
-    NewRelic::Security::Agent.init_logger.info "[INITIALIZATION] Creating security agent instance initially : #{@agent.inspect}"
+    NewRelic::Security::Agent.init_logger.info "[STEP-1] => Security agent is starting : #{@agent.inspect}"
+    NewRelic::Security::Agent.init_logger.info "[STEP-2] => Generating unique identifier : #{@config[:uuid]}"
   end
 end
