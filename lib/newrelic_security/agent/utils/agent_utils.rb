@@ -46,6 +46,7 @@ module NewRelic::Security
       end
 
       def delete_created_files
+        return unless NewRelic::Security::Agent::Control::HTTPContext.get_context
         headers = NewRelic::Security::Agent::Control::HTTPContext.get_context.headers
         if is_IAST? && is_IAST_request?(headers)
           fuzz_request = headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)
