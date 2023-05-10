@@ -35,14 +35,13 @@ module NewRelic::Security
 
       def init
         NewRelic::Security::Agent.logger.info "Initializing Security Agent with config : #{NewRelic::Security::Agent.config.inspect}\n"
-        NewRelic::Security::Agent.init_logger.info "[INITIALIZATION] Initializing Security Agent with config : #{NewRelic::Security::Agent.config.inspect}"
         @ready = false
         create_status_logger
         start_event_processor
         start_websocket_client
         NewRelic::Security::Instrumentation::InstrumentationLoader.add_instrumentation()
-        NewRelic::Security::Agent.logger.info "[INITIALIZATION] Security Agent ready.\n"
-        NewRelic::Security::Agent.init_logger.info "[INITIALIZATION] Security Agent ready.\n"
+        NewRelic::Security::Agent.logger.info "Security Agent ready.\n"
+        NewRelic::Security::Agent.init_logger.info "Security Agent ready.\n"
         @ready = true
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Exception in security agent init: #{exception.inspect} #{exception.backtrace}\n"

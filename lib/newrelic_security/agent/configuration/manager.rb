@@ -32,6 +32,7 @@ module NewRelic::Security
           @cache[:'security.detection.rxss.enabled'] = ::NewRelic::Agent.config[:'security.detection.rxss.enabled']
           @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
           @cache[:framework] = detect_framework
+          @cache[:'security.applicationinfo.port'] = ::NewRelic::Agent.config[:'security.applicationinfo.port']
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:json_version] = :'1.0.1'

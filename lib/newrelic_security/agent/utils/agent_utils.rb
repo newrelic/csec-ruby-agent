@@ -122,12 +122,22 @@ module NewRelic::Security
         ObjectSpace.each_object(::Thin::Backends::TcpServer) { |z|
           NewRelic::Security::Agent.config.app_server = :thin
           listen_port = z.instance_variable_get(:@port)
+          NewRelic::Security::Agent.logger.debug "Detected port from Thin::Backends::TcpServer : #{listen_port}"
         } if defined?(::Thin::Backends::TcpServer)
         ObjectSpace.each_object(::WEBrick::GenericServer) { |z|
           NewRelic::Security::Agent.config.app_server = :webrick
           listen_port = z.instance_variable_get(:@config)[:Port]
+          NewRelic::Security::Agent.logger.debug "Detected port from WEBrick::GenericServer : #{listen_port}"
         } if defined?(::WEBrick::GenericServer)
-        NewRelic::Security::Agent.logger.info "Detected application listen_port : #{listen_port}"
+        if NewRelic::Security::Agent.config[:'security.applicationinfo.port'] != -1
+          listen_port = NewRelic::Security::Agent.config[:'security.applicationinfo.port']
+          NewRelic::Security::Agent.logger.info "Using application listen port from newrelic.yml security.applicationinfo.port : #{listen_port}"
+        end
+        if listen_port
+          NewRelic::Security::Agent.logger.info "Detected application listen_port : #{listen_port}"
+        else
+          NewRelic::Security::Agent.logger.warn "Unable to detect application listen port, IAST can not run without application listen port. Please provide application listen port in security.applicationinfo.port in newrelic.yml"
+        end
         listen_port
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Exception in port detection : #{exception.inspect} #{exception.backtrace}"

@@ -11,16 +11,19 @@ module NewRelic::Security
         attr_accessor :eventQ
 
         def initialize
+          @first_event = true
           @eventQ = ::SizedQueue.new(EVENT_QUEUE_SIZE)
           create_dequeue_threads
           create_keep_alive_thread
+          NewRelic::Security::Agent.init_logger.info "[STEP-5] => Security agent threads started"
         end
 
         def send_app_info
+          NewRelic::Security::Agent.init_logger.info "[STEP-3] => Gathering information about the application"
           app_info = NewRelic::Security::Agent::Control::AppInfo.new
           app_info.update_app_info
-          NewRelic::Security::Agent.logger.info "[INITIALIZATION] Sending application info : #{app_info.to_json}"
-          NewRelic::Security::Agent.init_logger.info "[INITIALIZATION] Sending application info : #{app_info.to_json}"
+          NewRelic::Security::Agent.logger.info "Sending application info : #{app_info.to_json}"
+          NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info.to_json}"
           enqueue(app_info)
           app_info = nil
         end
@@ -28,6 +31,10 @@ module NewRelic::Security
         def send_event(event)
           NewRelic::Security::Agent.agent.event_processed_count.increment
           enqueue(event)
+          if @first_event
+            NewRelic::Security::Agent.init_logger.info "[STEP-8] => First event sent for validation. Security agent started successfully : #{event.to_json}"
+            @first_event = false
+          end
           event = nil
         end
 
