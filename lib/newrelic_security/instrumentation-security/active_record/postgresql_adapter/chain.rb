@@ -10,19 +10,35 @@ module NewRelic::Security
                 include NewRelic::Security::Instrumentation::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
 
                 alias_method :execute_without_security, :execute
-
-                def execute(sql, name = nil)
-                  retval = nil
-                  event = execute_on_enter(sql, name) { retval = execute_without_security(sql, name) }
-                  execute_on_exit(event) { return retval }
+                
+                if ::Rails.version < '5'
+                  def execute(*var)
+                    retval = nil
+                    event = execute_on_enter(*var) { retval = execute_without_security(*var) }
+                    execute_on_exit(event) { return retval }
+                  end
+                else
+                  def execute(*var, **key_vars)
+                    retval = nil
+                    event = execute_on_enter(*var, **key_vars) { retval = execute_without_security(*var, **key_vars) }
+                    execute_on_exit(event) { return retval }
+                  end
                 end
 
                 alias_method :exec_query_without_security, :exec_query
-    
-                def exec_query(*var, **key_vars)
-                  retval = nil
-                  event = exec_query_on_enter(*var, **key_vars) { retval = exec_query_without_security(*var, **key_vars) }
-                  exec_query_on_exit(event) { return retval }
+
+                if ::Rails.version < '5'
+                  def exec_query(*var)
+                    retval = nil
+                    event = exec_query_on_enter(*var) { retval = exec_query_without_security(*var) }
+                    exec_query_on_exit(event) { return retval }
+                  end
+                else
+                  def exec_query(*var, **key_vars)
+                    retval = nil
+                    event = exec_query_on_enter(*var, **key_vars) { retval = exec_query_without_security(*var, **key_vars) }
+                    exec_query_on_exit(event) { return retval }
+                  end
                 end
 
                 alias_method :exec_update_without_security, :exec_update
