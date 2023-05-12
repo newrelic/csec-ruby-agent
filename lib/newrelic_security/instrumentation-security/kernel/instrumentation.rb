@@ -20,6 +20,7 @@ module NewRelic::Security
         if retval
           NewRelic::Security::Agent.logger.info "Dynamic loading of #{name} module observed, TODO: Call Instrumentation API"
            # TODO: Call Instrumentation API here (Dynamic loading of module observed)
+           NewRelic::Security::Instrumentation::InstrumentationLoader.add_instrumentation()
         end
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
