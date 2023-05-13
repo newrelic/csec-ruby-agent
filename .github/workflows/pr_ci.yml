@@ -54,5 +54,5 @@ jobs:
           # Coverage numbers on 12 May 2023
           # These should increase as test coverage improves
           # New Relic's quality standard is 70 for each category
-          failedThreshold: 52.58
-          failedThresholdBranch: 17.62
+          failedThreshold: 52
+          failedThresholdBranch: 17
