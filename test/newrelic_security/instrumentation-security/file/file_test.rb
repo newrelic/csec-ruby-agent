@@ -37,5 +37,5 @@ module NewRelic::Security
             end
         end
     end
-  end
+end
   

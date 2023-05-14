@@ -22,11 +22,11 @@ module NewRelic::Security
                         :filter => "(uid=#{user})",
                         :password => psw
                     )
-                    # if result
-                    #     puts "Authenticated #{result.first.dn}"
-                    # else
-                    #     puts "Authentication FAILED."
-                    # end
+                    if result
+                        NewRelic::Security::Agent.logger.debug "LDAP Authenticated : #{result.first.dn}"
+                    else
+                        NewRelic::Security::Agent.logger.debug "LDAP Authentication FAILED."
+                    end
                     treebase = "dc=example,dc=org"
                     filter = "(|(uid=#{input}))"
                     attrs = ["sn", "objectclass"]
