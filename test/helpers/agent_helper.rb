@@ -1,21 +1,30 @@
-# Create Logger
+# Agent helper
 module NewRelic::Security
   module Agent    
     module Control
       class HTTPContext
         def self.get_context
           # if you want to create complete event, return true
-          return false  
+          return @http_context  
         end
         def self.set_context(env)
-          puts env
+          @http_context = HTTPContext.new(env)
         end
+
         def self.reset_context
+          # @http_context = nil
         end
       end
     end
     
     extend self
+
+    def agent()
+      return @agent if @agent
+      puts "Agent unavailable as it hasn't been started."
+      nil
+    end
+    
     def logger
       @logger ||= NewRelic::Security::Agent::Logging::AgentLogger.new
     end
@@ -46,8 +55,9 @@ module NewRelic::Security
     def find_or_create_file_path(path)
       ::FileUtils.mkdir_p(path) unless ::File.directory?(path)
       ::File.directory?(path)
-    rescue Exception => exception
-      puts "ERROR -- Exception in logging helper, #{exception} #{exception.backtrace}"
+    rescue
+      return false
     end
+
   end
 end

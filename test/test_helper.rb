@@ -55,8 +55,12 @@ else
   end
 end
 
-# loading Agent helper files
+# loading helper files
 Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f }
 
-# Create log dir: nr-security-home
-NewRelic::Security::Agent.create_agent_home
+# Create Agent instance
+module NewRelic::Security
+  module Agent  
+    @agent = NewRelic::Security::Agent::Agent.new
+  end
+end

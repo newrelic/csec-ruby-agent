@@ -14,6 +14,7 @@ module NewRelic::Security
           @cache[:linking_metadata] = {}
           @cache[:app_root] = File.expand_path('../../lib', __FILE__)
           @cache[:policy] = Hash.new
+          @cache[:'security.detection.rxss.enabled'] = true
         end
       end
     end
