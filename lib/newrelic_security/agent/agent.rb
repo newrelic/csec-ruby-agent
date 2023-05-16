@@ -72,9 +72,9 @@ module NewRelic::Security
       end
 
       def create_agent_home
-        log_dir = ::File.join(DEFAULT_SEC_HOME_PATH, LOGS_DIR)
+        log_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR)
         find_or_create_file_path(log_dir)
-        tmp_dir = ::File.join(DEFAULT_SEC_HOME_PATH, TMP_DIR)
+        tmp_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, TMP_DIR)
         find_or_create_file_path(tmp_dir)
       end
 
