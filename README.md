@@ -41,7 +41,7 @@ The newrelic_security must be explicitly enabled in order to perform IAST analys
 - CRuby: 2.4 & above
 - JRuby: 9.2 & above
 ### Web frameworks
-- Rails: 6 & above
+- Rails: 4 & above
 - Sinatra: 3 & above
 ### Web servers
 - Puma: 3 & above
