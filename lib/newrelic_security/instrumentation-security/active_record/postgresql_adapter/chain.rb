@@ -11,18 +11,10 @@ module NewRelic::Security
 
                 alias_method :execute_without_security, :execute
                 
-                if ::Rails.version < '5'
-                  def execute(*var)
-                    retval = nil
-                    event = execute_on_enter(*var) { retval = execute_without_security(*var) }
-                    execute_on_exit(event) { return retval }
-                  end
-                else
-                  def execute(*var, **key_vars)
-                    retval = nil
-                    event = execute_on_enter(*var, **key_vars) { retval = execute_without_security(*var, **key_vars) }
-                    execute_on_exit(event) { return retval }
-                  end
+                def execute(sql, name = nil)
+                  retval = nil
+                  event = execute_on_enter(sql, name) { retval = execute_without_security(sql, name) }
+                  execute_on_exit(event) { return retval }
                 end
 
                 alias_method :exec_query_without_security, :exec_query

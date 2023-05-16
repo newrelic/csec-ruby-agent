@@ -5,11 +5,11 @@ module NewRelic::Security
   module Instrumentation
     module ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
 
-      def execute_on_enter(*var, **key_vars)
+      def execute_on_enter(sql, name)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         hash = {}
-        hash[:sql] = var[0]  #sql query
+        hash[:sql] = sql  #sql query
         hash[:parameters] = []
         event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, [hash], POSTGRES) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(hash[:sql])
       rescue => exception
