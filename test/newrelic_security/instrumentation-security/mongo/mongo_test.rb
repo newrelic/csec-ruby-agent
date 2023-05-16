@@ -191,7 +191,6 @@ module NewRelic::Security
 
                     # find.update_one test        
                     # Issue: event created only for find but not for update_one
-                    old_value = '{"name":"abc"}'
                     new_value = '{"name":"pqr"}'
                     new_value_change = '{"$set":'+new_value+'}'
                     @output = client[:cars].find(:name => 'abc').update_one(JSON.parse(new_value_change))

@@ -5,7 +5,7 @@ module NewRelic::Security
       class HTTPContext
         def self.get_context
           # if you want to create complete event, return true
-          return @http_context  
+          return @http_context if @http_context
         end
         def self.set_context(env)
           @http_context = HTTPContext.new(env)
