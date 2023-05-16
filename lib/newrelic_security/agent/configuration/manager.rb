@@ -86,10 +86,14 @@ module NewRelic::Security
 
         def disable_security
           @cache[:enabled] = false
+          NewRelic::Security::Agent.logger.info "Security Agent is now INACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.init_logger.info "Security Agent is now INACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
         end
 
         def enable_security
           @cache[:enabled] = true
+          NewRelic::Security::Agent.logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.init_logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
         end
 
         private
