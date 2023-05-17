@@ -12,12 +12,20 @@ module NewRelic::Security
               execute_on_exit(event) { return retval }
             end
 
-            def exec_query(*var, **key_vars)
-              retval = nil
-              event = exec_query_on_enter(*var, **key_vars) { retval = super }
-              exec_query_on_exit(event) { return retval }
+            if ::Rails.version < '5'
+              def exec_query(*var)
+                retval = nil
+                event = exec_query_on_enter(*var) { retval = super }
+                exec_query_on_exit(event) { return retval }
+              end
+            else
+              def exec_query(*var, **key_vars)
+                retval = nil
+                event = exec_query_on_enter(*var, **key_vars) { retval = super }
+                exec_query_on_exit(event) { return retval }
+              end
             end
-
+            
             def exec_update(*var) # Also known as exec_update
               retval = nil
               event = exec_update_on_enter(*var) { retval = super }
