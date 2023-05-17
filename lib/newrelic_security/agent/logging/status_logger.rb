@@ -33,7 +33,7 @@ module NewRelic::Security
             status_template = String.new
             status_template << "Snapshot timestamp: #{Time.now}"
             status_template << "\nCSEC Ruby Agent start timestamp: #{@agent_start_timestamp} with application uuid: #{NewRelic::Security::Agent.config[:uuid]}"
-            status_template << "\nCSEC HOME: #{DEFAULT_SEC_HOME_PATH}"
+            status_template << "\nCSEC HOME: #{::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH)})"
             status_template << "\nAgent location: "
             status_template << "\nUsing CSEC for Ruby, Ruby version: #{RUBY_VERSION}, PID: #{Process.pid}"
             status_template << "\nProcess title: ruby"
@@ -83,8 +83,8 @@ module NewRelic::Security
         private
 
         def write_status_log_in_file(data)
-          FileUtils.mkdir_p(::File.join(DEFAULT_SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR), :mode => 0777) unless File.directory?(::File.join(DEFAULT_SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR))
-          filename = File.join(DEFAULT_SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR, "ruby-security-collector-status-#{NewRelic::Security::Agent.config[:uuid]}.log")
+          FileUtils.mkdir_p(::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR), :mode => 0777) unless File.directory?(::File.join(SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR))
+          filename = File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR, "ruby-security-collector-status-#{NewRelic::Security::Agent.config[:uuid]}.log")
           File.open(filename, 'w') {
             |file| file.write(data)
           }

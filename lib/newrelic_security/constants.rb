@@ -6,7 +6,7 @@ module NewRelic::Security
   Ruby = 'Ruby'
   LANGUAGE_COLLECTOR = 'LANGUAGE_COLLECTOR'
   NR_CSEC_VALIDATOR_HOME_TMP = '{{NR_CSEC_VALIDATOR_HOME_TMP}}'
-  DEFAULT_SEC_HOME_PATH = 'nr-security-home'
+  SEC_HOME_PATH = 'nr-security-home'
   LOGS_DIR = 'logs'
   SNAPSHOTS_DIR = 'snapshots'
   TMP_DIR = 'tmp'
