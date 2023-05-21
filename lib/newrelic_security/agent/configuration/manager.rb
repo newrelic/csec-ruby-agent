@@ -23,6 +23,7 @@ module NewRelic::Security
           @cache[:account_id] = nil
           @cache[:application_id] = nil
           @cache[:primary_application_id] = nil
+          @cache[:log_file_path] = ::File.absolute_path(::NewRelic::Agent.config[:log_file_path])
           @cache[:log_level] = ::NewRelic::Agent.config[:log_level]
           @cache[:'agent.enabled'] = ::NewRelic::Agent.config[:'security.agent.enabled']
           @cache[:enabled] = ::NewRelic::Agent.config[:'security.enabled']
@@ -86,10 +87,14 @@ module NewRelic::Security
 
         def disable_security
           @cache[:enabled] = false
+          NewRelic::Security::Agent.logger.info "Security Agent is now INACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.init_logger.info "Security Agent is now INACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
         end
 
         def enable_security
           @cache[:enabled] = true
+          NewRelic::Security::Agent.logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.init_logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
         end
 
         private
@@ -123,9 +128,9 @@ module NewRelic::Security
 
         def fetch_or_create_uuid
           process_identity = ::Gem.win_platform? ? ::Process.pid : ::Process.getpgrp
-          tmp_dir = ::File.join(DEFAULT_SEC_HOME_PATH, TMP_DIR)
+          tmp_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, TMP_DIR)
           if ::File.directory?(tmp_dir)
-            uuid_file_name = ::File.join(DEFAULT_SEC_HOME_PATH, TMP_DIR, process_identity.to_s)
+            uuid_file_name = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, TMP_DIR, process_identity.to_s)
           else
             uuid_file_name = ::File.join(TMP_DIR, process_identity.to_s)
           end

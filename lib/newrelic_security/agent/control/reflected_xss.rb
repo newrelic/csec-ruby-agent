@@ -40,6 +40,9 @@ module NewRelic::Security
         def check_xss(http_req, retval)
           # TODO: Check if enableHTTPRequestPrinting is required.
           return unless http_req
+          if retval[1].key?(Content_Type) && (retval[1][Content_Type].start_with?('image/') || retval[1][Content_Type].start_with?('audio/') || retval[1][Content_Type].start_with?('video/'))
+            return
+          end
           response_body = ::String.new
           retval[2].each { |string| response_body << string }
           construct = check_for_reflected_xss(http_req, retval[1], response_body)

@@ -85,9 +85,14 @@ module NewRelic::Security
       def get_app_routes(framework)
         if framework == :rails
           ::Rails.application.routes.routes.each do |route|
-            route.verb.split("|").each { |method|
-              NewRelic::Security::Agent.agent.route_map << "#{method}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}"
-            }
+            if route.verb.is_a?(::Regexp)
+              method = route.verb.inspect.match(/[a-zA-Z]+/)
+              NewRelic::Security::Agent.agent.route_map << "#{method}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}" if method
+            else
+              route.verb.split("|").each { |method|
+                NewRelic::Security::Agent.agent.route_map << "#{method}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}"
+              }
+            end
           end
         elsif framework == :sinatra
           ::Sinatra::Application.routes.each do |method, routes|

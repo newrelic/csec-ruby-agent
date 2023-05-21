@@ -55,7 +55,7 @@ module NewRelic::Security
         end
 
         def create_log_to_file
-          log_dir = ::File.join(DEFAULT_SEC_HOME_PATH, LOGS_DIR)
+          log_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR)
           path = ::File.directory?(log_dir)
           if path
             file_path = "#{log_dir}/#{LOG_FILE_NAME}"
@@ -67,7 +67,7 @@ module NewRelic::Security
             end
           else
             @logger = prepped_logger(STDOUT)
-            warn("Error creating log directory #{::File.join(DEFAULT_SEC_HOME_PATH, LOGS_DIR)}, using standard out for logging.")  
+            warn("Error creating log directory #{::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR)}, using standard out for logging.")  
           end
         end
 
