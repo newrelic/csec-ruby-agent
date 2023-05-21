@@ -14,6 +14,9 @@ module NewRelic::Security
         def self.reset_context
           # @http_context = nil
         end
+        def self.clear_context
+          @http_context = nil
+        end
       end
     end
     

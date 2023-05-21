@@ -52,9 +52,8 @@ module NewRelic::Security
           # GET method test
           get('/user/login', "John")
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           # puts http_context.inspect
-          
-
           method = http_context.method
           time_stamp = http_context.time_stamp
           body = http_context.body
@@ -84,6 +83,7 @@ module NewRelic::Security
           # POST method test
           post('/user/signup', "Jack")
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           # puts http_context.inspect
 
           method = http_context.method
@@ -115,6 +115,7 @@ module NewRelic::Security
           # PUT method test
           put('/user/user1', "Nor")
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           # puts http_context.inspect
 
           method = http_context.method
@@ -146,6 +147,7 @@ module NewRelic::Security
           # PATCH method test
           patch('/user/user2', "Tiec")
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           # puts http_context.inspect
 
           method = http_context.method
@@ -177,6 +179,7 @@ module NewRelic::Security
           # DELETE method test
           delete('/user/user3',"Temp")
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           # puts http_context.inspect
 
           method = http_context.method

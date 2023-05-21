@@ -85,6 +85,7 @@ module NewRelic::Security
           @api_instance = MyApiTest.new('get')
           @api_instance.get_test
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
@@ -123,6 +124,7 @@ module NewRelic::Security
           @api_instance = MyApiTest.new('post')
           @api_instance.post_test('abc')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
@@ -154,6 +156,7 @@ module NewRelic::Security
           @api_instance = MyApiTest.new('patch')
           @api_instance.patch_test('abc')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
@@ -185,6 +188,7 @@ module NewRelic::Security
           @api_instance = MyApiTest.new('put')
           @api_instance.put_test('abc')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
@@ -216,6 +220,7 @@ module NewRelic::Security
           @api_instance = MyApiTest.new('delete')
           @api_instance.delete_test('abc')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.clear_context
           #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp

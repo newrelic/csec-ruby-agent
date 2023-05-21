@@ -6,12 +6,14 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestFile < Minitest::Test
-                @@temp_file = $test_path + "/newrelic_security/../resources/tmp.txt"
-                #@@temp_file = "/tmp/abc"
-                @@case_type = "FILE_OPERATION"
+                @@temp_dir = $test_path + "/resources/temp"
+                @@temp_file = @@temp_dir + "/abc.txt"
+                @@case_type = "FILE_INTEGRITY"
                 @@args = [@@temp_file]
                 @@event_category = nil
+                
                 def test_delete
+                    Dir.mkdir(@@temp_dir) unless Dir.exist?(@@temp_dir)
                     File.new(@@temp_file, "w") unless File.exist?(@@temp_file)
                     $event_list.clear()
                     out = File.delete(@@temp_file)
@@ -24,6 +26,7 @@ module NewRelic::Security
                 end
 
                 def test_unlink
+                    Dir.mkdir(@@temp_dir) unless Dir.exist?(@@temp_dir)
                     File.new(@@temp_file, "w") unless File.exist?(@@temp_file)
                     $event_list.clear()
                     out = File.unlink(@@temp_file)

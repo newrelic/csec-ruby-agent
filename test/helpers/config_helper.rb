@@ -12,7 +12,7 @@ module NewRelic::Security
           @cache[:listen_port] = ""
           @cache[:agent_run_id] = ""
           @cache[:linking_metadata] = {}
-          @cache[:app_root] = File.expand_path('../../lib', __FILE__)
+          @cache[:app_root] = File.expand_path('../../resources/temp', __FILE__)
           @cache[:policy] = Hash.new
           @cache[:'security.detection.rxss.enabled'] = true
         end

@@ -5,7 +5,7 @@ ENV['NO_RAILS'] = 'true'
 ENV['NR'] = 'false'
 
 # This env is for Coverage
-ENV["VERBOSE_TEST_OUTPUT"] = '1'
+# ENV["VERBOSE_TEST_OUTPUT"] = '1'
 # Define Log level for logging
 ENV['NR_CSEC_LOG_LEVEL'] = 'DEBUG'
 # Define instrumentation method 
