@@ -6,6 +6,7 @@ module NewRelic::Security
         def initialize
           @cache = Hash.new
           @cache[:log_level] = ENV['NR_CSEC_LOG_LEVEL']
+          @cache[:log_file_path] = "log"
           @cache[:framework] = ""
           @cache[:groupName] = ""
           @cache[:uuid] = ""

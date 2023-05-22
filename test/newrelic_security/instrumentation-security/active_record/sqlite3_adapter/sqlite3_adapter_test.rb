@@ -2,15 +2,16 @@ require 'rails'
 require 'sqlite3'
 require 'active_record'
 require_relative '../../../../test_helper'
+require 'newrelic_security/instrumentation-security/sqlite3/instrumentation'
      
 class FakeUser < ActiveRecord::Base
 end
 
 # test setup
 test_file_path = __dir__ 
-database_name = test_file_path + "/db/test.db"
+$database_name = test_file_path + "/db/test.db"
 #test_db = SQLite3::Database.new(database_name)
-ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: database_name
+ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: $database_name
 load  test_file_path +'/db/schema.rb'
 
 require 'newrelic_security/instrumentation-security//active_record/sqlite3_adapter/instrumentation'
@@ -23,6 +24,7 @@ module NewRelic::Security
                 @@event_category = "SQLITE"
 
                 def test_exec_query 
+                    ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: $database_name
                     FakeUser.delete_all
                     $event_list.clear()
 
@@ -113,6 +115,7 @@ module NewRelic::Security
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
+                    ActiveRecord::Base.remove_connection
                     $event_list.clear()
                 end
 

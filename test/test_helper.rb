@@ -7,7 +7,7 @@ ENV['NR'] = 'false'
 # This env is for Coverage
 # ENV["VERBOSE_TEST_OUTPUT"] = '1'
 # Define Log level for logging
-ENV['NR_CSEC_LOG_LEVEL'] = 'DEBUG'
+ENV['NR_CSEC_LOG_LEVEL'] = 'INFO'
 # Define instrumentation method 
 ENV['NR_CSEC_INSTRUMENTATION_METHOD'] = 'prepend'
 
