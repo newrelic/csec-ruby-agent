@@ -1,4 +1,5 @@
 require 'mysql2'
+require 'testcontainers'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/mysql2/instrumentation'
 
@@ -10,7 +11,20 @@ module NewRelic::Security
                 @@event_category = "MYSQL"
                 
                 def test_query
-                    client = Mysql2::Client.new(:host => "localhost", :username => "root",:database => 'test')
+                    #server setup
+                    container = Testcontainers::DockerContainer.new("mysql:latest")
+                    container.name = "test"
+                    container.port_bindings = {"3306/tcp"=>[{"HostPort"=>"3307"}]}
+                    container.env = ['MYSQL_ALLOW_EMPTY_PASSWORD=yes', 'MYSQL_USER=test', 'MYSQL_DATABASE=testdb']
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 15
+                    $event_list.clear()
+
+                    client = Mysql2::Client.new(:host => "127.0.0.1", :username => "root", :password => '', :database => 'testdb', :port => 3307)
                     client.query("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
 
@@ -87,10 +101,27 @@ module NewRelic::Security
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
+
+                    #remove server
+                    container.stop
+                    container.delete
                 end
 
                 def test_execute
-                    client = Mysql2::Client.new(:host => "localhost", :username => "root",:database => 'test')
+                    # server setup
+                    container = Testcontainers::DockerContainer.new("mysql:latest")
+                    container.name = "test"
+                    container.port_bindings = {"3306/tcp"=>[{"HostPort"=>"3307"}]}
+                    container.env = ['MYSQL_ALLOW_EMPTY_PASSWORD=yes', 'MYSQL_USER=test', 'MYSQL_DATABASE=testdb']
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 15
+                    $event_list.clear()
+
+                    client = Mysql2::Client.new(:host => "127.0.0.1", :username => "root", :password => '', :database => 'testdb', :port => 3307)
                     client.query("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
 
@@ -171,6 +202,10 @@ module NewRelic::Security
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
+
+                    #remove server
+                    container.stop
+                    container.delete
                 end
 
             end

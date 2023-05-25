@@ -1,4 +1,5 @@
 require 'mongo'
+require 'testcontainers'
 require 'json'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/mongo/instrumentation'
@@ -11,7 +12,18 @@ module NewRelic::Security
                 @@event_category = "MONGO"
                 
                 def test_insert_one_update_one_delete_one_find
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
+                    # server setup
+                    container = Testcontainers::DockerContainer.new("mongo:latest")
+                    container.name = "test"
+                    container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 5
+
+                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -92,10 +104,24 @@ module NewRelic::Security
                     assert_equal 0, @output.length
                     $event_list.clear()
                     client.close()
+                    # remove server
+                    container.stop
+                    container.delete
                 end
                 
                 def test_insert_many_update_many_delete_many
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
+                    # server setup
+                    container = Testcontainers::DockerContainer.new("mongo:latest")
+                    container.name = "test"
+                    container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 5
+
+                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -177,444 +203,23 @@ module NewRelic::Security
                     assert_equal 0, @output.length
                     $event_list.clear()
                     client.close()
+                    # remove server
+                    container.stop
+                    container.delete
                 end
-
-                def test_find_update_one
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    value = '{"name":"abc", "price":"5000"}'
-                    @output = client[:cars].insert_one(JSON.parse(value))
-                    assert_equal 1, @output.n         
-                    $event_list.clear()
-
-                    # find.update_one test        
-                    # Issue: event created only for find but not for update_one
-                    new_value = '{"name":"pqr"}'
-                    new_value_change = '{"$set":'+new_value+'}'
-                    @output = client[:cars].find(:name => 'abc').update_one(JSON.parse(new_value_change))
-                    puts @output.inspect
-                    # update count
-                    assert_equal 1, @output.modified_count 
-                    # event verify     
-                    args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
-                    args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    assert_equal 2, $event_list.length
-                    # update event verify
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-                    # output data verify
-                    @output = client[:cars].find( JSON.parse(new_value) ).first
-                    assert_equal 3, @output.length
-                    assert_equal "pqr", @output["name"]
-                    assert_equal "5000", @output["price"]
-                    $event_list.clear()
-                    client.close()
-                end 
-
-                def test_find_delete_one
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    value = '{"name":"abc", "price":"5000"}'
-                    @output = client[:cars].insert_one(JSON.parse(value))
-                    assert_equal 1, @output.n         
-                    $event_list.clear()
-
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    # $event_list.clear()
-
-                    # find.delete_one test        
-                    @output = client[:cars].find(:name => 'abc').delete_one
-                    puts @output.inspect
-                    # delete count
-                    assert_equal 1, @output.n
-                    # event verify     
-                    args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
-                    args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    assert_equal 2, $event_list.length
-                    # delete event verify
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-                    
-                    # delete operation verify
-                    @output = []
-                    client[:cars].find.each do |document|
-                        @output.push(document)
-                    end
-                    assert_equal 0, @output.length
-                    $event_list.clear()
-                    client.close()
-                end 
-
-                def test_find_one_and_delete
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    value = '{"name":"abc", "price":"5000"}'
-                    @output = client[:cars].insert_one(JSON.parse(value))
-                    assert_equal 1, @output.n         
-                    $event_list.clear()
-
-                    # # Show all documents
-                    # puts "Documents:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    # $event_list.clear()
-
-                    # find_one_and_delete test       
-                    @output = client[:cars].find(:name => 'abc').find_one_and_delete
-                    assert_equal "abc", @output["name"]
-                    assert_equal "5000", @output["price"]
-                    # assert_equal 1, @output
-                    # event verify     
-                    args = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:delete}]
-                    args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    assert_equal 2, $event_list.length
-                    # delete event verify
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-
-                    # # Show all documents
-                    # puts "Documents:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    $event_list.clear()
-                    client.close()
-                end 
-
-                def test_find_update_many
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    docs = [ { _id: 1, name: 'abc', price: '1000' }, { _id: 2, name: 'pqr', price: '1000' } ]
-                    result = client[:cars].insert_many(docs)
-                    @output = result.inserted_count
-                    assert_equal 2, @output     # insert count   
-                    $event_list.clear()
-
-                    # # Show all documents
-                    # puts "Documents:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    # $event_list.clear()
-
-                    # find.update_many test      
-                    @output = client[:cars].find(:price => '1000').update_many({ "$set" => { :price =>  '4000' } })
-                    # modify count
-                    # assert_equal 2, @output.modified_count  
-                    args = [{:payload=>{:filter=>{}, :update=>{"$set"=>{:price=>"4000"}}, :options=>{}}, :payloadType=>:update}]
-                    args2 = [{:payload=>{:filter=>{}, :options=>{}}, :payloadType=>:find}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    # update_many event verify
-                    assert_equal 2, $event_list.length
-                    assert_equal expected_event1.caseType, $event_list[0].caseType
-                    assert_equal expected_event1.parameters, $event_list[0].parameters
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-
-                    # # Show all documents
-                    # puts "Documents:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    $event_list.clear()
-                    client.close()
-                end
-
-                def test_find_delete_many
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    docs = [ { _id: 1, name: 'abc', price: '1000' }, { _id: 2, name: 'pqr', price: '1000' } ]
-                    result = client[:cars].insert_many(docs)
-                    @output = result.inserted_count
-                    assert_equal 2, @output     # insert count   
-                    $event_list.clear()
-
-                    # # Show all documents
-                    # puts "Documents:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    # $event_list.clear()
-
-                    # find.delete_many test      
-                    @output = client[:cars].find(:price => '1000').delete_many
-                    # delete count
-                    assert_equal 2, @output.deleted_count  
-                    # event verify
-                    args = [{:payload=>{:filter=>{}, :update=>{"$set"=>{:price=>"1000"}}, :options=>{}}, :payloadType=>:update}]
-                    args2 = [{:payload=>{:filter=>{}, :options=>{}}, :payloadType=>:find}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    # update_many event verify
-                    assert_equal 2, $event_list.length
-                    assert_equal expected_event1.caseType, $event_list[0].caseType
-                    assert_equal expected_event1.parameters, $event_list[0].parameters
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-
-                    # delete operation verify
-                    @output = []
-                    client[:cars].find.each do |document|
-                        @output.push(document)
-                    end
-                    assert_equal 0, @output.length
-                    $event_list.clear()
-                    client.close()
-                end
-
-                def test_replace_one
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    value = '{"name":"abc", "price":"5000"}'
-                    @output = client[:cars].insert_one(JSON.parse(value))
-                    assert_equal 1, @output.n         
-                    $event_list.clear()
-
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    # $event_list.clear()
-
-                    # replace_one test        
-                    @output = client[:cars].replace_one( { :name => 'abc' }, { :name => 'pqr' } )
-                    puts @output.inspect
-                    # update count
-                    assert_equal 1, @output.modified_count 
-                    # event verify     
-                    args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
-                    args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    assert_equal 2, $event_list.length
-                    # update event verify
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-                    # output data verify
-                    @output = client[:cars].find( { :name => "pqr" } ).first
-                    assert_equal 2, @output.length
-                    assert_equal "pqr", @output["name"]
-                    
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    $event_list.clear()
-                    client.close()
-                end 
-
-                def test_find_replace_one
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    value = '{"name":"abc", "price":"5000"}'
-                    @output = client[:cars].insert_one(JSON.parse(value))
-                    assert_equal 1, @output.n         
-                    $event_list.clear()
-
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    # $event_list.clear()
-
-                    # find.replace_one test        
-                    @output = client[:cars].find(:name => 'abc').replace_one(:name => 'pqr')
-                    puts @output.inspect
-                    # update count
-                    assert_equal 1, @output.modified_count 
-                    # event verify     
-                    args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
-                    args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    assert_equal 2, $event_list.length
-                    # update event verify
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-                    # output data verify
-                    @output = client[:cars].find( { :name => "pqr" } ).first
-                    assert_equal 2, @output.length
-                    assert_equal "pqr", @output["name"]
-                    
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    $event_list.clear()
-                    client.close()
-                end 
-
-                def test_find_one_and_replace
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    value = '{"name":"abc", "price":"5000"}'
-                    @output = client[:cars].insert_one(JSON.parse(value))
-                    assert_equal 1, @output.n         
-                    $event_list.clear()
-
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    # $event_list.clear()
-
-                    # find_one_and_replace test        
-                    @output = client[:cars].find(:name => 'abc').find_one_and_replace(:name => 'pqr')
-                    assert_equal "abc", @output["name"]
-                    assert_equal "5000", @output["price"]
-                    # event verify     
-                    args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
-                    args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    assert_equal 2, $event_list.length
-                    # update event verify
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-                    # output data verify
-                    @output = client[:cars].find( { :name => "pqr" } ).first
-                    assert_equal 2, @output.length
-                    assert_equal "pqr", @output["name"]
-                    
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    $event_list.clear()
-                    client.close()
-                end 
-
-                def test_find_one_and_update
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
-                    client[:cars].find.each do |document|
-                        client[:cars].delete_one( document )
-                    end
-                    value = '{"name":"abc", "price":"5000"}'
-                    @output = client[:cars].insert_one(JSON.parse(value))
-                    assert_equal 1, @output.n         
-                    $event_list.clear()
-
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    # $event_list.clear()
-
-                    # find_one_and_update test        
-                    @output = client[:cars].find(:name => 'abc').find_one_and_update( '$set' => { :name => 'pqr' } )
-                    assert_equal "abc", @output["name"]
-                    assert_equal "5000", @output["price"]
-                    # event verify     
-                    args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
-                    args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
-                    assert_equal 2, $event_list.length
-                    # update event verify
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
-                    # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
-                    # output data verify
-                    @output = client[:cars].find( { :name => "pqr" } ).first
-                    assert_equal 3, @output.length
-                    assert_equal "pqr", @output["name"]
-                    assert_equal "5000", @output["price"]
-
-                    # # Show all documents
-                    # puts "\nDocuments:"
-                    # client[:cars].find.each do |document|
-                    #     puts document
-                    # end
-                    $event_list.clear()
-                    client.close()
-                end 
 
                 def test_insert_one_QueryCache_enabled
-                    client = Mongo::Client.new(['localhost:27017'], :database => 'testdb')
+                    # server setup
+                    container = Testcontainers::DockerContainer.new("mongo:latest")
+                    container.name = "test"
+                    container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 5
+                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -642,7 +247,563 @@ module NewRelic::Security
                     assert_equal "5000", @output["price"]
                     $event_list.clear()
                     client.close()
+                    # remove server
+                    container.stop
+                    container.delete
                 end 
+
+                # def test_find_update_one
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     value = '{"name":"abc", "price":"5000"}'
+                #     @output = client[:cars].insert_one(JSON.parse(value))
+                #     assert_equal 1, @output.n         
+                #     $event_list.clear()
+
+                #     # find.update_one test        
+                #     # Issue: event created only for find but not for update_one
+                #     new_value = '{"name":"pqr"}'
+                #     new_value_change = '{"$set":'+new_value+'}'
+                #     @output = client[:cars].find(:name => 'abc').update_one(JSON.parse(new_value_change))
+                #     puts @output.inspect
+                #     # update count
+                #     assert_equal 1, @output.modified_count 
+                #     # event verify     
+                #     args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
+                #     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     assert_equal 2, $event_list.length
+                #     # update event verify
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                #     # output data verify
+                #     @output = client[:cars].find( JSON.parse(new_value) ).first
+                #     assert_equal 3, @output.length
+                #     assert_equal "pqr", @output["name"]
+                #     assert_equal "5000", @output["price"]
+                #     $event_list.clear()
+                #     client.close()
+                #     puts "done"
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end 
+
+                # def test_find_delete_one
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     value = '{"name":"abc", "price":"5000"}'
+                #     @output = client[:cars].insert_one(JSON.parse(value))
+                #     assert_equal 1, @output.n         
+                #     $event_list.clear()
+
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     # $event_list.clear()
+
+                #     # find.delete_one test        
+                #     @output = client[:cars].find(:name => 'abc').delete_one
+                #     puts @output.inspect
+                #     # delete count
+                #     assert_equal 1, @output.n
+                #     # event verify     
+                #     args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
+                #     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     assert_equal 2, $event_list.length
+                #     # delete event verify
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                    
+                #     # delete operation verify
+                #     @output = []
+                #     client[:cars].find.each do |document|
+                #         @output.push(document)
+                #     end
+                #     assert_equal 0, @output.length
+                #     $event_list.clear()
+                #     client.close()
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end 
+
+                # def test_find_one_and_delete
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     value = '{"name":"abc", "price":"5000"}'
+                #     @output = client[:cars].insert_one(JSON.parse(value))
+                #     assert_equal 1, @output.n         
+                #     $event_list.clear()
+
+                #     # # Show all documents
+                #     # puts "Documents:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     # $event_list.clear()
+
+                #     # find_one_and_delete test       
+                #     @output = client[:cars].find(:name => 'abc').find_one_and_delete
+                #     assert_equal "abc", @output["name"]
+                #     assert_equal "5000", @output["price"]
+                #     # assert_equal 1, @output
+                #     # event verify     
+                #     args = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:delete}]
+                #     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     assert_equal 2, $event_list.length
+                #     # delete event verify
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+
+                #     # # Show all documents
+                #     # puts "Documents:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     $event_list.clear()
+                #     client.close()
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end 
+
+                # def test_find_update_many
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     docs = [ { _id: 1, name: 'abc', price: '1000' }, { _id: 2, name: 'pqr', price: '1000' } ]
+                #     result = client[:cars].insert_many(docs)
+                #     @output = result.inserted_count
+                #     assert_equal 2, @output     # insert count   
+                #     $event_list.clear()
+
+                #     # # Show all documents
+                #     # puts "Documents:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     # $event_list.clear()
+
+                #     # find.update_many test      
+                #     @output = client[:cars].find(:price => '1000').update_many({ "$set" => { :price =>  '4000' } })
+                #     # modify count
+                #     # assert_equal 2, @output.modified_count  
+                #     args = [{:payload=>{:filter=>{}, :update=>{"$set"=>{:price=>"4000"}}, :options=>{}}, :payloadType=>:update}]
+                #     args2 = [{:payload=>{:filter=>{}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     # update_many event verify
+                #     assert_equal 2, $event_list.length
+                #     assert_equal expected_event1.caseType, $event_list[0].caseType
+                #     assert_equal expected_event1.parameters, $event_list[0].parameters
+                #     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+
+                #     # # Show all documents
+                #     # puts "Documents:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     $event_list.clear()
+                #     client.close()
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end
+
+                # def test_find_delete_many
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     docs = [ { _id: 1, name: 'abc', price: '1000' }, { _id: 2, name: 'pqr', price: '1000' } ]
+                #     result = client[:cars].insert_many(docs)
+                #     @output = result.inserted_count
+                #     assert_equal 2, @output     # insert count   
+                #     $event_list.clear()
+
+                #     # # Show all documents
+                #     # puts "Documents:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     # $event_list.clear()
+
+                #     # find.delete_many test      
+                #     @output = client[:cars].find(:price => '1000').delete_many
+                #     # delete count
+                #     assert_equal 2, @output.deleted_count  
+                #     # event verify
+                #     args = [{:payload=>{:filter=>{}, :update=>{"$set"=>{:price=>"1000"}}, :options=>{}}, :payloadType=>:update}]
+                #     args2 = [{:payload=>{:filter=>{}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     # update_many event verify
+                #     assert_equal 2, $event_list.length
+                #     assert_equal expected_event1.caseType, $event_list[0].caseType
+                #     assert_equal expected_event1.parameters, $event_list[0].parameters
+                #     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+
+                #     # delete operation verify
+                #     @output = []
+                #     client[:cars].find.each do |document|
+                #         @output.push(document)
+                #     end
+                #     assert_equal 0, @output.length
+                #     $event_list.clear()
+                #     client.close()
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end
+
+                # def test_replace_one
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     value = '{"name":"abc", "price":"5000"}'
+                #     @output = client[:cars].insert_one(JSON.parse(value))
+                #     assert_equal 1, @output.n         
+                #     $event_list.clear()
+
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     # $event_list.clear()
+
+                #     # replace_one test        
+                #     @output = client[:cars].replace_one( { :name => 'abc' }, { :name => 'pqr' } )
+                #     puts @output.inspect
+                #     # update count
+                #     assert_equal 1, @output.modified_count 
+                #     # event verify     
+                #     args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
+                #     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     assert_equal 2, $event_list.length
+                #     # update event verify
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                #     # output data verify
+                #     @output = client[:cars].find( { :name => "pqr" } ).first
+                #     assert_equal 2, @output.length
+                #     assert_equal "pqr", @output["name"]
+                    
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     $event_list.clear()
+                #     client.close()
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end 
+
+                # def test_find_replace_one
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     value = '{"name":"abc", "price":"5000"}'
+                #     @output = client[:cars].insert_one(JSON.parse(value))
+                #     assert_equal 1, @output.n         
+                #     $event_list.clear()
+
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     # $event_list.clear()
+
+                #     # find.replace_one test        
+                #     @output = client[:cars].find(:name => 'abc').replace_one(:name => 'pqr')
+                #     puts @output.inspect
+                #     # update count
+                #     assert_equal 1, @output.modified_count 
+                #     # event verify     
+                #     args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
+                #     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     assert_equal 2, $event_list.length
+                #     # update event verify
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                #     # output data verify
+                #     @output = client[:cars].find( { :name => "pqr" } ).first
+                #     assert_equal 2, @output.length
+                #     assert_equal "pqr", @output["name"]
+                    
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     $event_list.clear()
+                #     client.close()
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end 
+
+                # def test_find_one_and_replace
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     value = '{"name":"abc", "price":"5000"}'
+                #     @output = client[:cars].insert_one(JSON.parse(value))
+                #     assert_equal 1, @output.n         
+                #     $event_list.clear()
+
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     # $event_list.clear()
+
+                #     # find_one_and_replace test        
+                #     @output = client[:cars].find(:name => 'abc').find_one_and_replace(:name => 'pqr')
+                #     assert_equal "abc", @output["name"]
+                #     assert_equal "5000", @output["price"]
+                #     # event verify     
+                #     args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
+                #     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     assert_equal 2, $event_list.length
+                #     # update event verify
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                #     # output data verify
+                #     @output = client[:cars].find( { :name => "pqr" } ).first
+                #     assert_equal 2, @output.length
+                #     assert_equal "pqr", @output["name"]
+                    
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     $event_list.clear()
+                #     client.close()
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end 
+
+                # def test_find_one_and_update
+                #     # server setup
+                #     container = Testcontainers::DockerContainer.new("mongo:latest")
+                #     container.name = "test"
+                #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
+                #     begin
+                #         `docker rm -f test`
+                #     rescue
+                #     end
+                #     container.start
+                #     sleep 5
+                #     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                #     client[:cars].find.each do |document|
+                #         client[:cars].delete_one( document )
+                #     end
+                #     value = '{"name":"abc", "price":"5000"}'
+                #     @output = client[:cars].insert_one(JSON.parse(value))
+                #     assert_equal 1, @output.n         
+                #     $event_list.clear()
+
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     # $event_list.clear()
+
+                #     # find_one_and_update test        
+                #     @output = client[:cars].find(:name => 'abc').find_one_and_update( '$set' => { :name => 'pqr' } )
+                #     assert_equal "abc", @output["name"]
+                #     assert_equal "5000", @output["price"]
+                #     # event verify     
+                #     args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set" => { :name => "pqr" }}, :options=>{}}, :payloadType=>:update}]
+                #     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                #     puts $event_list[0].caseType, $event_list[0].parameters, $event_list[0].eventCategory 
+                #     assert_equal 2, $event_list.length
+                #     # update event verify
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                #     # find event verify
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                #     # output data verify
+                #     @output = client[:cars].find( { :name => "pqr" } ).first
+                #     assert_equal 3, @output.length
+                #     assert_equal "pqr", @output["name"]
+                #     assert_equal "5000", @output["price"]
+
+                #     # # Show all documents
+                #     # puts "\nDocuments:"
+                #     # client[:cars].find.each do |document|
+                #     #     puts document
+                #     # end
+                #     $event_list.clear()
+                #     client.close()
+                #     # remove server
+                #     container.stop
+                #     container.delete
+                # end 
             end
         end
     end

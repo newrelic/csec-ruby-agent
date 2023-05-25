@@ -1,5 +1,6 @@
 require 'rails'
 require 'pg'
+require 'testcontainers'
 require 'active_record'
 require_relative '../../../../test_helper'
 require 'newrelic_security/instrumentation-security/pg/instrumentation'
@@ -8,10 +9,8 @@ class NewUser < ActiveRecord::Base
 end
 
 # test setup
-test_file_path = __dir__ 
+$test_file_path = __dir__ 
 ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
-load  test_file_path +'/db/schema.rb'
-
 require 'newrelic_security/instrumentation-security//active_record/postgresql_adapter/instrumentation'
 
 module NewRelic::Security
@@ -22,7 +21,19 @@ module NewRelic::Security
                 @@event_category = "POSTGRES"
 
                 def test_exec_query_exec_update_exec_delete
+                    # server setup
+                    container = Testcontainers::DockerContainer.new("postgres:latest")
+                    container.name = "test"
+                    container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
+                    container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 5
                     ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
+                    load  $test_file_path +'/db/schema.rb'
                     NewUser.delete_all
                     $event_list.clear()
 
@@ -102,10 +113,26 @@ module NewRelic::Security
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
                     ActiveRecord::Base.remove_connection
                     $event_list.clear()
+
+                    # remove server
+                    container.stop
+                    container.delete
                 end
 
                 def test_execute
+                    # server setup
+                    container = Testcontainers::DockerContainer.new("postgres:latest")
+                    container.name = "test"
+                    container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
+                    container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 5
                     ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
+                    load  $test_file_path +'/db/schema.rb'
                     NewUser.delete_all
 
                     # INSERT test
@@ -165,6 +192,10 @@ module NewRelic::Security
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
                     ActiveRecord::Base.remove_connection
                     $event_list.clear()
+
+                    # remove server
+                    container.stop
+                    container.delete
                 end
             end
         end

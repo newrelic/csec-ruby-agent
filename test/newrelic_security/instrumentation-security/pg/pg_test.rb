@@ -1,4 +1,5 @@
 require 'pg'
+require 'testcontainers'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/pg/instrumentation'
 
@@ -10,7 +11,19 @@ module NewRelic::Security
                 @@event_category = "POSTGRES"
                 
                 def test_exec
+                    # server setup
+                    container = Testcontainers::DockerContainer.new("postgres:latest")
+                    container.name = "test"
+                    container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
+                    container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 5
                     $event_list.clear()
+
                     client = PG::Connection.open(:dbname => 'postgres', :user => 'postgres', :host => 'localhost', :port => 5433)
                     client.exec("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
@@ -88,10 +101,26 @@ module NewRelic::Security
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
+
+                    # remove server
+                    container.stop
+                    container.delete
                 end
 
                 def test_exec_prepared
+                    # server setup
+                    container = Testcontainers::DockerContainer.new("postgres:latest")
+                    container.name = "test"
+                    container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
+                    container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
+                    begin
+                        `docker rm -f test`
+                    rescue
+                    end
+                    container.start
+                    sleep 5
                     $event_list.clear()
+
                     client = PG::Connection.new(:dbname => 'postgres', :user => 'postgres', :host => 'localhost', :port => 5433)
                     client.exec("DROP TABLE IF EXISTS fake_users")
                     client.exec("create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))")
@@ -182,6 +211,9 @@ module NewRelic::Security
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
 
+                    # # remove server
+                    container.stop
+                    container.delete
                 end
 
             end
