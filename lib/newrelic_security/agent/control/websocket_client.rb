@@ -2,6 +2,7 @@
 
 require 'newrelic_security/websocket-client-simple/client'
 require 'openssl'
+require 'singleton'
 
 module NewRelic::Security
   module Agent
@@ -19,10 +20,11 @@ module NewRelic::Security
       NR_ACCOUNT_ID = 'NR-ACCOUNT-ID'
 
       class WebsocketClient
+        include Singleton
 
         attr_accessor :ws
 
-        def initialize()
+        def connect()
 
           headers = Hash.new
           headers[NR_CSEC_CONNECTION_TYPE] = LANGUAGE_COLLECTOR
@@ -63,14 +65,17 @@ module NewRelic::Security
               NewRelic::Security::Agent.logger.info "Closing websocket connection : #{e.inspect}\n"
               NewRelic::Security::Agent.config.disable_security
               Thread.new {
-                NewRelic::Security::Agent.agent.websocket_client.reconnect
+                NewRelic::Security::Agent.agent.reconnect(0)
               }
-              # TODO: Add websocket reconnect implementation
-              # exit 1
             end
             
             connection.on :error do |e|
               NewRelic::Security::Agent.logger.error "Error in websocket connection : #{e.inspect} #{e.backtrace}"
+              NewRelic::Security::Agent.config.disable_security
+              Thread.new {
+                NewRelic::Security::Agent.agent.reconnect(15)
+              }
+              NewRelic::Security::Agent::Control::WebsocketClient.instance.close
             end
           rescue Errno::EPIPE => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
@@ -78,6 +83,7 @@ module NewRelic::Security
           rescue Errno::ECONNREFUSED => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
             NewRelic::Security::Agent.config.disable_security
+            NewRelic::Security::Agent.agent.reconnect(15)
           rescue => exception
             NewRelic::Security::Agent.logger.error "Exception in websocket init: #{exception.inspect} #{exception.backtrace}"
             NewRelic::Security::Agent.config.disable_security
@@ -100,20 +106,8 @@ module NewRelic::Security
         end
 
         def is_open?
-          @ws.open? if @ws
-        end
-
-        def is_closed?
-          @ws.closed? if @ws
-        end
-
-        def reconnect
-          sleep 0.01
-          while NewRelic::Security::Agent.agent.websocket_client && NewRelic::Security::Agent.agent.websocket_client.is_closed?
-            NewRelic::Security::Agent.logger.info "Trying to reconnect to websocket connection..."
-            NewRelic::Security::Agent.agent.start_websocket_client
-            sleep 15
-          end
+          return @ws.open? if @ws
+          false
         end
         
       end

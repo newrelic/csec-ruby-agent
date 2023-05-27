@@ -63,7 +63,12 @@ module NewRelic::Security
           # TODO: Create 3 or more consumers for event sending
           Thread.new do
             loop do
-              NewRelic::Security::Agent.agent.websocket_client.send(@eventQ.pop) if NewRelic::Security::Agent.agent.websocket_client && NewRelic::Security::Agent.agent.websocket_client.is_open?
+              begin
+                data_to_be_sent = @eventQ.pop
+                NewRelic::Security::Agent::Control::WebsocketClient.instance.send(data_to_be_sent)
+              rescue => exception
+                NewRelic::Security::Agent.logger.error "Exception in event pop operation : #{exception.inspect}"
+              end
             end
           end
         rescue Exception => exception
