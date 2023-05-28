@@ -80,6 +80,10 @@ module NewRelic::Security
           rescue Errno::EPIPE => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
             NewRelic::Security::Agent.config.disable_security
+          rescue Errno::ECONNRESET => exception
+            NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
+            NewRelic::Security::Agent.config.disable_security
+            NewRelic::Security::Agent.agent.reconnect(15)
           rescue Errno::ECONNREFUSED => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
             NewRelic::Security::Agent.config.disable_security
