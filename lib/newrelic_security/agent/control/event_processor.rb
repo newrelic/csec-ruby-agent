@@ -15,7 +15,7 @@ module NewRelic::Security
           @eventQ = ::SizedQueue.new(EVENT_QUEUE_SIZE)
           create_dequeue_threads
           create_keep_alive_thread
-          NewRelic::Security::Agent.init_logger.info "[STEP-5] => Security agent threads started"
+          NewRelic::Security::Agent.init_logger.info "[STEP-5] => Security agent components started"
         end
 
         def send_app_info
