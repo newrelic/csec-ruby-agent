@@ -41,7 +41,6 @@ module NewRelic::Security
                         #puts "idling... can do some work here"
                     end
                     assert_equal 200, @output  
-                    args = [{:Method=>nil, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, @@args, @@event_category)
                     assert_equal 1, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -58,7 +57,6 @@ module NewRelic::Security
                         @output= easy.code
                     end
                     assert_equal 200, @output  
-                    args = [{:Method=>nil, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, @@args, @@event_category)
                     assert_equal 1, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -71,7 +69,6 @@ module NewRelic::Security
                     response = Curl::Easy.perform(@@url)
                     @output = response.code
                     assert_equal 200, @output  
-                    args = [{:Method=>nil, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, @@args, @@event_category)
                     assert_equal 1, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -81,5 +78,5 @@ module NewRelic::Security
             end
         end
     end
-  end
+end
   

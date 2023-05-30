@@ -5,9 +5,9 @@ ENV['NO_RAILS'] = 'true'
 ENV['NR'] = 'false'
 
 # This env is for Coverage
-ENV["VERBOSE_TEST_OUTPUT"] = '1'
+# ENV["VERBOSE_TEST_OUTPUT"] = '1'
 # Define Log level for logging
-ENV['NR_CSEC_LOG_LEVEL'] = 'DEBUG'
+ENV['NR_CSEC_LOG_LEVEL'] = 'INFO'
 # Define instrumentation method 
 ENV['NR_CSEC_INSTRUMENTATION_METHOD'] = 'prepend'
 
@@ -55,8 +55,12 @@ else
   end
 end
 
-# loading Agent helper files
+# loading helper files
 Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f }
 
-# Create log dir: nr-security-home
-NewRelic::Security::Agent.create_agent_home
+# Create Agent instance
+module NewRelic::Security
+  module Agent  
+    @agent = NewRelic::Security::Agent::Agent.new
+  end
+end
