@@ -101,6 +101,7 @@ module NewRelic::Security
 
         def detect_framework
           return :rails if defined?(::Rails)
+          return :padrino if defined?(::Padrino)
           return :sinatra if defined?(::Sinatra)
         end
 

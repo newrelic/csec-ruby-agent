@@ -100,6 +100,12 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route}"
             end
           end
+        elsif framework == :padrino
+          ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
+            z.instance_variable_get(:@routes).each { |route| 
+              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.instance_variable_get(:@path)}"
+            }
+          }
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end

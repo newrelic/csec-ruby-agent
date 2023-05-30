@@ -10,6 +10,7 @@ module NewRelic::Security
       UNDERSCORE = '_'
       HYPHEN = '-'
       REQUEST_METHOD = 'REQUEST_METHOD'
+      PATH_INFO = 'PATH_INFO'
       RACK_INPUT = 'rack.input'
       CGI_VARIABLES = ::Set.new(%W[ AUTH_TYPE CONTENT_LENGTH CONTENT_TYPE GATEWAY_INTERFACE HTTPS PATH_INFO PATH_TRANSLATED REQUEST_URI QUERY_STRING REMOTE_ADDR REMOTE_HOST REMOTE_IDENT REMOTE_USER REQUEST_METHOD SCRIPT_NAME SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE rack.url_scheme ])
 
@@ -39,6 +40,7 @@ module NewRelic::Security
 					strio.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
+          @route = "#{env[REQUEST_METHOD].to_s}@#{env[PATH_INFO].to_s}"
           NewRelic::Security::Agent.agent.http_request_count.increment
         end
 
