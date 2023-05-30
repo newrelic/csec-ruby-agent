@@ -68,3 +68,5 @@ nr-security-home/
 
 # temp files
 test/resources/tmp.txt
+**/test.db
+**/log/
