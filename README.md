@@ -93,4 +93,4 @@ To all contributors, we thank you!  Without your contribution, this project woul
 ## License
 The New Relic csec-ruby-agent is licensed under the New Relic Pre-Release Software Notice.
 
-The New Relic csec-ruby-agent also uses source code from third-party libraries. You can find full details on which libraries are used and the terms under which they are licensed in the third-party notices document.
+The New Relic csec-ruby-agent also uses source code from third-party libraries. You can find full details on which libraries are used and the terms under which they are licensed in the [third-party notices document](./THIRD_PARTY_NOTICES.md).
