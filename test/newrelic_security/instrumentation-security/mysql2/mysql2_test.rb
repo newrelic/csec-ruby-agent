@@ -13,11 +13,11 @@ module NewRelic::Security
                 def test_query
                     #server setup
                     container = Testcontainers::DockerContainer.new("mysql:latest")
-                    container.name = "test"
+                    container.name = "mysql_test"
                     container.port_bindings = {"3306/tcp"=>[{"HostPort"=>"3307"}]}
                     container.env = ['MYSQL_ALLOW_EMPTY_PASSWORD=yes', 'MYSQL_USER=test', 'MYSQL_DATABASE=testdb']
                     begin
-                        `docker rm -f test`
+                        `docker rm -f mysql_test`
                     rescue
                     end
                     container.start
@@ -110,11 +110,11 @@ module NewRelic::Security
                 def test_execute
                     # server setup
                     container = Testcontainers::DockerContainer.new("mysql:latest")
-                    container.name = "test"
+                    container.name = "mysql_test"
                     container.port_bindings = {"3306/tcp"=>[{"HostPort"=>"3307"}]}
                     container.env = ['MYSQL_ALLOW_EMPTY_PASSWORD=yes', 'MYSQL_USER=test', 'MYSQL_DATABASE=testdb']
                     begin
-                        `docker rm -f test`
+                        `docker rm -f mysql_test`
                     rescue
                     end
                     container.start

@@ -13,11 +13,11 @@ module NewRelic::Security
                 def test_exec
                     # server setup
                     container = Testcontainers::DockerContainer.new("postgres:latest")
-                    container.name = "test"
+                    container.name = "pg_test"
                     container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
                     container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
                     begin
-                        `docker rm -f test`
+                        `docker rm -f pg_test`
                     rescue
                     end
                     container.start
@@ -110,11 +110,11 @@ module NewRelic::Security
                 def test_exec_prepared
                     # server setup
                     container = Testcontainers::DockerContainer.new("postgres:latest")
-                    container.name = "test"
+                    container.name = "pg_test"
                     container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
                     container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
                     begin
-                        `docker rm -f test`
+                        `docker rm -f pg_test`
                     rescue
                     end
                     container.start
@@ -135,12 +135,17 @@ module NewRelic::Security
                     #puts @output, results.inspect
                     assert_equal 1, results.cmd_tuples
                     # event verify
-                    args = [{:parameters=>["abc", "me@abc.com", "A", "http://blog.abc.com"]}]
+                    args = [{:sql=>"select statement from pg_prepared_statements where name = 'insert_statement'", :parameters=>[]}]
+                    args2 = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES ($1, $2, $3, $4)", :parameters=>["abc", "me@abc.com", "A", "http://blog.abc.com"]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_equal expected_event2.caseType, $event_list[1].caseType
+                    assert_equal expected_event2.parameters, $event_list[1].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
 
                     # UPDATE event test
@@ -152,12 +157,17 @@ module NewRelic::Security
                     #puts @output, results.inspect
                     assert_equal 1, results.cmd_tuples
                     # event verify
-                    args = [{:parameters=>["john", "me@john.com", "abc"]}]
+                    args = [{:sql=>"select statement from pg_prepared_statements where name = 'update_statement'", :parameters=>[]}]
+                    args2 = [{:sql=>"UPDATE fake_users SET name = $1, email= $2 WHERE name = $3", :parameters=>["john", "me@john.com", "abc"]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_equal expected_event2.caseType, $event_list[1].caseType
+                    assert_equal expected_event2.parameters, $event_list[1].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
 
                      # SELECT event test 
@@ -170,12 +180,17 @@ module NewRelic::Security
                     expected_result = {"name"=>"john", "email"=>"me@john.com", "grade"=>"A", "blog"=>"http://blog.abc.com"}
                     assert_equal expected_result, @output
                     # event verification
-                    args = [{:parameters=>["john"]}]
+                    args = [{:sql=>"select statement from pg_prepared_statements where name = 'select_statement'", :parameters=>[]}]
+                    args2 = [{:sql=>"SELECT * FROM fake_users WHERE name = $1", :parameters=>["john"]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_equal expected_event2.caseType, $event_list[1].caseType
+                    assert_equal expected_event2.parameters, $event_list[1].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
 
                     # DELETE event test 
@@ -186,12 +201,18 @@ module NewRelic::Security
                     end
                     expected_result = {"name"=>"john", "email"=>"me@john.com", "grade"=>"A", "blog"=>"http://blog.abc.com"}
                     assert_equal expected_result, @output
-                    args = [{:parameters=>["john"]}]
+                    # event verify
+                    args = [{:sql=>"select statement from pg_prepared_statements where name = 'delete_statement'", :parameters=>[]}]
+                    args2 = [{:sql=>"DELETE FROM fake_users WHERE name= $1", :parameters=>["john"]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory                
+                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory        
+                    assert_equal expected_event2.caseType, $event_list[1].caseType
+                    assert_equal expected_event2.parameters, $event_list[1].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory        
                     # delete operation verify
                     @output = []
                     results = client.exec("SELECT * FROM fake_users")

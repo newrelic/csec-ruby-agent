@@ -23,11 +23,11 @@ module NewRelic::Security
                 def test_exec_query_exec_update_exec_delete
                     # server setup
                     container = Testcontainers::DockerContainer.new("postgres:latest")
-                    container.name = "test"
+                    container.name = "pg_test"
                     container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
                     container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
                     begin
-                        `docker rm -f test`
+                        `docker rm -f pg_test`
                     rescue
                     end
                     container.start
@@ -65,12 +65,22 @@ module NewRelic::Security
                     assert_equal "11", @output.ssn
                     # exec_query event verify 
                     args1 = [{:sql=>"SELECT \"new_users\".* FROM \"new_users\" WHERE \"new_users\".\"id\" = $1 LIMIT $2", :parameters=>["1", "1"]}]
+                    args2 = [{:sql=>"select statement from pg_prepared_statements where name = 'a2'", :parameters=>[]}]
+                    args3 = [{:sql=>"SELECT \"new_users\".* FROM \"new_users\" WHERE \"new_users\".\"id\" = $1 LIMIT $2", :parameters=>["1", "1"]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
                     #puts $event_list.length
-                    assert_equal 2, $event_list.length
+                    assert_equal 3, $event_list.length
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
+                    assert_equal expected_event2.caseType, $event_list[1].caseType
+                    assert_equal expected_event2.parameters, $event_list[1].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory  
+                    assert_equal expected_event3.caseType, $event_list[2].caseType
+                    assert_equal expected_event3.parameters, $event_list[2].parameters
+                    assert_equal expected_event3.eventCategory, $event_list[2].eventCategory  
                     $event_list.clear()
 
                     # UPDATE test           
@@ -83,19 +93,31 @@ module NewRelic::Security
                     assert_equal "11", @output.ssn
                     # exec_update event verify
                     args1 = [{:sql=>"SELECT \"new_users\".* FROM \"new_users\" WHERE \"new_users\".\"id\" = $1 LIMIT $2", :parameters=>["1", "1"]}]
-                    args2 = [{:sql=>"UPDATE \"new_users\" SET \"name\" = $1 WHERE \"new_users\".\"id\" = $2", :parameters=>["Jack", "1"]}]
+                    args2 = [{:sql=>"select statement from pg_prepared_statements where name = 'a2'", :parameters=>[]}]
+                    args3 = [{:sql=>"SELECT \"new_users\".* FROM \"new_users\" WHERE \"new_users\".\"id\" = $1 LIMIT $2", :parameters=>["1", "1"]}]
+                    args4 = [{:sql=>"UPDATE \"new_users\" SET \"name\" = $1 WHERE \"new_users\".\"id\" = $2", :parameters=>["Jack", "1"]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
+                    expected_event4 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args4, @@event_category)
                     # puts $event_list.length
-                    assert_equal 3, $event_list.length
+                    assert_equal 4, $event_list.length
                     # select event
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory 
+                    
+                    assert_equal expected_event2.caseType, $event_list[1].caseType
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory 
+                    assert_equal expected_event2.parameters, $event_list[1].parameters
+
+                    assert_equal expected_event3.caseType, $event_list[2].caseType
+                    assert_equal expected_event3.eventCategory, $event_list[2].eventCategory 
+                    assert_equal expected_event3.parameters, $event_list[2].parameters
                     # update event 
-                    assert_equal expected_event2.caseType, $event_list[2].caseType
-                    assert_equal expected_event2.eventCategory, $event_list[2].eventCategory 
-                    assert_equal expected_event2.parameters, $event_list[2].parameters
+                    assert_equal expected_event4.caseType, $event_list[3].caseType
+                    assert_equal expected_event4.eventCategory, $event_list[3].eventCategory 
+                    assert_equal expected_event4.parameters, $event_list[3].parameters
                     $event_list.clear()
 
                     # DELETE test           
@@ -122,11 +144,11 @@ module NewRelic::Security
                 def test_execute
                     # server setup
                     container = Testcontainers::DockerContainer.new("postgres:latest")
-                    container.name = "test"
+                    container.name = "pg_test"
                     container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
                     container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
                     begin
-                        `docker rm -f test`
+                        `docker rm -f pg_test`
                     rescue
                     end
                     container.start

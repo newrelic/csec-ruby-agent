@@ -14,10 +14,10 @@ module NewRelic::Security
                 def test_insert_one_update_one_delete_one_find
                     # server setup
                     container = Testcontainers::DockerContainer.new("mongo:latest")
-                    container.name = "test"
+                    container.name = "mongo_test"
                     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                     begin
-                        `docker rm -f test`
+                        `docker rm -f mongo_test`
                     rescue
                     end
                     container.start
@@ -112,10 +112,10 @@ module NewRelic::Security
                 def test_insert_many_update_many_delete_many
                     # server setup
                     container = Testcontainers::DockerContainer.new("mongo:latest")
-                    container.name = "test"
+                    container.name = "mongo_test"
                     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                     begin
-                        `docker rm -f test`
+                        `docker rm -f mongo_test`
                     rescue
                     end
                     container.start
@@ -211,10 +211,10 @@ module NewRelic::Security
                 def test_insert_one_QueryCache_enabled
                     # server setup
                     container = Testcontainers::DockerContainer.new("mongo:latest")
-                    container.name = "test"
+                    container.name = "mongo_test"
                     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                     begin
-                        `docker rm -f test`
+                        `docker rm -f mongo_test`
                     rescue
                     end
                     container.start
@@ -255,10 +255,10 @@ module NewRelic::Security
                 # def test_find_update_one
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.start
@@ -311,10 +311,10 @@ module NewRelic::Security
                 # def test_find_delete_one
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.start
@@ -372,10 +372,10 @@ module NewRelic::Security
                 # def test_find_one_and_delete
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.start
@@ -432,10 +432,10 @@ module NewRelic::Security
                 # def test_find_update_many
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.start
@@ -491,10 +491,10 @@ module NewRelic::Security
                 # def test_find_delete_many
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
@@ -553,10 +553,10 @@ module NewRelic::Security
                 # def test_replace_one
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.start
@@ -617,10 +617,10 @@ module NewRelic::Security
                 # def test_find_replace_one
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.start
@@ -681,10 +681,10 @@ module NewRelic::Security
                 # def test_find_one_and_replace
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.start
@@ -744,10 +744,10 @@ module NewRelic::Security
                 # def test_find_one_and_update
                 #     # server setup
                 #     container = Testcontainers::DockerContainer.new("mongo:latest")
-                #     container.name = "test"
+                #     container.name = "mongo_test"
                 #     container.port_bindings = {"27017/tcp"=>[{"HostPort"=>"27018"}]}
                 #     begin
-                #         `docker rm -f test`
+                #         `docker rm -f mongo_test`
                 #     rescue
                 #     end
                 #     container.start
