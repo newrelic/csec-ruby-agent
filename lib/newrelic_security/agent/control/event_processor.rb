@@ -15,7 +15,7 @@ module NewRelic::Security
           @eventQ = ::SizedQueue.new(EVENT_QUEUE_SIZE)
           create_dequeue_threads
           create_keep_alive_thread
-          NewRelic::Security::Agent.init_logger.info "[STEP-5] => Security agent threads started"
+          NewRelic::Security::Agent.init_logger.info "[STEP-5] => Security agent components started"
         end
 
         def send_app_info
@@ -63,7 +63,12 @@ module NewRelic::Security
           # TODO: Create 3 or more consumers for event sending
           Thread.new do
             loop do
-              NewRelic::Security::Agent.agent.websocket_client.send(@eventQ.pop) if NewRelic::Security::Agent.agent.websocket_client && NewRelic::Security::Agent.agent.websocket_client.is_open?
+              begin
+                data_to_be_sent = @eventQ.pop
+                NewRelic::Security::Agent::Control::WebsocketClient.instance.send(data_to_be_sent)
+              rescue => exception
+                NewRelic::Security::Agent.logger.error "Exception in event pop operation : #{exception.inspect}"
+              end
             end
           end
         rescue Exception => exception
@@ -81,7 +86,7 @@ module NewRelic::Security
           Thread.new {
             while true do 
               sleep HEALTH_INTERVAL
-              send_health
+              send_health if NewRelic::Security::Agent.config[:enabled]
             end
           }
         rescue Exception => exception

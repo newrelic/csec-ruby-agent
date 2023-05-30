@@ -63,7 +63,7 @@ module NewRelic::Security
           @stats[:processHeapUsageMB] = nil
           @stats[:processDirDiskFreeSpaceMB] = nil
           @stats[:rootDiskFreeSpaceMB] = nil
-          @serviceStatus[:websocket] = NewRelic::Security::Agent.agent.websocket_client.is_open? ? 'OK' : 'Error'
+          @serviceStatus[:websocket] = NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open? ? 'OK' : 'Error'
           @serviceStatus[:logWriter] = NewRelic::Security::Agent.logger ? 'OK' : 'Error'
           @serviceStatus[:initLogWriter] = NewRelic::Security::Agent.init_logger ? 'OK' : 'Error'
           @serviceStatus[:statusLogWriter] = NewRelic::Security::Agent.agent.status_logger ? 'OK' : 'Error'

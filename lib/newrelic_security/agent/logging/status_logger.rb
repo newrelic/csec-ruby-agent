@@ -43,7 +43,7 @@ module NewRelic::Security
             status_template << "\nAgent mode: #{NewRelic::Security::Agent.config[:mode]}"
             status_template << "\nApplication server: #{NewRelic::Security::Agent.config[:app_server]}"
             status_template << "\nApplication Framework: #{NewRelic::Security::Agent.config[:framework]}"
-            status_template << "\nWebsocket connection to Prevent Web: #{NewRelic::Security::Agent.config[:validator_service_url]}, Status: #{NewRelic::Security::Agent.agent.websocket_client.is_open? ? 'OK' : 'Error'}"
+            status_template << "\nWebsocket connection to Prevent Web: #{NewRelic::Security::Agent.config[:validator_service_url]}, Status: #{NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open? ? 'OK' : 'Error'}"
             status_template << "\nInstrumentation successful:"
             status_template << "\nTracking loaded modules in the application:"
             status_template << "\nPolicy applied successfully. Policy version is: #{NewRelic::Security::Agent.config[:policy]['version']}"

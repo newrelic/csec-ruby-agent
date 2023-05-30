@@ -86,6 +86,9 @@ module NewRelic::Security
             frame = NewRelic::Security::WebSocket::Frame::Outgoing::Client.new(:data => data, :type => type, :version => @handshake.version)
             begin
               @socket.write frame.to_s
+            rescue IOError => e
+              @pipe_broken = true
+              emit :__close, e
             rescue Errno::EPIPE => e
               @pipe_broken = true
               emit :__close, e
