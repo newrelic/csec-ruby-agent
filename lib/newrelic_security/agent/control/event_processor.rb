@@ -86,7 +86,7 @@ module NewRelic::Security
           Thread.new {
             while true do 
               sleep HEALTH_INTERVAL
-              send_health
+              send_health if NewRelic::Security::Agent.config[:enabled]
             end
           }
         rescue Exception => exception
