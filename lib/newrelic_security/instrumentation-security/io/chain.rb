@@ -25,9 +25,9 @@ module NewRelic::Security
               
               alias_method :read_without_security, :read
 
-              def read(*var)
+              def read(*var, **kwargs)
                 retval = nil
-                event = read_on_enter(*var) { retval = read_without_security(*var) }
+                event = read_on_enter(*var) { retval = read_without_security(*var, **kwargs) }
                 read_on_exit(event, retval) { return retval }
               end
               
@@ -41,9 +41,9 @@ module NewRelic::Security
 
               alias_method :readlines_without_security, :readlines
 
-              def readlines(*var)
+              def readlines(*var, **kwargs)
                 retval = nil
-                event = readlines_on_enter(*var) { retval = readlines_without_security(*var) }
+                event = readlines_on_enter(*var) { retval = readlines_without_security(*var, **kwargs) }
                 readlines_on_exit(event, retval) { return retval }
               end
 

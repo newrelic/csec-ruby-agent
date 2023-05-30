@@ -73,7 +73,7 @@ module NewRelic::Security
             NewRelic::Security::Agent.logger.info "Waiting for eventQ to get empty, current size: #{NewRelic::Security::Agent.agent.event_processor.eventQ.size}"
             sleep 0.1
           end
-          NewRelic::Security::Agent.agent.websocket_client.close
+          NewRelic::Security::Agent::Control::WebsocketClient.instance.close
         end
       end
     end
