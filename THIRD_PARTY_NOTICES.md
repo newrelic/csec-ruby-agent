@@ -28,7 +28,7 @@ Distributed under the following license(s):
 
 ## [websocket-ruby](https://rubygems.org/gems/websocket)
 
-Copyright © 2012 Bernard Potocki
+Copyright (c) 2012 Bernard Potocki
 
 Distributed under the following license(s):
 
