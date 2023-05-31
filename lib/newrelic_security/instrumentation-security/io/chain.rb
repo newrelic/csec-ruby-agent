@@ -49,10 +49,18 @@ module NewRelic::Security
 
               alias_method :new_without_security, :new
 
-              def new(*var)
-                retval = nil
-                event = new_on_enter(*var) { retval = new_without_security(*var) }
-                new_on_exit(event) { return retval }
+              if RUBY_VERSION < '2.7.0'
+                def new(*var)
+                  retval = nil
+                  event = new_on_enter(*var) { retval = new_without_security(*var) }
+                  new_on_exit(event) { return retval }
+                end
+              else
+                def new(*var, **kwargs)
+                  retval = nil
+                  event = new_on_enter(*var) { retval = new_without_security(*var, **kwargs) }
+                  new_on_exit(event) { return retval }
+                end
               end
 
               alias_method :sysopen_without_security, :sysopen
