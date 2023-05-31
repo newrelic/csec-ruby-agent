@@ -14,6 +14,9 @@ $mysql_config = {
   }
 }
 
+image = Docker::Image.create('fromImage' => 'mysql:latest')
+image.refresh!
+
 module NewRelic::Security
     module Test
         module Instrumentation

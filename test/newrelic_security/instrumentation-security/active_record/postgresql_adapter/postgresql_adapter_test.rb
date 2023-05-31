@@ -19,6 +19,9 @@ $pg_config = {
   }
 }
 
+image = Docker::Image.create('fromImage' => 'postgres:latest')
+image.refresh!
+
 # test setup
 $test_file_path = __dir__ 
 ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'

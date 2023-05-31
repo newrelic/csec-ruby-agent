@@ -14,6 +14,9 @@ $mongo_config = {
   }
 }
 
+image = Docker::Image.create('fromImage' => 'mongo:latest')
+image.refresh!
+
 module NewRelic::Security
     module Test
         module Instrumentation

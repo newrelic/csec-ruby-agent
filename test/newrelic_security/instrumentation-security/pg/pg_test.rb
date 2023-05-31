@@ -14,6 +14,9 @@ $pg_config = {
   }
 }
 
+image = Docker::Image.create('fromImage' => 'postgres:latest')
+image.refresh!
+
 module NewRelic::Security
     module Test
         module Instrumentation
