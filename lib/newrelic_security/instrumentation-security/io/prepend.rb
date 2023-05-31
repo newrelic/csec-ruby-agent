@@ -35,10 +35,18 @@ module NewRelic::Security
           readlines_on_exit(event, retval) { return retval }
         end
 
-        def new(*var, **kwargs)
-          retval = nil
-          event = new_on_enter(*var) { retval = super }
-          new_on_exit(event) { return retval }
+        if RUBY_VERSION < '2.7.0'
+          def new(*var)
+            retval = nil
+            event = new_on_enter(*var) { retval = super }
+            new_on_exit(event) { return retval }
+          end
+        else
+          def new(*var, **kwargs)
+            retval = nil
+            event = new_on_enter(*var) { retval = super }
+            new_on_exit(event) { return retval }
+          end
         end
 
         def sysopen(*var)
