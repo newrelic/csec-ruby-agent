@@ -1,7 +1,18 @@
 require 'pg'
-require 'testcontainers'
+require 'docker'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/pg/instrumentation'
+
+$pg_config = {
+  'Image' => 'postgres:latest',
+  'name' => 'pg_test',
+  'Env' => ['POSTGRES_HOST_AUTH_METHOD=trust'],
+  'HostConfig' => {
+    'PortBindings' => {
+      '5432/tcp' => [{ 'HostPort' => '5433' }]
+    }
+  }
+}
 
 module NewRelic::Security
     module Test
@@ -12,14 +23,11 @@ module NewRelic::Security
                 
                 def test_exec
                     # server setup
-                    container = Testcontainers::DockerContainer.new("postgres:latest")
-                    container.name = "pg_test"
-                    container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
-                    container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
                     begin
-                        `docker rm -f pg_test`
+                        Docker::Container.get('pg_test').remove(force: true)
                     rescue
                     end
+                    container = Docker::Container.create($pg_config)
                     container.start
                     sleep 5
                     $event_list.clear()
@@ -109,14 +117,11 @@ module NewRelic::Security
 
                 def test_exec_prepared
                     # server setup
-                    container = Testcontainers::DockerContainer.new("postgres:latest")
-                    container.name = "pg_test"
-                    container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
-                    container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
                     begin
-                        `docker rm -f pg_test`
+                        Docker::Container.get('pg_test').remove(force: true)
                     rescue
                     end
+                    container = Docker::Container.create($pg_config)
                     container.start
                     sleep 5
                     $event_list.clear()

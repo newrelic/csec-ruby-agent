@@ -1,12 +1,23 @@
 require 'rails'
 require 'pg'
-require 'testcontainers'
+require 'docker'
 require 'active_record'
 require_relative '../../../../test_helper'
 require 'newrelic_security/instrumentation-security/pg/instrumentation'
 
 class NewUser < ActiveRecord::Base
 end
+
+$pg_config = {
+  'Image' => 'postgres:latest',
+  'name' => 'pg_test',
+  'Env' => ['POSTGRES_HOST_AUTH_METHOD=trust'],
+  'HostConfig' => {
+    'PortBindings' => {
+      '5432/tcp' => [{ 'HostPort' => '5433' }]
+    }
+  }
+}
 
 # test setup
 $test_file_path = __dir__ 
@@ -22,16 +33,14 @@ module NewRelic::Security
 
                 def test_exec_query_exec_update_exec_delete
                     # server setup
-                    container = Testcontainers::DockerContainer.new("postgres:latest")
-                    container.name = "pg_test"
-                    container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
-                    container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
                     begin
-                        `docker rm -f pg_test`
+                        Docker::Container.get('pg_test').remove(force: true)
                     rescue
                     end
+                    container = Docker::Container.create($pg_config)
                     container.start
                     sleep 5
+
                     ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
                     load  $test_file_path +'/db/schema.rb'
                     NewUser.delete_all
@@ -143,16 +152,14 @@ module NewRelic::Security
 
                 def test_execute
                     # server setup
-                    container = Testcontainers::DockerContainer.new("postgres:latest")
-                    container.name = "pg_test"
-                    container.port_bindings = {"5432/tcp"=>[{"HostPort"=>"5433"}]}
-                    container.env = ['POSTGRES_HOST_AUTH_METHOD=trust']
                     begin
-                        `docker rm -f pg_test`
+                        Docker::Container.get('pg_test').remove(force: true)
                     rescue
                     end
+                    container = Docker::Container.create($pg_config)
                     container.start
                     sleep 5
+                    
                     ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
                     load  $test_file_path +'/db/schema.rb'
                     NewUser.delete_all
