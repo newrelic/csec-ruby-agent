@@ -9,6 +9,7 @@ task :test_bundle do
 end
 
 Rake::TestTask.new(:test) do |t|
+  ENV["VERBOSE_TEST_OUTPUT"] = '1'
   ENV['BUNDLE_GEMFILE'] = 'Gemfile_test'
   t.libs << 'test'
   t.libs << 'lib'
