@@ -35,7 +35,7 @@ module NewRelic::Security
           readlines_on_exit(event, retval) { return retval }
         end
 
-        def new(*var)
+        def new(*var, **kwargs)
           retval = nil
           event = new_on_enter(*var) { retval = super }
           new_on_exit(event) { return retval }

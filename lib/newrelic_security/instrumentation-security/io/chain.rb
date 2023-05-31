@@ -49,9 +49,9 @@ module NewRelic::Security
 
               alias_method :new_without_security, :new
 
-              def new(*var)
+              def new(*var, **kwargs)
                 retval = nil
-                event = new_on_enter(*var) { retval = new_without_security(*var) }
+                event = new_on_enter(*var) { retval = new_without_security(*var, **kwargs) }
                 new_on_exit(event) { return retval }
               end
 
