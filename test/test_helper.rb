@@ -4,8 +4,6 @@ ENV['NO_RAILS'] = 'true'
 # If this env set to False, Only Security Agent will be loaded.
 ENV['NR'] = 'false'
 
-# This env is for Coverage
-# ENV["VERBOSE_TEST_OUTPUT"] = '1'
 # Define Log level for logging
 ENV['NR_CSEC_LOG_LEVEL'] = 'INFO'
 # Define instrumentation method 
