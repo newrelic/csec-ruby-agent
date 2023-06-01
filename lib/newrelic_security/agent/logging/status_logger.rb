@@ -83,7 +83,7 @@ module NewRelic::Security
         private
 
         def write_status_log_in_file(data)
-          FileUtils.mkdir_p(::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR), :mode => 0777) unless File.directory?(::File.join(SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR))
+          FileUtils.mkdir_p(::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR)) unless File.directory?(::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR))
           filename = File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR, "ruby-security-collector-status-#{NewRelic::Security::Agent.config[:uuid]}.log")
           File.open(filename, 'w') {
             |file| file.write(data)

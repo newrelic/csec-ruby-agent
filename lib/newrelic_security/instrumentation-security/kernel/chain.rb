@@ -8,13 +8,14 @@ module NewRelic::Security
 
             private
 
-            alias_method :require_without_security, :require
+            # TODO: This hook is useful for applying instrumentation on dynamically loaded modules, dynamic loading of module is unsupported for now.
+            # alias_method :require_without_security, :require
 
-            def require(name)
-              retval = nil
-              event = require_on_enter(name) { retval = require_without_security(name) }
-              require_on_exit(event, retval, name) { return retval }
-            end
+            # def require(name)
+            #   retval = nil
+            #   event = require_on_enter(name) { retval = require_without_security(name) }
+            #   require_on_exit(event, retval, name) { return retval }
+            # end
             
             alias_method :system_without_security, :system
 
