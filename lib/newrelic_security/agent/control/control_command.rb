@@ -8,7 +8,9 @@ module NewRelic::Security
         extend self
 
         def handle_ic_command(message)
-          message_object = parse_message(message).transform_keys(&:to_sym)
+          message_json = parse_message(message)
+          define_transform_keys(message_json) unless message_json.respond_to?(:transform_keys)
+          message_object = message_json.transform_keys(&:to_sym)
           return if message_object.nil?
 
           if message_object.has_key?(:controlCommand)
@@ -74,6 +76,18 @@ module NewRelic::Security
             sleep 0.1
           end
           NewRelic::Security::Agent::Control::WebsocketClient.instance.close
+        end
+        
+        def define_transform_keys(message_json)
+          ::Hash.class_eval {
+            def transform_keys
+              result = {}
+              each_key do |key|
+                result[yield(key)] = self[key]
+              end
+              result
+            end
+          }
         end
       end
     end
