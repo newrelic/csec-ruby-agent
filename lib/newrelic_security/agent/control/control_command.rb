@@ -53,6 +53,18 @@ module NewRelic::Security
           end
         end
 
+        def define_transform_keys
+          ::Hash.class_eval do
+            def transform_keys
+              result = {}
+              each_key do |key|
+                result[yield(key)] = self[key]
+              end
+              result
+            end
+          end
+        end
+
         private 
 
         def parse_message(message)
@@ -78,17 +90,6 @@ module NewRelic::Security
           NewRelic::Security::Agent::Control::WebsocketClient.instance.close
         end
         
-        def define_transform_keys
-          ::Hash.class_eval do
-            def transform_keys
-              result = {}
-              each_key do |key|
-                result[yield(key)] = self[key]
-              end
-              result
-            end
-          end
-        end
       end
     end
   end
