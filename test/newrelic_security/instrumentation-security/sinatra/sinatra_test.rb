@@ -36,6 +36,8 @@ class SinatraTestApp < Sinatra::Base
 
 end
 
+NewRelic::Security::Agent::Control::ControlCommand.define_transform_keys
+
 module NewRelic::Security
   module Test
     module Instrumentation
