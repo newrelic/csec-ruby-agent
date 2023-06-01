@@ -61,12 +61,11 @@ jobs:
     # if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       pull-requests: write
+      contents: read
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
-        with:
-            token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: '3.1'
