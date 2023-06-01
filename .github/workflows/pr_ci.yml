@@ -56,7 +56,7 @@ jobs:
           path: lib/coverage_*/.resultset.json
 
   simplecov:
-    needs: [unit_tests]
+    needs: unit_tests
     runs-on: ubuntu-22.04
     if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
