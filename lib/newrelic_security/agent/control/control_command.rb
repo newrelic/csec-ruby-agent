@@ -9,7 +9,7 @@ module NewRelic::Security
 
         def handle_ic_command(message)
           message_json = parse_message(message)
-          define_transform_keys(message_json) unless message_json.respond_to?(:transform_keys)
+          define_transform_keys unless message_json.respond_to?(:transform_keys)
           message_object = message_json.transform_keys(&:to_sym)
           return if message_object.nil?
 
@@ -78,8 +78,8 @@ module NewRelic::Security
           NewRelic::Security::Agent::Control::WebsocketClient.instance.close
         end
         
-        def define_transform_keys(message_json)
-          ::Hash.class_eval {
+        def define_transform_keys
+          ::Hash.class_eval do
             def transform_keys
               result = {}
               each_key do |key|
@@ -87,7 +87,7 @@ module NewRelic::Security
               end
               result
             end
-          }
+          end
         end
       end
     end
