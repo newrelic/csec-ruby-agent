@@ -2,6 +2,7 @@
 
 require 'bundler/gem_tasks'
 require 'rake/testtask'
+require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
 
 desc 'Install dependencies needed to run tests'
 task :test_bundle do
