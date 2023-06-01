@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 
-SimpleCov.start do
-  enable_coverage(:branch)
-  add_filter('/test/')
+require 'securerandom'
+
+if ENV['CI']
+  random = SecureRandom.uuid
+  SimpleCov.command_name(random)
+  SimpleCov.coverage_dir("coverage_#{random}")
 end
 
-# This prevents coverage from dropping below the baseline amount
-Simplecov.minimum_coverage(line: 52, branch: 17)
-
-# TODO: Enable this when codebase is at 70% test coverage
-# SimpleCov.minimum_coverage(line: 70, branch: 70)
+SimpleCov.start do
+  enable_coverage(:branch)
+  SimpleCov.root(File.join(File.dirname(__FILE__), '/lib'))
+  track_files('**/*.rb')
+  formatter(SimpleCov::Formatter::SimpleFormatter) if ENV['CI']
+end
