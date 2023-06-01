@@ -61,32 +61,19 @@ module NewRelic::Security
                         assert_equal expected_event1.parameters, $event_list[0].parameters
                         assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
                     else
-                        NewUser.insert(
-                            { id: 1,
-                            email: 'me@john.com',
-                            name: 'John',
-                            ssn: '11' }
-                        )
-                        # 3 event verify 
-                        args1 = [{:sql=>"SELECT sqlite_version(*)", :parameters=>[]}]
-                        args2 = [{:sql=>"SELECT sql FROM\n  (SELECT * FROM sqlite_master UNION ALL\n   SELECT * FROM sqlite_temp_master)\nWHERE type = 'table' AND name = 'fake_users'\n", :parameters=>[]}]
-                        args3 = [{:sql=>"INSERT INTO \"fake_users\" (\"id\",\"email\",\"name\",\"ssn\") VALUES (1, 'me@john.com', 'John', '11') ON CONFLICT  DO NOTHING", :parameters=>[]}]         
+                        result = NewUser.insert(
+                        { id: 1,
+                        email: 'me@john.com',
+                        name: 'John',
+                        ssn: '11' }
+                    )
+                        # insert event 
+                        args1 = [{:sql=>"INSERT INTO \"new_users\" (\"id\",\"email\",\"name\",\"ssn\") VALUES (1, 'me@john.com', 'John', '11') ON CONFLICT  DO NOTHING RETURNING \"id\"", :parameters=>[]}]
                         expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                        expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                        expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
-                        assert_equal 3, $event_list.length
-                        # sqlite_version
+                        assert_equal 1, $event_list.length
                         assert_equal expected_event1.caseType, $event_list[0].caseType
                         assert_equal expected_event1.parameters, $event_list[0].parameters
-                        assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
-                        # sqlite_master
-                        assert_equal expected_event2.caseType, $event_list[1].caseType
-                        assert_equal expected_event2.parameters, $event_list[1].parameters
-                        assert_equal expected_event2.eventCategory, $event_list[1].eventCategory 
-                        # insert 
-                        assert_equal expected_event3.caseType, $event_list[2].caseType
-                        assert_equal expected_event3.parameters, $event_list[2].parameters
-                        assert_equal expected_event3.eventCategory, $event_list[2].eventCategory 
+                        assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     end
                     $event_list.clear()
                     
