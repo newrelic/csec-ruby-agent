@@ -3,38 +3,46 @@ require 'docker'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/pg/instrumentation'
 
-$pg_config = {
-  'Image' => 'postgres:latest',
-  'name' => 'pg_test',
-  'Env' => ['POSTGRES_HOST_AUTH_METHOD=trust'],
-  'HostConfig' => {
-    'PortBindings' => {
-      '5432/tcp' => [{ 'HostPort' => '5433' }]
-    }
-  }
-}
-
-image = Docker::Image.create('fromImage' => 'postgres:latest')
-image.refresh!
-
 module NewRelic::Security
     module Test
         module Instrumentation
             class TestPG < Minitest::Test
                 @@case_type = "SQL_DB_COMMAND"
                 @@event_category = "POSTGRES"
-                
-                def test_exec
+                @@before_all_flag = false
+    
+                def setup
+                    unless @@before_all_flag
+                        before_all
+                        @@before_all_flag = true
+                    end
+                end
+
+                def before_all
                     # server setup
+                    pg_config = {
+                        'Image' => 'postgres:latest',
+                        'name' => 'pg_test',
+                        'Env' => ['POSTGRES_HOST_AUTH_METHOD=trust'],
+                        'HostConfig' => {
+                            'PortBindings' => {
+                            '5432/tcp' => [{ 'HostPort' => '5433' }]
+                            }
+                        }
+                    }
+                    image = Docker::Image.create('fromImage' => 'postgres:latest')
+                    image.refresh!
                     begin
                         Docker::Container.get('pg_test').remove(force: true)
                     rescue
                     end
-                    container = Docker::Container.create($pg_config)
+                    container = Docker::Container.create(pg_config)
                     container.start
                     sleep 5
                     $event_list.clear()
+                end
 
+                def test_exec
                     client = PG::Connection.open(:dbname => 'postgres', :user => 'postgres', :host => 'localhost', :port => 5433)
                     client.exec("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
@@ -112,23 +120,10 @@ module NewRelic::Security
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
-
-                    # remove server
-                    container.stop
-                    container.delete
+                    client.close()
                 end
 
                 def test_exec_prepared
-                    # server setup
-                    begin
-                        Docker::Container.get('pg_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($pg_config)
-                    container.start
-                    sleep 5
-                    $event_list.clear()
-
                     client = PG::Connection.new(:dbname => 'postgres', :user => 'postgres', :host => 'localhost', :port => 5433)
                     client.exec("DROP TABLE IF EXISTS fake_users")
                     client.exec("create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))")
@@ -239,12 +234,16 @@ module NewRelic::Security
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
-
-                    # # remove server
-                    container.stop
-                    container.delete
+                    client.close()
                 end
 
+                Minitest.after_run do
+                    # remove server
+                    begin
+                       Docker::Container.get('pg_test').remove(force: true)
+                    rescue
+                    end
+                end
             end
         end
     end

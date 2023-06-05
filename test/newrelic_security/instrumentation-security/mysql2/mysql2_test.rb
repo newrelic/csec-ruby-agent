@@ -3,38 +3,46 @@ require 'docker'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/mysql2/instrumentation'
 
-$mysql_config = {
-  'Image' => 'mysql:latest',
-  'name' => 'mysql_test',
-  'Env' => ['MYSQL_ALLOW_EMPTY_PASSWORD=yes', 'MYSQL_USER=test', 'MYSQL_DATABASE=testdb'],
-  'HostConfig' => {
-    'PortBindings' => {
-      '3306/tcp' => [{ 'HostPort' => '3307' }]
-    }
-  }
-}
-
-image = Docker::Image.create('fromImage' => 'mysql:latest')
-image.refresh!
-
 module NewRelic::Security
     module Test
         module Instrumentation
             class TestMysql2 < Minitest::Test
                 @@case_type = "SQL_DB_COMMAND"
                 @@event_category = "MYSQL"
-                
-                def test_query
-                    #server setup
+                @@before_all_flag = false
+    
+                def setup
+                    unless @@before_all_flag
+                        before_all
+                        @@before_all_flag = true
+                    end
+                end
+
+                def before_all
+                    # server setup
+                    mysql_config = {
+                        'Image' => 'mysql:latest',
+                        'name' => 'mysql_test',
+                        'Env' => ['MYSQL_ALLOW_EMPTY_PASSWORD=yes', 'MYSQL_USER=test', 'MYSQL_DATABASE=testdb'],
+                        'HostConfig' => {
+                            'PortBindings' => {
+                            '3306/tcp' => [{ 'HostPort' => '3307' }]
+                            }
+                        }
+                    }
+                    image = Docker::Image.create('fromImage' => 'mysql:latest')
+                    image.refresh!
                     begin
                         Docker::Container.get('mysql_test').remove(force: true)
                     rescue
                     end
-                    container = Docker::Container.create($mysql_config)
+                    container = Docker::Container.create(mysql_config)
                     container.start
                     sleep 15
                     $event_list.clear()
+                end
 
+                def test_query
                     client = Mysql2::Client.new(:host => "127.0.0.1", :username => "root", :password => '', :database => 'testdb', :port => 3307)
                     client.query("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
@@ -112,23 +120,10 @@ module NewRelic::Security
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
-
-                    #remove server
-                    container.stop
-                    container.delete
+                    client.close()
                 end
 
                 def test_execute
-                    # server setup
-                    begin
-                        Docker::Container.get('mysql_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mysql_config)
-                    container.start
-                    sleep 15
-                    $event_list.clear()
-
                     client = Mysql2::Client.new(:host => "127.0.0.1", :username => "root", :password => '', :database => 'testdb', :port => 3307)
                     client.query("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
@@ -210,10 +205,15 @@ module NewRelic::Security
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
+                    client.close()
+                end
 
-                    #remove server
-                    container.stop
-                    container.delete
+                Minitest.after_run do
+                    # remove server
+                    begin
+                       Docker::Container.get('mysql_test').remove(force: true)
+                    rescue
+                    end
                 end
 
             end

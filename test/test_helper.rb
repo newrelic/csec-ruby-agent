@@ -44,3 +44,5 @@ module NewRelic::Security
     @agent = NewRelic::Security::Agent::Agent.new
   end
 end
+
+NewRelic::Security::Agent::Control::HTTPContext.clear_context
