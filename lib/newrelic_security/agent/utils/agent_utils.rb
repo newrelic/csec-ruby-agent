@@ -135,14 +135,14 @@ module NewRelic::Security
           listen_port = z.instance_variable_get(:@config)[:Port]
           NewRelic::Security::Agent.logger.debug "Detected port from WEBrick::GenericServer : #{listen_port}"
         } if defined?(::WEBrick::GenericServer)
-        if NewRelic::Security::Agent.config[:'security.applicationinfo.port'] != -1
-          listen_port = NewRelic::Security::Agent.config[:'security.applicationinfo.port']
-          NewRelic::Security::Agent.logger.info "Using application listen port from newrelic.yml security.applicationinfo.port : #{listen_port}"
+        if NewRelic::Security::Agent.config[:'security.application_info.port'] != 0
+          listen_port = NewRelic::Security::Agent.config[:'security.application_info.port']
+          NewRelic::Security::Agent.logger.info "Using application listen port from newrelic.yml security.application_info.port : #{listen_port}"
         end
         if listen_port
           NewRelic::Security::Agent.logger.info "Detected application listen_port : #{listen_port}"
         else
-          NewRelic::Security::Agent.logger.warn "Unable to detect application listen port, IAST can not run without application listen port. Please provide application listen port in security.applicationinfo.port in newrelic.yml"
+          NewRelic::Security::Agent.logger.warn "Unable to detect application listen port, IAST can not run without application listen port. Please provide application listen port in security.application_info.port in newrelic.yml"
         end
         listen_port
       rescue Exception => exception
