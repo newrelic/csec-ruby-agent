@@ -50,7 +50,7 @@ module NewRelic::Security
           if !construct.empty? || NewRelic::Security::Agent::Utils.is_IAST?
             parameters = Array.new
             parameters << construct
-            parameters << response_body
+            parameters << response_body.force_encoding(ISO_8859_1).encode(UTF_8)
             NewRelic::Security::Agent::Control::Collector.collect(REFLECTED_XSS, parameters)
           end
         rescue Exception => exception
