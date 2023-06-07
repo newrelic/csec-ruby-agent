@@ -35,7 +35,6 @@ module NewRelic::Security
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:json_version] = :'1.0.1'
-          @cache[:uuid] = generate_uuid
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new
@@ -64,6 +63,10 @@ module NewRelic::Security
           NewRelic::Security::Agent.logger.debug "refreshing agent config"
           NewRelic::Security::Agent.config = NewRelic::Security::Agent::Configuration::Manager.new
           # TODO: add validator received config also after the new, else collector#40 throws error
+        end
+
+        def save_uuid
+          @cache[:uuid] = generate_uuid
         end
 
         def update_server_config
@@ -131,6 +134,7 @@ module NewRelic::Security
           if ::File.directory?(tmp_dir)
             uuid_file_name = ::File.join(@cache[:log_file_path], SEC_HOME_PATH, TMP_DIR, process_identity.to_s)
           else
+            ::FileUtils.mkdir_p(TMP_DIR) unless ::File.directory?(TMP_DIR)
             uuid_file_name = ::File.join(TMP_DIR, process_identity.to_s)
           end
           if ::File.exist?(uuid_file_name)

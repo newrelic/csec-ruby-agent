@@ -22,7 +22,9 @@ module NewRelic::Security
       attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :status_logger
 
       def initialize
+        NewRelic::Security::Agent.config
         create_agent_home
+        NewRelic::Security::Agent.config.save_uuid
         @started = false
         @event_subscriber = NewRelic::Security::Agent::Control::EventSubscriber.new
         @started = true
