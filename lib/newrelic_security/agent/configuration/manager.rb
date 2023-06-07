@@ -12,14 +12,12 @@ module NewRelic::Security
       class Manager
         def initialize
           @cache = Hash.new
-          # @cache[:linking_metadata] = ::NewRelic::Agent.linking_metadata
           @cache[:agent_run_id] = ::NewRelic::Agent.agent.service.agent_id
           @cache[:linking_metadata] = ::NewRelic::Agent.linking_metadata
           @cache[:app_name] = ::NewRelic::Agent.config[:app_name][0]
           @cache[:entity_guid] = ::NewRelic::Agent.config[:entity_guid]
           @cache[:license_key] = ::NewRelic::Agent.config[:license_key]
           @cache[:policy] = Hash.new
-          @cache[:uuid] = generate_uuid
           @cache[:account_id] = nil
           @cache[:application_id] = nil
           @cache[:primary_application_id] = nil
@@ -37,6 +35,7 @@ module NewRelic::Security
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:json_version] = :'1.0.1'
+          @cache[:uuid] = generate_uuid
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new
@@ -128,9 +127,9 @@ module NewRelic::Security
 
         def fetch_or_create_uuid
           process_identity = ::Gem.win_platform? ? ::Process.pid : ::Process.getpgrp
-          tmp_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, TMP_DIR)
+          tmp_dir = ::File.join(@cache[:log_file_path], SEC_HOME_PATH, TMP_DIR)
           if ::File.directory?(tmp_dir)
-            uuid_file_name = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, TMP_DIR, process_identity.to_s)
+            uuid_file_name = ::File.join(@cache[:log_file_path], SEC_HOME_PATH, TMP_DIR, process_identity.to_s)
           else
             uuid_file_name = ::File.join(TMP_DIR, process_identity.to_s)
           end
