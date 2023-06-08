@@ -12,7 +12,7 @@ module NewRelic::Security
         if args[0].is_a? Integer
           fname = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[args[0].object_id.to_s].to_s if NewRelic::Security::Agent::Control::HTTPContext.get_context && NewRelic::Security::Agent::Control::HTTPContext.get_context.cache.key?(args[0].object_id.to_s)
         else 
-          fname = ::File.path(args[0]) #some times it is 'String' or 'Path' class
+          fname = ::File.path(args[0]) if args[0] #some times it is 'String' or 'Path' class
         end
         abs_path = ::File.expand_path(fname)
         fmode = args[1]
