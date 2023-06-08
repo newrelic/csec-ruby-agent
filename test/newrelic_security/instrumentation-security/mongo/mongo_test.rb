@@ -4,37 +4,45 @@ require 'json'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/mongo/instrumentation'
 
-# mongo setup
-$mongo_config = {
-  'Image' => 'mongo:latest',
-  'name' => 'mongo_test',
-  'HostConfig' => {
-    'PortBindings' => {
-      '27017/tcp' => [{ 'HostPort' => '27018' }]
-    }
-  }
-}
-
-image = Docker::Image.create('fromImage' => 'mongo:latest')
-image.refresh!
-
 module NewRelic::Security
     module Test
         module Instrumentation
             class TestMongo < Minitest::Test
                 @@case_type = "NOSQL_DB_COMMAND"
                 @@event_category = "MONGO"
-                
-                def test_insert_one_update_one_delete_one_find
+                @@before_all_flag = false
+    
+                def setup
+                    unless @@before_all_flag
+                        before_all
+                        @@before_all_flag = true
+                    end
+                end
+
+                def before_all
                     # server setup
+                    mongo_config = {
+                        'Image' => 'mongo:latest',
+                        'name' => 'mongo_test',
+                        'HostConfig' => {
+                        'PortBindings' => {
+                            '27017/tcp' => [{ 'HostPort' => '27018' }]
+                        }
+                        }
+                    }
+                    image = Docker::Image.create('fromImage' => 'mongo:latest')
+                    image.refresh!
                     begin
                         Docker::Container.get('mongo_test').remove(force: true)
                     rescue
                     end
-                    container = Docker::Container.create($mongo_config)
+                    container = Docker::Container.create(mongo_config)
                     container.start
                     sleep 5
+                    $event_list.clear()
+                end
 
+                def test_insert_one_update_one_delete_one_find
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -128,21 +136,9 @@ module NewRelic::Security
                     assert_equal 0, @output.length
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end
                 
                 def test_insert_many_update_many_delete_many
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -238,21 +234,9 @@ module NewRelic::Security
                     assert_equal 0, @output.length
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end
 
                 def test_insert_one_QueryCache_enabled
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -281,21 +265,9 @@ module NewRelic::Security
                     assert_equal "5000", @output["price"]
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end 
 
                 def test_find_update_one
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -333,21 +305,9 @@ module NewRelic::Security
                     assert_equal "5000", @output["price"]
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end 
 
                 def test_find_delete_one
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -384,21 +344,9 @@ module NewRelic::Security
                     assert_equal 0, @output.length
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end 
 
                 def test_find_one_and_delete
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -428,21 +376,9 @@ module NewRelic::Security
                     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end 
 
                 def test_find_update_many
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -473,21 +409,9 @@ module NewRelic::Security
                     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end
 
                 def test_find_delete_many
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -526,21 +450,9 @@ module NewRelic::Security
                     assert_equal 0, @output.length
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end
 
                 def test_replace_one
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -574,21 +486,9 @@ module NewRelic::Security
                     assert_equal "pqr", @output["name"]
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end 
 
                 def test_find_replace_one
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -622,21 +522,9 @@ module NewRelic::Security
                     assert_equal "pqr", @output["name"]
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end 
 
                 def test_find_one_and_replace
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -670,21 +558,9 @@ module NewRelic::Security
                     assert_equal "pqr", @output["name"]
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end 
 
                 def test_find_one_and_update
-                    # server setup
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($mongo_config)
-                    container.start
-                    sleep 5
-                    
                     client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
@@ -719,10 +595,16 @@ module NewRelic::Security
                     assert_equal "5000", @output["price"]
                     $event_list.clear()
                     client.close()
-                    # remove server
-                    container.stop
-                    container.delete
                 end 
+
+                Minitest.after_run do
+                    # remove server
+                    begin
+                       Docker::Container.get('mongo_test').remove(force: true)
+                    rescue
+                    end
+                end
+
             end
         end
     end

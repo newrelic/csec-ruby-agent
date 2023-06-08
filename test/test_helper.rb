@@ -20,9 +20,6 @@ $test_path = __dir__
 # Declare event list
 $event_list = []
 
-# We can speed things up in tests that don't need to load rails.
-# You can also run the tests in a mode without rails.
-
 # Loading Security Agent  
 puts "Running tests in Security standalone mode"
 # For now, Can't initialize full security agent, because NR agent is not running.
@@ -44,3 +41,5 @@ module NewRelic::Security
     @agent = NewRelic::Security::Agent::Agent.new
   end
 end
+
+NewRelic::Security::Agent::Control::HTTPContext.clear_context

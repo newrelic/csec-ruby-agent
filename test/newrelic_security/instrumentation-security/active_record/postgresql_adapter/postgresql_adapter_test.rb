@@ -8,17 +8,6 @@ require 'newrelic_security/instrumentation-security/pg/instrumentation'
 class NewUser < ActiveRecord::Base
 end
 
-$pg_config = {
-  'Image' => 'postgres:latest',
-  'name' => 'pg_test',
-  'Env' => ['POSTGRES_HOST_AUTH_METHOD=trust'],
-  'HostConfig' => {
-    'PortBindings' => {
-      '5432/tcp' => [{ 'HostPort' => '5433' }]
-    }
-  }
-}
-
 image = Docker::Image.create('fromImage' => 'postgres:latest')
 image.refresh!
 
@@ -33,17 +22,40 @@ module NewRelic::Security
             class TestPostgresqlAdapter < Minitest::Test
                 @@case_type = "SQL_DB_COMMAND"
                 @@event_category = "POSTGRES"
+                @@before_all_flag = false
+    
+                def setup
+                    unless @@before_all_flag
+                        before_all
+                        @@before_all_flag = true
+                    end
+                end
 
-                def test_exec_query_exec_update_exec_delete
+                def before_all
                     # server setup
+                    pg_config = {
+                        'Image' => 'postgres:latest',
+                        'name' => 'pg_test',
+                        'Env' => ['POSTGRES_HOST_AUTH_METHOD=trust'],
+                        'HostConfig' => {
+                            'PortBindings' => {
+                            '5432/tcp' => [{ 'HostPort' => '5433' }]
+                            }
+                        }
+                    }
+                    image = Docker::Image.create('fromImage' => 'postgres:latest')
+                    image.refresh!
                     begin
                         Docker::Container.get('pg_test').remove(force: true)
                     rescue
                     end
-                    container = Docker::Container.create($pg_config)
+                    container = Docker::Container.create(pg_config)
                     container.start
                     sleep 5
+                    $event_list.clear()
+                end
 
+                def test_exec_query_exec_update_exec_delete
                     ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
                     load  $test_file_path +'/db/schema.rb'
                     NewUser.delete_all
@@ -162,22 +174,9 @@ module NewRelic::Security
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
                     ActiveRecord::Base.remove_connection
                     $event_list.clear()
-
-                    # remove server
-                    container.stop
-                    container.delete
                 end
 
                 def test_execute
-                    # server setup
-                    begin
-                        Docker::Container.get('pg_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create($pg_config)
-                    container.start
-                    sleep 5
-                    
                     ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
                     load  $test_file_path +'/db/schema.rb'
                     NewUser.delete_all
@@ -234,11 +233,16 @@ module NewRelic::Security
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
                     ActiveRecord::Base.remove_connection
                     $event_list.clear()
-
-                    # remove server
-                    container.stop
-                    container.delete
                 end
+
+                Minitest.after_run do
+                    # remove server
+                    begin
+                       Docker::Container.get('pg_test').remove(force: true)
+                    rescue
+                    end
+                end
+                
             end
         end
     end
