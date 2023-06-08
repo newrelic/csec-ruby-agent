@@ -16,13 +16,14 @@ module NewRelic::Security
         end
         abs_path = ::File.expand_path(fname)
         fmode = args[1]
+        event_category = NewRelic::Security::Instrumentation::InstrumentationUtils::OPEN_MODES.include?(fmode) ? READ : WRITE
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_open?(fname, abs_path, fmode)
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname], event_category)
         else
           if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
             NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{fname} #{fmode}"
           else
-            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], event_category)
           end              
         end
       rescue => exception
@@ -52,13 +53,14 @@ module NewRelic::Security
         end
         abs_path = ::File.expand_path(fname)
         fmode = var[1] if var[1]
+        event_category = NewRelic::Security::Instrumentation::InstrumentationUtils::OPEN_MODES.include?(fmode) ? READ : WRITE
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_open?(fname, abs_path, fmode)
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname], event_category)
         else
           if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
             NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{fname} #{fmode}"
           else
-            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], event_category)
           end          
         end
       rescue => exception
@@ -105,7 +107,7 @@ module NewRelic::Security
         if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
           NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{var}"
         else
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], READ)
         end
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
@@ -131,7 +133,7 @@ module NewRelic::Security
         if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
           NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{var}"
         else
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], READ)
         end
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
@@ -157,7 +159,7 @@ module NewRelic::Security
         if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
           NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{var}"
         else
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], READ)
         end
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
@@ -183,7 +185,7 @@ module NewRelic::Security
         if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
           NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{var}"
         else
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], READ)
         end
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
@@ -208,12 +210,12 @@ module NewRelic::Security
         abs_path = ::File.expand_path(fname)
         fmode = kwargs.has_key?(:mode) ? kwargs[:mode] : WRITE
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_open?(fname, abs_path, fmode)
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname], WRITE)
         else 
           if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
             NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{fname} #{fmode}"
           else
-            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], WRITE)
           end 
         end
       rescue => exception
@@ -239,12 +241,12 @@ module NewRelic::Security
         abs_path = ::File.expand_path(fname)
         fmode = BINWRITE
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_open?(fname, abs_path, fmode)
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname], WRITE)
         else
           if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
             NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{fname} #{fmode}"
           else
-            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], WRITE)
           end 
         end
       rescue => exception

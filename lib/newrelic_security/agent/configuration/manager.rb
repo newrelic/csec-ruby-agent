@@ -23,6 +23,7 @@ module NewRelic::Security
           @cache[:primary_application_id] = nil
           @cache[:log_file_path] = ::File.absolute_path(::NewRelic::Agent.config[:log_file_path])
           @cache[:log_level] = ::NewRelic::Agent.config[:log_level]
+          @cache[:high_security] = ::NewRelic::Agent.config[:high_security]
           @cache[:'agent.enabled'] = ::NewRelic::Agent.config[:'security.agent.enabled']
           @cache[:enabled] = ::NewRelic::Agent.config[:'security.enabled']
           @cache[:mode] = ::NewRelic::Agent.config[:'security.mode']
