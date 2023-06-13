@@ -42,7 +42,7 @@ The newrelic_security must be explicitly enabled in order to perform IAST analys
 - JRuby: 9.2 & above
 ### Web frameworks
 - Rails: 4 & above
-- Sinatra: 3 & above
+- Sinatra: 2 & above
 ### Web servers
 - Puma: 3 & above
 - Unicorn: 5 & above
@@ -62,7 +62,7 @@ We use Minitest for the Ruby Security agent.
 rake test_bundle
 ```
 #### Running All Unit tests
-The following command runs all the unit tests without Rails:
+The following command runs all the unit tests:
 ```
 rake test
 ```
