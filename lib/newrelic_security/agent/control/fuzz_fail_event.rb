@@ -15,9 +15,6 @@ module NewRelic::Security
           @buildNumber = nil
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @groupName = NewRelic::Security::Agent.config[:mode]
-          @nodeId = nil
-          @customerId = nil
-          @emailId = nil
           @jsonVersion = NewRelic::Security::Agent.config[:json_version]
           @policyVersion = nil
           @framework = NewRelic::Security::Agent.config[:framework]

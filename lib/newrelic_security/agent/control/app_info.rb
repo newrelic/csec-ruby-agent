@@ -36,7 +36,7 @@ module NewRelic::Security
           @userDir = nil
           @libraryPath = library_path
           @bootLibraryPath = EMPTY_STRING
-          @binaryName = nil # TODO: check whether name should be ruby or jruby (earlier this was hardcoded to 'ruby')
+          @binaryName = binary_name
           @binaryVersion = binary_version
           @pid = pid
           @cpid = cpid
@@ -76,6 +76,10 @@ module NewRelic::Security
 
         def library_path
           ENV[RUBYLIB].split(COLON)
+        end
+
+        def binary_name
+          RUBY_ENGINE
         end
 
         def binary_version

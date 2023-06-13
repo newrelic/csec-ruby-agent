@@ -5,12 +5,6 @@ module NewRelic::Security
         module Prepend
           include NewRelic::Security::Instrumentation::Mysql2::Client
   
-          def query(sql, options = {})
-            retval = nil
-            event = query_on_enter(sql, options) { retval = super }
-            query_on_exit(event) { return retval }
-          end
-
           def prepare(sql)
             retval = nil
             event = prepare_on_enter(sql) { retval = super }

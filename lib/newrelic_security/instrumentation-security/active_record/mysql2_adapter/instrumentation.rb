@@ -3,7 +3,7 @@ require_relative 'chain'
 
 module NewRelic::Security
   module Instrumentation
-    module ActiveRecord::ConnectionAdapters::SQLite3Adapter
+    module ActiveRecord::ConnectionAdapters::Mysql2Adapter
 
       def execute_on_enter(sql, name)
         event = nil
@@ -70,4 +70,4 @@ module NewRelic::Security
   end
 end
 
-NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:sqlite3_adapter, ::ActiveRecord::ConnectionAdapters::SQLite3Adapter, ::NewRelic::Security::Instrumentation::ActiveRecord::ConnectionAdapters::SQLite3Adapter)
+NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:mysql2_adapter, ::ActiveRecord::ConnectionAdapters::Mysql2Adapter, ::NewRelic::Security::Instrumentation::ActiveRecord::ConnectionAdapters::Mysql2Adapter)
