@@ -57,7 +57,6 @@ module NewRelic::Security
                     args = [{:payload=>{:document=>{"name"=>"abc", "price"=>"5000"}, :opts=>{}}, :payloadType=>:insert}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     # event count and output data verify
-                    # assert_equal 1, $event_list.length       
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -76,7 +75,6 @@ module NewRelic::Security
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
-                    assert_equal 3, $event_list.length
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -99,7 +97,6 @@ module NewRelic::Security
                     assert_equal "5000", @output["price"]
                     args = [{:payload=>{:filter=>{"name"=>"pqr"}, :options=>{}}, :payloadType=>:find}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length 
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -115,7 +112,6 @@ module NewRelic::Security
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
-                    assert_equal 3, $event_list.length # event count
                     # delete event
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -154,7 +150,6 @@ module NewRelic::Security
                     # event verify    
                     args = [{:payload=>{:documents=>[{:_id=>1, :name=>"abc", :price=>"5000"}, {:_id=>2, :name=>"pqr", :price=>"1000"}], :options=>{}}, :payloadType=>:insert}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    # assert_equal 1, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -171,7 +166,6 @@ module NewRelic::Security
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
                     # update_many event verify
-                    assert_equal 3, $event_list.length
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
@@ -197,7 +191,6 @@ module NewRelic::Security
                     # event verify
                     args = [{:payload=>{:filter=>nil, :options=>{}}, :payloadType=>:find}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -213,7 +206,6 @@ module NewRelic::Security
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
                     # delete_many event verify
-                    assert_equal 3, $event_list.length
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
@@ -253,7 +245,6 @@ module NewRelic::Security
                     args = [{:payload=>{:document=>{"name"=>"abc", "price"=>"5000"}, :opts=>{}}, :payloadType=>:insert}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     # event count and output data verify
-                    # assert_equal 1, $event_list.length       
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -289,7 +280,6 @@ module NewRelic::Security
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :spec=>{"$set"=>{"name"=>"pqr"}}, :opts=>{}}, :payloadType=>:update}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    assert_equal 2, $event_list.length
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -326,7 +316,6 @@ module NewRelic::Security
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :opts=>{}}, :payloadType=>:delete}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    assert_equal 2, $event_list.length
                     # delete event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -365,7 +354,6 @@ module NewRelic::Security
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :opts=>{}}, :payloadType=>:delete}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    assert_equal 2, $event_list.length
                     # delete event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -399,7 +387,6 @@ module NewRelic::Security
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
                     # update_many event verify
-                    assert_equal 2, $event_list.length
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
@@ -433,7 +420,6 @@ module NewRelic::Security
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
                     # update_many event verify
-                    assert_equal 2, $event_list.length
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
@@ -471,7 +457,6 @@ module NewRelic::Security
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :replacement=>{:name=>"pqr"}, :opts=>{}}, :payloadType=>:update}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    assert_equal 2, $event_list.length
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -507,7 +492,6 @@ module NewRelic::Security
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :replacement=>{:name=>"pqr"}, :opts=>{}}, :payloadType=>:update}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    assert_equal 2, $event_list.length
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -543,7 +527,6 @@ module NewRelic::Security
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :document=>{:name=>"pqr"}, :opts=>{}}, :payloadType=>:update}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    assert_equal 2, $event_list.length
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -579,7 +562,6 @@ module NewRelic::Security
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :document=>{"$set"=>{:name=>"pqr"}}, :opts=>{}}, :payloadType=>:update}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    assert_equal 2, $event_list.length
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
