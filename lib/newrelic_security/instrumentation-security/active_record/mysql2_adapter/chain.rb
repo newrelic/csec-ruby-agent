@@ -8,16 +8,16 @@ module NewRelic::Security
             def self.instrument!
               ::ActiveRecord::ConnectionAdapters::Mysql2Adapter.class_eval do
                 include NewRelic::Security::Instrumentation::ActiveRecord::ConnectionAdapters::Mysql2Adapter
-                
-                alias_method :execute_without_security, :execute
-                
-                def execute(sql, name = nil)
-                  retval = nil
-                  event = execute_on_enter(sql, name) { retval = execute_without_security(sql, name) }
-                  execute_on_exit(event) { return retval }
-                end
 
                 if RUBY_ENGINE == 'jruby'
+                  alias_method :execute_without_security, :execute
+                
+                  def execute(sql, name = nil)
+                    retval = nil
+                    event = execute_on_enter(sql, name) { retval = execute_without_security(sql, name) }
+                    execute_on_exit(event) { return retval }
+                  end
+                  
                   alias_method :exec_query_without_security, :exec_query
 
                   if ::Rails.version < '5'

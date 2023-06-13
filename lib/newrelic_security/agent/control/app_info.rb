@@ -28,9 +28,6 @@ module NewRelic::Security
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @framework = NewRelic::Security::Agent.config[:framework]
           @groupName = NewRelic::Security::Agent.config[:mode]
-          @nodeId = nil
-          @customerId = nil
-          @emailId = nil
           @userProvidedApplicationInfo = Hash.new
           @policyVersion = nil
           @userDir = nil

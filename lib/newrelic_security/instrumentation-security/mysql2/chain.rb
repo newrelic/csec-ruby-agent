@@ -8,6 +8,14 @@ module NewRelic::Security
             ::Mysql2::Client.class_eval do
               include NewRelic::Security::Instrumentation::Mysql2::Client
 
+              alias_method :query_without_security, :query
+
+              def query(sql, options = {})
+                retval = nil
+                event = query_on_enter(sql, options) { retval = query_without_security(sql, options) }
+                query_on_exit(event) { return retval }
+              end
+
               alias_method :prepare_without_security, :prepare
     
               def prepare(sql)
