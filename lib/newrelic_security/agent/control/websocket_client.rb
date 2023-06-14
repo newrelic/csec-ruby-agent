@@ -72,9 +72,6 @@ module NewRelic::Security
             connection.on :error do |e|
               NewRelic::Security::Agent.logger.error "Error in websocket connection : #{e.inspect} #{e.backtrace}"
               NewRelic::Security::Agent.config.disable_security
-              Thread.new {
-                NewRelic::Security::Agent.agent.reconnect(15)
-              }
               NewRelic::Security::Agent::Control::WebsocketClient.instance.close
             end
           rescue Errno::EPIPE => exception
