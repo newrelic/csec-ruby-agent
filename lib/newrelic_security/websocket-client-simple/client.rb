@@ -71,6 +71,8 @@ module NewRelic::Security
                       emit :message, msg
                     end
                   end
+                rescue IOError => e
+                  close
                 rescue => e
                   emit :error, e
                 end
