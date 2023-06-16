@@ -72,7 +72,7 @@ module NewRelic::Security
                     end
                   end
                 rescue IOError => e
-                  close
+                  close false
                 rescue => e
                   emit :error, e
                 end
@@ -100,7 +100,7 @@ module NewRelic::Security
             end
           end
   
-          def close
+          def close(reconnect = true)
             return if @closed
             if !@pipe_broken
               send nil, :type => :close
@@ -108,7 +108,7 @@ module NewRelic::Security
             @closed = true
             @socket.close if @socket
             @socket = nil
-            emit :__close
+            emit :__close, reconnect
             Thread.kill @thread if @thread
           end
   

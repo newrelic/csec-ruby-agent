@@ -55,7 +55,7 @@ module NewRelic::Security
       end
 
       def start_websocket_client
-        NewRelic::Security::Agent::Control::WebsocketClient.instance.close if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
+        NewRelic::Security::Agent::Control::WebsocketClient.instance.close(false) if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
         @websocket_client = NewRelic::Security::Agent::Control::WebsocketClient.instance.connect
       end
 
@@ -95,7 +95,7 @@ module NewRelic::Security
       end
 
       def reconnect(sleep_time = 15)
-        NewRelic::Security::Agent::Control::WebsocketClient.instance.close if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
+        NewRelic::Security::Agent::Control::WebsocketClient.instance.close(false) if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
         NewRelic::Security::Agent.logger.info "Trying to reconnect to websocket connection in #{sleep_time} sec..."
         sleep sleep_time
         NewRelic::Security::Agent.agent.start_websocket_client

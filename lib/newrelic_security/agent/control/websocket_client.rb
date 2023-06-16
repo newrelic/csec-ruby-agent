@@ -64,11 +64,12 @@ module NewRelic::Security
             connection.on :close do |e|
               NewRelic::Security::Agent.logger.info "Closing websocket connection : #{e.inspect}\n"
               NewRelic::Security::Agent.config.disable_security
+              Thread.new { NewRelic::Security::Agent.agent.reconnect(0) } if e
             end
             
             connection.on :error do |e|
               NewRelic::Security::Agent.logger.error "Error in websocket connection : #{e.inspect} #{e.backtrace}"
-              NewRelic::Security::Agent.agent.reconnect(0)
+              Thread.new { NewRelic::Security::Agent::Control::WebsocketClient.instance.close(true) }
             end
           rescue Errno::EPIPE => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
@@ -76,14 +77,15 @@ module NewRelic::Security
           rescue Errno::ECONNRESET => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
             NewRelic::Security::Agent.config.disable_security
-            NewRelic::Security::Agent.agent.reconnect(15)
+            Thread.new { NewRelic::Security::Agent.agent.reconnect(15) }
           rescue Errno::ECONNREFUSED => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
             NewRelic::Security::Agent.config.disable_security
-            NewRelic::Security::Agent.agent.reconnect(15)
+            Thread.new { NewRelic::Security::Agent.agent.reconnect(15) }
           rescue => exception
             NewRelic::Security::Agent.logger.error "Exception in websocket init: #{exception.inspect} #{exception.backtrace}"
             NewRelic::Security::Agent.config.disable_security
+            Thread.new { NewRelic::Security::Agent.agent.reconnect(15) }
           end
           headers = nil
         end
@@ -98,8 +100,8 @@ module NewRelic::Security
           NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
         end
 
-        def close
-          @ws.close if @ws
+        def close(reconnect = true)
+          @ws.close(reconnect) if @ws
         end
 
         def is_open?

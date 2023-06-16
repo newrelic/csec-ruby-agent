@@ -88,7 +88,6 @@ module NewRelic::Security
             sleep 0.1
           end
           Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
-          NewRelic::Security::Agent::Control::WebsocketClient.instance.close
         end
         
       end
