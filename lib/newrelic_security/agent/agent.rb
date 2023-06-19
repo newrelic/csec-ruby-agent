@@ -60,14 +60,14 @@ module NewRelic::Security
       end
 
       def start_event_processor
-        @event_processor.event_dequeue_thread.kill if @event_processor 
-        @event_processor.healthcheck_thread.kill if @event_processor
+        @event_processor&.event_dequeue_thread&.kill 
+        @event_processor&.healthcheck_thread&.kill
         @event_processor = nil
         @event_processor = NewRelic::Security::Agent::Control::EventProcessor.new
       end
 
       def start_iast_client
-        @iast_client.iast_dequeue_thread.kill if @iast_client
+        @iast_client&.iast_dequeue_thread&.kill
         @iast_client = nil
         @iast_client = NewRelic::Security::Agent::Control::IASTClient.new
       end
