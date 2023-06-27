@@ -32,6 +32,7 @@ module NewRelic::Security
             while i < fuzz_request.length()
                 begin
                   fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+                  fuzz_request.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
                   dirname = ::File.dirname(fuzz_request[i])
                   ::FileUtils.mkdir_p(dirname, :mode => 0666) unless ::File.directory?(dirname)
                   ::File.open(fuzz_request[i], ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|

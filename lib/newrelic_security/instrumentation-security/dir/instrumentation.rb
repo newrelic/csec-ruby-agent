@@ -11,12 +11,12 @@ module NewRelic::Security
         fname = var[0]
         abs_path = ::File.expand_path(fname)
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_open?(fname, abs_path, WRITE)
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname], WRITE)
         else
           if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
             NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{fname}"
           else
-            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], WRITE)
           end 
         end
       rescue => exception
@@ -41,12 +41,12 @@ module NewRelic::Security
         fname = name
         abs_path = ::File.expand_path(fname)
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_delete?([fname])
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname], DELETE)
         else
           if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
             NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{fname}"
           else
-            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], DELETE)
           end 
         end
       rescue => exception
@@ -71,12 +71,12 @@ module NewRelic::Security
         fname = var[0]
         abs_path = ::File.expand_path(fname)
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_delete?([fname])
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname])
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, [fname], DELETE)
         else
           if NewRelic::Security::Instrumentation::InstrumentationUtils.read_filter?(fname, abs_path)
             NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{fname}"
           else
-            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname])
+            event = NewRelic::Security::Agent::Control::Collector.collect(FILE_OPERATION, [fname], DELETE)
           end 
         end
       rescue => exception
