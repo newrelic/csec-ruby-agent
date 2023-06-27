@@ -580,7 +580,7 @@ Metrics/MethodLength:
 # Offense count: 9
 # Configuration parameters: CountComments, CountAsOne.
 Metrics/ModuleLength:
-  Max: 267
+  Max: 269
 
 # Offense count: 24
 # Configuration parameters: AllowedMethods, AllowedPatterns.
@@ -1402,7 +1402,7 @@ Style/ZeroLengthPredicate:
     - 'lib/newrelic_security/instrumentation-security/sqlite3/instrumentation.rb'
     - 'lib/newrelic_security/websocket-client-simple/websocket-ruby/lib/websocket/frame/handler/handler75.rb'
 
-# Offense count: 535
+# Offense count: 539
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, AllowedPatterns.
 # URISchemes: http, https
