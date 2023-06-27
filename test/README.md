@@ -10,7 +10,7 @@ Use this command to install required gems:
 
 ### Running All Unit tests
 
-The following command runs all the unit tests without Rails:
+The following command runs all the unit tests:
 
     rake test
 

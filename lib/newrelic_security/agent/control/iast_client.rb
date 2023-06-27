@@ -15,7 +15,7 @@ module NewRelic::Security
 
       class IASTClient
         
-        attr_reader :fuzzQ
+        attr_reader :fuzzQ, :iast_dequeue_thread
 
         def initialize
           @http = nil
@@ -33,7 +33,8 @@ module NewRelic::Security
 
         def create_dequeue_threads
           # TODO: Create 3 or more consumers for event sending
-          Thread.new do
+          @iast_dequeue_thread = Thread.new do
+            Thread.current.name = "newrelic_security_iast_thread"
             loop do
               fuzz_request = @fuzzQ.deq #thread blocks when the queue is empty
               process_fuzz_request(fuzz_request[0])
