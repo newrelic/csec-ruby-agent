@@ -8,7 +8,7 @@ module NewRelic::Security
 
       class EventProcessor
 
-        attr_accessor :eventQ
+        attr_accessor :eventQ, :event_dequeue_thread, :healthcheck_thread
 
         def initialize
           @first_event = true
@@ -61,7 +61,8 @@ module NewRelic::Security
 
         def create_dequeue_threads
           # TODO: Create 3 or more consumers for event sending
-          Thread.new do
+          @event_dequeue_thread = Thread.new do
+            Thread.current.name = "newrelic_security_event_thread"
             loop do
               begin
                 data_to_be_sent = @eventQ.pop
@@ -83,7 +84,8 @@ module NewRelic::Security
         end
 
         def create_keep_alive_thread
-          Thread.new {
+          @healthcheck_thread = Thread.new {
+            Thread.current.name = "newrelic_security_healthcheck_thread"
             while true do 
               sleep HEALTH_INTERVAL
               send_health if NewRelic::Security::Agent.config[:enabled]
