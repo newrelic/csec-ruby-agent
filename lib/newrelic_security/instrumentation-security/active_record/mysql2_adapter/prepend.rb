@@ -12,6 +12,18 @@ module NewRelic::Security
                 event = execute_on_enter(sql, name) { retval = super }
                 execute_on_exit(event) { return retval }
               end
+
+              def exec_insert(*var)
+                retval = nil
+                event = exec_insert_on_enter(*var) { retval = super }
+                exec_insert_on_exit(event) { return retval }
+              end
+
+              def exec_update(*var)
+                retval = nil
+                event = exec_update_on_enter(*var) { retval = super }
+                exec_update_on_exit(event) { return retval }
+              end
             
               if ::Rails.version < '5'
                 def exec_query(*var)

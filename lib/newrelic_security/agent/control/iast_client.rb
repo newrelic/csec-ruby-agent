@@ -56,7 +56,10 @@ module NewRelic::Security
         end
 
         def fire_request(request)
-          @http = ::Net::HTTP.new('localhost', NewRelic::Security::Agent.config[:listen_port]) unless @http
+          unless @http
+            @http = ::Net::HTTP.new('localhost', NewRelic::Security::Agent.config[:listen_port])
+            @http.open_timeout = 5
+          end
           request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
           response = @http.send_request(request[METHOD], ::URI.parse(request[URL]).to_s, request[BODY], request[HEADERS])
           NewRelic::Security::Agent.logger.debug "IAST client response : #{request.inspect} \n#{response.inspect}\n\n\n\n"
