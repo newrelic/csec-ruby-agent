@@ -28,6 +28,14 @@ module NewRelic::Security
           app_info = nil
         end
 
+        def send_application_url_mappings
+          application_url_mappings = NewRelic::Security::Agent::Control::ApplicationURLMappings.new
+          application_url_mappings.update_application_url_mappings
+          NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings.to_json}"
+          enqueue(application_url_mappings)
+          application_url_mappings = nil
+        end
+
         def send_event(event)
           NewRelic::Security::Agent.agent.event_processed_count.increment
           enqueue(event)
