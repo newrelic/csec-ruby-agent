@@ -14,9 +14,6 @@ module NewRelic::Security
           @timestamp = current_time_millis
           @version = EMPTY_STRING
           @groupName = NewRelic::Security::Agent.config[:mode]
-          @nodeId = nil
-          @customerId = nil
-          @emailId = nil
           @policyVersion = nil
           @framework = NewRelic::Security::Agent.config[:framework]
           @protectedServer = nil
@@ -30,9 +27,6 @@ module NewRelic::Security
           @httpRequestCount = 0
           @protectedVulnerabilties = nil
           @protectedDB = nil
-          @isHost = nil
-          @isPod = nil
-          @isContainer = nil
           @linkingMetadata = add_linking_metadata
           @stats = {}
           @serviceStatus = {} # TODO: Fill this
