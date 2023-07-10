@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'set'
 require 'json'
 
@@ -40,8 +41,7 @@ module NewRelic::Security
         def update_application_url_mappings
           maps = ::Set.new
           NewRelic::Security::Agent::Utils.get_app_routes(NewRelic::Security::Agent.config[:framework])
-          NewRelic::Security::Agent.agent.route_map.each do
-            |mapping| 
+          NewRelic::Security::Agent.agent.route_map.each do |mapping| 
             method, path = mapping.split('@')
             maps << { :method => method, :path => path }
           end
@@ -55,7 +55,7 @@ module NewRelic::Security
         end
 
         def add_linking_metadata
-          linking_metadata = Hash.new
+          linking_metadata = {}
           linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
           linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
           # TODO: add other fields as well in linking metadata, for event and heathcheck as well
