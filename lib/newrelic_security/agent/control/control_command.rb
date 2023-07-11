@@ -28,10 +28,18 @@ module NewRelic::Security
             when 11
               NewRelic::Security::Agent.logger.debug "Control command : '11', #{message_object.to_json}"
               NewRelic::Security::Agent.config.update_port = message_object[:reflectedMetaData][LISTEN_PORT].to_i unless NewRelic::Security::Agent.config[:listen_port]
+              NewRelic::Security::Agent.agent.iast_client.last_fuzz_cc_timestamp = current_time_millis
+              NewRelic::Security::Agent.agent.iast_client.processed_ids << message_object[:id]
               NewRelic::Security::Agent.agent.iast_client.enqueue(message_object[:arguments])
             when 12
               NewRelic::Security::Agent.logger.info "Validator asked to reconnect(CC#12), calling reconnect_at_will"
               reconnect_at_will
+            when 13
+              NewRelic::Security::Agent.logger.debug "Control command : '13', #{message_object}"
+              NewRelic::Security::Agent.agent.iast_client.cooldown_till_timestamp = current_time_millis + message_object[:data] * 1000
+            when 14
+              NewRelic::Security::Agent.logger.debug "Control command : '14', #{message_object}"
+              message_object[:arguments].each { |processed_id| NewRelic::Security::Agent.agent.iast_client.processed_ids.delete(processed_id)}
             when 100
               NewRelic::Security::Agent.logger.debug "Control command : '100', #{message_object.to_json}"
               ::NewRelic::Agent.instance.events.notify(:security_policy_received, message_object[:data])
@@ -88,6 +96,10 @@ module NewRelic::Security
             sleep 0.1
           end
           Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
+        end
+
+        def current_time_millis
+          (Time.now.to_f * 1000).to_i
         end
         
       end

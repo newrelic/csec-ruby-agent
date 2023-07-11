@@ -51,4 +51,5 @@ module NewRelic::Security
   REMOTE_ADDR = 'REMOTE_ADDR'
   RACK_URL_SCHEME = 'rack.url_scheme'
   CONTENT_TYPE1 = 'content-Type'
+  PULL = 'PULL'
 end

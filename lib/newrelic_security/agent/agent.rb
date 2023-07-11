@@ -2,6 +2,7 @@ require 'newrelic_security/agent/control/event_subscriber'
 require 'newrelic_security/agent/control/websocket_client'
 require 'newrelic_security/agent/control/event_processor'
 require 'newrelic_security/agent/control/iast_client'
+require 'newrelic_security/agent/control/iast_data_transfer_request'
 require 'newrelic_security/agent/control/control_command'
 require 'newrelic_security/agent/control/reflected_xss'
 require 'newrelic_security/agent/control/http_context'
@@ -68,6 +69,7 @@ module NewRelic::Security
 
       def start_iast_client
         @iast_client&.iast_dequeue_thread&.kill
+        @iast_client&.iast_data_transfer_request_processor_thread&.kill
         @iast_client = nil
         @iast_client = NewRelic::Security::Agent::Control::IASTClient.new
       end

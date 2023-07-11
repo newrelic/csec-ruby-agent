@@ -18,6 +18,7 @@ module NewRelic::Security
       NR_CSEC_APP_UUID = 'NR-CSEC-APP-UUID'
       NR_CSEC_JSON_VERSION = 'NR-CSEC-JSON-VERSION'
       NR_ACCOUNT_ID = 'NR-ACCOUNT-ID'
+      NR_CSEC_IAST_DATA_TRANSFER_MODE = 'NR-CSEC-IAST-DATA-TRANSFER-MODE'
 
       class WebsocketClient
         include Singleton
@@ -37,6 +38,7 @@ module NewRelic::Security
           headers[NR_CSEC_APP_UUID] = NewRelic::Security::Agent.config[:uuid]
           headers[NR_CSEC_JSON_VERSION] = NewRelic::Security::Agent.config[:json_version]
           headers[NR_ACCOUNT_ID] = NewRelic::Security::Agent.config[:account_id]
+          headers[NR_CSEC_IAST_DATA_TRANSFER_MODE] = PULL
           
           begin
             cert_store = ::OpenSSL::X509::Store.new

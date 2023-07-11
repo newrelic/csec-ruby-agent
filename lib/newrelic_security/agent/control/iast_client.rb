@@ -2,6 +2,7 @@
 require 'net/http'
 require 'json'
 require 'uri'
+require 'set'
 
 module NewRelic::Security
   module Agent
@@ -15,12 +16,17 @@ module NewRelic::Security
 
       class IASTClient
         
-        attr_reader :fuzzQ, :iast_dequeue_thread
+        attr_reader :fuzzQ, :iast_dequeue_thread, :create_iast_data_transfer_request_processor
+        attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :processed_ids
 
         def initialize
           @http = nil
-          @fuzzQ = ::SizedQueue.new(EVENT_QUEUE_SIZE)
+          @fuzzQ = ::SizedQueue.new(FUZZQ_QUEUE_SIZE)
+          @cooldown_till_timestamp = current_time_millis
+          @last_fuzz_cc_timestamp = current_time_millis
+          @processed_ids = ::Set.new
           create_dequeue_threads
+          create_iast_data_transfer_request_processor
         end
   
         def enqueue(message)
@@ -43,6 +49,38 @@ module NewRelic::Security
           end
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event queue creation : #{exception.inspect}"
+        end
+        
+        def create_iast_data_transfer_request_processor
+          @iast_data_transfer_request_processor_thread = Thread.new do
+            Thread.current.name = "newrelic_security_iast_data_transfer_request_processor"
+            loop do
+              sleep 1
+              current_timestamp = current_time_millis
+              cooldown_sleep_time = @cooldown_till_timestamp - current_timestamp
+              sleep cooldown_sleep_time/1000 if cooldown_sleep_time > 0
+              if current_timestamp - @last_fuzz_cc_timestamp < 5000
+                next
+              end
+              
+              current_fetch_threshold = 300
+              remaining_record_capacity = @fuzzQ.max
+              current_record_backlog = @fuzzQ.size
+              batch_size = current_fetch_threshold - current_record_backlog
+              if batch_size > 100 && remaining_record_capacity > batch_size
+                iast_data_transfer_request = NewRelic::Security::Agent::Control::IASTDataTransferRequest.new
+                iast_data_transfer_request.batchSize = batch_size * 2
+                iast_data_transfer_request.completedRequestIds = processed_ids
+                NewRelic::Security::Agent.agent.event_processor.send_iast_data_transfer_request(iast_data_transfer_request)
+              end
+            end
+          end
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.error "Exception in create_iast_data_transfer_request_processor creation : #{exception.inspect}"
+        end
+
+        def current_time_millis
+          (Time.now.to_f * 1000).to_i
         end
 
         def process_fuzz_request(fuzz_request)
