@@ -3,7 +3,7 @@ require 'thread'
 module NewRelic::Security
   module Agent
     module Control
-      EVENT_QUEUE_SIZE = 10000
+      EVENT_QUEUE_SIZE = 10_000
       HEALTH_INTERVAL = 300
 
       class EventProcessor

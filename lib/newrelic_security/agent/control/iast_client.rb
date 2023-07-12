@@ -16,7 +16,7 @@ module NewRelic::Security
 
       class IASTClient
         
-        attr_reader :fuzzQ, :iast_dequeue_thread, :create_iast_data_transfer_request_processor
+        attr_reader :fuzzQ, :iast_dequeue_thread
         attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :processed_ids
 
         def initialize
@@ -59,9 +59,7 @@ module NewRelic::Security
               current_timestamp = current_time_millis
               cooldown_sleep_time = @cooldown_till_timestamp - current_timestamp
               sleep cooldown_sleep_time/1000 if cooldown_sleep_time > 0
-              if current_timestamp - @last_fuzz_cc_timestamp < 5000
-                next
-              end
+              next if current_timestamp - @last_fuzz_cc_timestamp < 5000
               
               current_fetch_threshold = 300
               remaining_record_capacity = @fuzzQ.max
