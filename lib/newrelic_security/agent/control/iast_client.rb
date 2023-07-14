@@ -17,7 +17,7 @@ module NewRelic::Security
       class IASTClient
         
         attr_reader :fuzzQ, :iast_dequeue_thread
-        attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :processed_ids
+        attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :processed_ids, :iast_data_transfer_request_processor_thread
 
         def initialize
           @http = nil
