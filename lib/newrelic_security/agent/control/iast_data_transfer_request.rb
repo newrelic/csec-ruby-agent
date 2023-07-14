@@ -12,7 +12,7 @@ module NewRelic::Security
           @jsonName = :'iast-data-request'
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @batchSize = 10
-          @completedRequestIds = ::Set.new
+          @completedRequestIds = []
         end
         
         def as_json
