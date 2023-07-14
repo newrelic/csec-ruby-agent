@@ -98,9 +98,9 @@ module NewRelic::Security
           end
           request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
           response = @http.send_request(request[METHOD], ::URI.parse(request[URL]).to_s, request[BODY], request[HEADERS])
-          NewRelic::Security::Agent.logger.debug "IAST client response : #{request.inspect} \n#{response.inspect}\n\n\n\n"
+          NewRelic::Security::Agent.logger.debug "IAST fuzz request : #{request.inspect} \nresponse: #{response.inspect}\n"
         rescue Exception => exception
-          NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event"
+          NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event for #{request.inspect}\n"
           NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
         end
 
