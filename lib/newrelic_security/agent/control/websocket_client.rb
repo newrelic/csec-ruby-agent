@@ -18,6 +18,8 @@ module NewRelic::Security
       NR_CSEC_APP_UUID = 'NR-CSEC-APP-UUID'
       NR_CSEC_JSON_VERSION = 'NR-CSEC-JSON-VERSION'
       NR_ACCOUNT_ID = 'NR-ACCOUNT-ID'
+      NR_CSEC_ENTITY_NAME = 'NR-CSEC-ENTITY-NAME'
+      NR_CSEC_ENTITY_GUID = 'NR-CSEC-ENTITY-GUID'
 
       class WebsocketClient
         include Singleton
@@ -37,6 +39,8 @@ module NewRelic::Security
           headers[NR_CSEC_APP_UUID] = NewRelic::Security::Agent.config[:uuid]
           headers[NR_CSEC_JSON_VERSION] = NewRelic::Security::Agent.config[:json_version]
           headers[NR_ACCOUNT_ID] = NewRelic::Security::Agent.config[:account_id]
+          headers[NR_CSEC_ENTITY_NAME] = NewRelic::Security::Agent.config[:app_name]
+          headers[NR_CSEC_ENTITY_GUID] = NewRelic::Security::Agent.config[:entity_guid]
           
           begin
             cert_store = ::OpenSSL::X509::Store.new
