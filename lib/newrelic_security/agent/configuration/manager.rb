@@ -35,7 +35,7 @@ module NewRelic::Security
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
-          @cache[:json_version] = :'1.0.1'
+          @cache[:json_version] = :'1.1.1'
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new

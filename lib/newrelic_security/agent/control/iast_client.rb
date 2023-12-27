@@ -43,7 +43,7 @@ module NewRelic::Security
             Thread.current.name = "newrelic_security_iast_thread"
             loop do
               fuzz_request = @fuzzQ.deq #thread blocks when the queue is empty
-              process_fuzz_request(fuzz_request[0])
+              fire_request(fuzz_request)
               fuzz_request = nil
             end
           end
@@ -79,16 +79,6 @@ module NewRelic::Security
 
         def current_time_millis
           (Time.now.to_f * 1000).to_i
-        end
-
-        def process_fuzz_request(fuzz_request)
-          fuzz_request.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
-          fuzz_request.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
-          prepared_fuzz_request = ::JSON.parse(fuzz_request)
-          fire_request(prepared_fuzz_request)
-          prepared_fuzz_request = nil
-        rescue Exception => exception
-          NewRelic::Security::Agent.logger.error "Exception in processing fuzz request : #{exception.inspect} #{exception.backtrace}"
         end
 
         def fire_request(request)
