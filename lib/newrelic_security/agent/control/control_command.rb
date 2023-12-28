@@ -29,8 +29,11 @@ module NewRelic::Security
               NewRelic::Security::Agent.logger.debug "Control command : '11', #{message_object.to_json}"
               NewRelic::Security::Agent.config.update_port = message_object[:reflectedMetaData][LISTEN_PORT].to_i unless NewRelic::Security::Agent.config[:listen_port]
               NewRelic::Security::Agent.agent.iast_client.last_fuzz_cc_timestamp = current_time_millis
-              NewRelic::Security::Agent.agent.iast_client.processed_ids << message_object[:id]
-              NewRelic::Security::Agent.agent.iast_client.enqueue(prepare_fuzz_request(message_object))
+              fuzz_request = NewRelic::Security::Agent::Control::FuzzRequest.new(message_object[:id])
+              fuzz_request.request = prepare_fuzz_request(message_object)
+              fuzz_request.case_type = message_object[:arguments][1]
+              NewRelic::Security::Agent.agent.iast_client.pending_request_ids << message_object[:id]
+              NewRelic::Security::Agent.agent.iast_client.enqueue(fuzz_request)
             when 12
               NewRelic::Security::Agent.logger.info "Validator asked to reconnect(CC#12), calling reconnect_at_will"
               reconnect_at_will
@@ -41,7 +44,7 @@ module NewRelic::Security
             when 14
               NewRelic::Security::Agent.logger.debug "Control command : '14', #{message_object}"
               NewRelic::Security::Agent.logger.debug "Purging confirmed IAST processed records count : #{message_object[:arguments].size}"
-              message_object[:arguments].each { |processed_id| NewRelic::Security::Agent.agent.iast_client.processed_ids.delete(processed_id) }
+              message_object[:arguments].each { |processed_id| NewRelic::Security::Agent.agent.iast_client.completed_requests.delete(processed_id) }
             when 100
               NewRelic::Security::Agent.logger.debug "Control command : '100', #{message_object.to_json}"
               ::NewRelic::Agent.instance.events.notify(:security_policy_received, message_object[:data])

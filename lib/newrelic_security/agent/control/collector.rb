@@ -50,6 +50,9 @@ module NewRelic::Security
           end
           event.apiId = calculate_api_id(event.stacktrace)
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
+          if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
+            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
+          end
           event
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event collector: #{exception.inspect} #{exception.backtrace}"

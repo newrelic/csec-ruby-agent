@@ -15,6 +15,7 @@ module NewRelic::Security
   NR_CSEC_FUZZ_REQUEST_ID = 'nr-csec-fuzz-request-id'
   NR_CSEC_TRACING_DATA = 'nr-csec-tracing-data'
   NR_CSEC_PARENT_ID = 'nr-csec-parent-id'
+  COLON_IAST_COLON = ':IAST:'
   NOSQL_DB_COMMAND = 'NOSQL_DB_COMMAND'
   SQL_DB_COMMAND = 'SQL_DB_COMMAND'
   FILE_OPERATION = 'FILE_OPERATION'

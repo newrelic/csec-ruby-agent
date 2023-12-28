@@ -86,6 +86,7 @@ module NewRelic::Security
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event enqueue, #{exception.inspect}, Dropping message"
           NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
+          NewRelic::Security::Agent.agent.iast_client.completed_requests.delete(message.parentId)
         end
 
         def create_keep_alive_thread
