@@ -101,6 +101,12 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route}"
             end
           end
+        elsif framework == :grape
+          ObjectSpace.each_object(::Grape::Endpoint) { |z|
+            z.routes.each { |route|
+              NewRelic::Security::Agent.agent.route_map << "#{route.options[:method]}@#{route.options[:namespace]}"
+            }
+          }
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end
