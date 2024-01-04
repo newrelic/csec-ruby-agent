@@ -1,6 +1,6 @@
 module NewRelic::Security
   module Instrumentation
-    module Sinatra
+    module Roda
       module Chain
         def self.instrument!
           ::Roda.class_eval do 
