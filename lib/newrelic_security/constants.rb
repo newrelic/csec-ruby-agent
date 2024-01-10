@@ -27,6 +27,7 @@ module NewRelic::Security
   SQLITE = 'SQLITE'
   MYSQL = 'MYSQL'
   POSTGRES = 'POSTGRES'
+  ES = 'ES'
   ISO_8859_1 = 'ISO-8859-1'
   UTF_8 = 'UTF-8'
   RAILS = 'rails'
