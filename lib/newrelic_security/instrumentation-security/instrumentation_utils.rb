@@ -127,7 +127,12 @@ module NewRelic::Security
 
       def add_tracing_data(req, event)
         req[NR_CSEC_TRACING_DATA] = "#{event.httpRequest[:headers][NR_CSEC_TRACING_DATA]} #{NewRelic::Security::Agent.config[:uuid]}/#{event.apiId}/#{event.id};"
-        req[NR_CSEC_FUZZ_REQUEST_ID] = event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID] unless event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID]
+        req[NR_CSEC_FUZZ_REQUEST_ID] = event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID] if event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID]
+      end
+
+      def append_tracing_data(req, event)
+        req.append([NR_CSEC_TRACING_DATA, "#{event.httpRequest[:headers][NR_CSEC_TRACING_DATA]} #{NewRelic::Security::Agent.config[:uuid]}/#{event.apiId}/#{event.id};"])
+        req.append([NR_CSEC_FUZZ_REQUEST_ID, event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID]]) if event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID]
       end
 
     end
