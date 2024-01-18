@@ -42,6 +42,7 @@ module NewRelic::Security
           find_rci(event, stk) if case_type != REFLECTED_XSS && NewRelic::Security::Agent.config[:'security.detection.rci.enabled']
           event.stacktrace = stk[0..user_frame_index].map(&:to_s)
           if case_type == REFLECTED_XSS
+            event.httpResponse[:contentType] = keyword_args[:response_header]
             route = NewRelic::Security::Agent::Control::HTTPContext.get_context.route
             if route && NewRelic::Security::Agent.agent.route_map.include?(route)
               event.stacktrace << route

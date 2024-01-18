@@ -11,7 +11,7 @@ module NewRelic::Security
 
       class Event
 
-        attr_accessor :sourceMethod, :userMethodName, :userFileName, :lineNumber,  :id, :apiId, :isIASTEnable, :isIASTRequest, :httpRequest, :stacktrace, :metaData
+        attr_accessor :sourceMethod, :userMethodName, :userFileName, :lineNumber,  :id, :apiId, :isIASTEnable, :isIASTRequest, :httpRequest, :httpResponse, :stacktrace, :metaData
         attr_reader :jsonName, :caseType, :eventCategory, :parameters
         
         def initialize(case_type, args, event_category)
@@ -27,6 +27,7 @@ module NewRelic::Security
           @jsonVersion = NewRelic::Security::Agent.config[:json_version]
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @httpRequest = Hash.new
+          @httpResponse = Hash.new
           @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s } }
           @linkingMetadata = add_linking_metadata
           @pid = pid
