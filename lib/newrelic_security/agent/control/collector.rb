@@ -47,7 +47,7 @@ module NewRelic::Security
               event.stacktrace << route
             end
           end
-          event.apiId = calculate_api_id(event.stacktrace)
+          event.apiId = calculate_api_id(event.stacktrace, event.httpRequest[:method])
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
           event
         rescue Exception => exception
@@ -64,8 +64,8 @@ module NewRelic::Security
           return -1
         end
 
-        def calculate_api_id(stk)
-          ::Digest::SHA256.hexdigest(stk.join(PIPE)).to_s
+        def calculate_api_id(stk, method)
+          ::Digest::SHA256.hexdigest("#{stk.join(PIPE)}|#{method}").to_s
         rescue Exception => e
           NewRelic::Security::Agent.logger.error "Exception in calculate_api_id : #{e} #{e.backtrace}"
           nil
