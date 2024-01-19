@@ -87,6 +87,7 @@ module NewRelic::Security
           http_request[:headers] = ctxt.headers
           http_request[:contentType] = ctxt.req[CONTENT_TYPE] if ctxt.req.has_key?(CONTENT_TYPE)
           http_request[:headers][CONTENT_TYPE1] = ctxt.req[CONTENT_TYPE] if ctxt.req.has_key?(CONTENT_TYPE)
+          http_request[:dataTruncated] = ctxt.data_truncated
           @httpRequest = http_request
           @metaData[:isClientDetectedFromXFF] = ctxt.headers.has_key?(X_FORWARDED_FOR) ? true : false
         end

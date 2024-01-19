@@ -33,6 +33,7 @@ module NewRelic::Security
           @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
           @cache[:framework] = detect_framework
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
+          @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:json_version] = :'1.0.1'
