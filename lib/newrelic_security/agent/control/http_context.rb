@@ -36,7 +36,7 @@ module NewRelic::Security
 					elsif defined?(::PhusionPassenger::Utils::TeeInput) && strio.instance_of?(::PhusionPassenger::Utils::TeeInput)
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
 					end
-          @data_truncated = strio && strio.size > @body.size
+          @data_truncated = @body && @body.size >= NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024
 					strio.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
