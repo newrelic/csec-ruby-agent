@@ -33,6 +33,8 @@ module NewRelic::Security
 						strio.seek(offset)
 					elsif defined?(::Rack) && strio.instance_of?(::Rack::Lint::InputWrapper)
 						@body = strio.read
+          elsif defined?(::Protocol::Rack::Input) && strio.instance_of?(::Protocol::Rack::Input)
+            @body = strio.read
 					elsif defined?(::PhusionPassenger::Utils::TeeInput) && strio.instance_of?(::PhusionPassenger::Utils::TeeInput)
 						@body = strio.read
 					end
