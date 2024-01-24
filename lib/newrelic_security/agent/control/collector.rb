@@ -53,6 +53,7 @@ module NewRelic::Security
           event
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event collector: #{exception.inspect} #{exception.backtrace}"
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message(exception.message, "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
         end
 
         private

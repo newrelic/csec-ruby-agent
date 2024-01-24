@@ -47,6 +47,18 @@ module NewRelic::Security
           health = nil
         end
 
+        def send_critical_message(message, level, caller, thread_name, exc)
+          if exc
+            exception = {}
+            exception[:message] = exc.message
+            exception[:cause] = exc.cause
+            exception[:stackTrace] = exc.backtrace.map(&:to_s)
+          end
+          critical_message = NewRelic::Security::Agent::Control::CriticalMessage.new(message, level, caller, thread_name, exception)
+          enqueue(critical_message)
+          critical_message = nil
+        end
+
         def send_exit_event(exit_event)
           enqueue(exit_event)
           exit_event = nil

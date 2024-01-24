@@ -71,6 +71,7 @@ module NewRelic::Security
           JSON.parse(message)
         rescue JSON::ParserError => error
           NewRelic::Security::Agent.logger.error "Error in parsing IC message : #{error.inspect}"
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message(exception.message, "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
           nil
         end
 

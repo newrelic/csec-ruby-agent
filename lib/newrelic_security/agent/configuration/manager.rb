@@ -99,6 +99,7 @@ module NewRelic::Security
           @cache[:enabled] = true
           NewRelic::Security::Agent.logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
           NewRelic::Security::Agent.init_logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message("Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}", "INFO", caller_locations[0].to_s, Thread.current.name, nil)
         end
 
         private
