@@ -30,6 +30,11 @@ module NewRelic::Security
 
         def send_event(event)
           NewRelic::Security::Agent.agent.event_processed_count.increment
+          if NewRelic::Security::Agent::Utils.is_IAST_request?(event.httpRequest[:headers])
+            NewRelic::Security::Agent.agent.iast_event_stats.processed.increment
+          else
+            NewRelic::Security::Agent.agent.rasp_event_stats.processed.increment
+          end
           enqueue(event)
           if @first_event
             NewRelic::Security::Agent.init_logger.info "[STEP-8] => First event sent for validation. Security agent started successfully : #{event.to_json}"
@@ -60,6 +65,7 @@ module NewRelic::Security
         end
 
         def send_exit_event(exit_event)
+          NewRelic::Security::Agent.agent.exit_event_stats.processed.increment
           enqueue(exit_event)
           exit_event = nil
         end
@@ -92,7 +98,15 @@ module NewRelic::Security
           @eventQ.push(message, true)
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event enqueue, #{exception.inspect}, Dropping message"
-          NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
+          if message.jsonName == :Event
+            NewRelic::Security::Agent.agent.event_drop_count.increment
+            if NewRelic::Security::Agent::Utils.is_IAST_request?(message.httpRequest[:headers])
+              NewRelic::Security::Agent.agent.iast_event_stats.rejected.increment
+            else
+              NewRelic::Security::Agent.agent.rasp_event_stats.rejected.increment
+            end
+          end
+          NewRelic::Security::Agent.agent.exit_event_stats.rejected.increment if message.jsonName == :'exit-event'
         end
 
         def create_keep_alive_thread
