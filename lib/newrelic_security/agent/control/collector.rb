@@ -38,6 +38,7 @@ module NewRelic::Security
           event.copy_http_info(NewRelic::Security::Agent::Control::HTTPContext.get_context)
           event.isIASTEnable = true if NewRelic::Security::Agent::Utils.is_IAST?
           event.isIASTRequest = true if NewRelic::Security::Agent::Utils.is_IAST_request?(event.httpRequest[:headers])
+          event.parentId = event.httpRequest[:headers][NR_CSEC_PARENT_ID] if event.httpRequest[:headers].key?(NR_CSEC_PARENT_ID)
           find_deserialisation(event, stk) if case_type != REFLECTED_XSS && NewRelic::Security::Agent.config[:'security.detection.deserialization.enabled']
           find_rci(event, stk) if case_type != REFLECTED_XSS && NewRelic::Security::Agent.config[:'security.detection.rci.enabled']
           event.stacktrace = stk[0..user_frame_index].map(&:to_s)
@@ -49,6 +50,9 @@ module NewRelic::Security
           end
           event.apiId = calculate_api_id(event.stacktrace)
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
+          if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
+            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
+          end
           event
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event collector: #{exception.inspect} #{exception.backtrace}"

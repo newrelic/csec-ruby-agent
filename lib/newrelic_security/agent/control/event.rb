@@ -11,7 +11,7 @@ module NewRelic::Security
 
       class Event
 
-        attr_accessor :sourceMethod, :userMethodName, :userFileName, :lineNumber,  :id, :apiId, :isIASTEnable, :isIASTRequest, :httpRequest, :stacktrace, :metaData
+        attr_accessor :sourceMethod, :userMethodName, :userFileName, :lineNumber,  :id, :apiId, :isIASTEnable, :isIASTRequest, :httpRequest, :stacktrace, :metaData, :parentId
         attr_reader :jsonName, :caseType, :eventCategory, :parameters
         
         def initialize(case_type, args, event_category)
@@ -45,6 +45,7 @@ module NewRelic::Security
           @isAPIBlocked = nil
           @isIASTEnable = false
           @isIASTRequest = false
+          @parentId = nil
         end
 
         def as_json

@@ -28,10 +28,23 @@ module NewRelic::Security
             when 11
               NewRelic::Security::Agent.logger.debug "Control command : '11', #{message_object.to_json}"
               NewRelic::Security::Agent.config.update_port = message_object[:reflectedMetaData][LISTEN_PORT].to_i unless NewRelic::Security::Agent.config[:listen_port]
-              NewRelic::Security::Agent.agent.iast_client.enqueue(message_object[:arguments])
+              NewRelic::Security::Agent.agent.iast_client.last_fuzz_cc_timestamp = current_time_millis
+              fuzz_request = NewRelic::Security::Agent::Control::FuzzRequest.new(message_object[:id])
+              fuzz_request.request = prepare_fuzz_request(message_object)
+              fuzz_request.case_type = message_object[:arguments][1]
+              NewRelic::Security::Agent.agent.iast_client.pending_request_ids << message_object[:id]
+              NewRelic::Security::Agent.agent.iast_client.enqueue(fuzz_request)
             when 12
               NewRelic::Security::Agent.logger.info "Validator asked to reconnect(CC#12), calling reconnect_at_will"
               reconnect_at_will
+            when 13
+              NewRelic::Security::Agent.logger.debug "Control command : '13', #{message_object}"
+              NewRelic::Security::Agent.logger.debug "Received IAST cooldown. Waiting for next : #{message_object[:data]} Seconds"
+              NewRelic::Security::Agent.agent.iast_client.cooldown_till_timestamp = current_time_millis + (message_object[:data] * 1000)
+            when 14
+              NewRelic::Security::Agent.logger.debug "Control command : '14', #{message_object}"
+              NewRelic::Security::Agent.logger.debug "Purging confirmed IAST processed records count : #{message_object[:arguments].size}"
+              message_object[:arguments].each { |processed_id| NewRelic::Security::Agent.agent.iast_client.completed_requests.delete(processed_id) }
             when 100
               NewRelic::Security::Agent.logger.debug "Control command : '100', #{message_object.to_json}"
               ::NewRelic::Agent.instance.events.notify(:security_policy_received, message_object[:data])
@@ -88,6 +101,20 @@ module NewRelic::Security
             sleep 0.1
           end
           Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
+        end
+
+        def current_time_millis
+          (Time.now.to_f * 1000).to_i
+        end
+
+        def prepare_fuzz_request(message_object)
+          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
+          prepared_fuzz_request = ::JSON.parse(message_object[:arguments][0])
+          prepared_fuzz_request[HEADERS][NR_CSEC_PARENT_ID] = message_object[:id]
+          prepared_fuzz_request
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.error "Exception in preparing fuzz request : #{exception.inspect} #{exception.backtrace}"
         end
         
       end

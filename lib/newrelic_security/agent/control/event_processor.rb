@@ -3,7 +3,7 @@ require 'thread'
 module NewRelic::Security
   module Agent
     module Control
-      EVENT_QUEUE_SIZE = 1000
+      EVENT_QUEUE_SIZE = 10_000
       HEALTH_INTERVAL = 300
 
       class EventProcessor
@@ -57,6 +57,11 @@ module NewRelic::Security
           fuzz_fail_event = nil
         end
 
+        def send_iast_data_transfer_request(iast_data_transfer_request)
+          enqueue(iast_data_transfer_request)
+          iast_data_transfer_request = nil
+        end
+
         private
 
         def create_dequeue_threads
@@ -81,6 +86,7 @@ module NewRelic::Security
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event enqueue, #{exception.inspect}, Dropping message"
           NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
+          NewRelic::Security::Agent.agent.iast_client.completed_requests.delete(message.parentId)
         end
 
         def create_keep_alive_thread

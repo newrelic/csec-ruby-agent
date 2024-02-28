@@ -10,7 +10,6 @@ module NewRelic::Security
       VULNERABILITY_SCAN = 'vulnerabilityScan'
       ENABLED = 'enabled'
       IAST_SCAN = 'iastScan'
-      COLON_IAST_COLON = ':IAST:'
       VULNERABLE = 'VULNERABLE'
 
       def is_IAST?
