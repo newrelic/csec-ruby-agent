@@ -3,7 +3,7 @@ require 'thread'
 module NewRelic::Security
   module Agent
     module Control
-      EVENT_QUEUE_SIZE = 1000
+      EVENT_QUEUE_SIZE = 10_000
       HEALTH_INTERVAL = 300
 
       class EventProcessor
@@ -75,6 +75,11 @@ module NewRelic::Security
           fuzz_fail_event = nil
         end
 
+        def send_iast_data_transfer_request(iast_data_transfer_request)
+          enqueue(iast_data_transfer_request)
+          iast_data_transfer_request = nil
+        end
+
         private
 
         def create_dequeue_threads
@@ -107,6 +112,7 @@ module NewRelic::Security
             end
           end
           NewRelic::Security::Agent.agent.exit_event_stats.rejected.increment if message.jsonName == :'exit-event'
+          NewRelic::Security::Agent.agent.iast_client.completed_requests.delete(message.parentId)
         end
 
         def create_keep_alive_thread
