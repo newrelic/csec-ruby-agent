@@ -5,7 +5,7 @@ module NewRelic::Security
   module Instrumentation
     module GRPC
       module ClientStub
-        def request_response_on_enter(method, req, marshal, unmarshal, deadline, return_op, parent, credentials, metadata) # rubocop:disable Metrics/ParameterLists
+        def grpc_client_on_enter(method, metadata)
           event = nil
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
           host = "grpc://#{instance_variable_get(:@host)}#{method}"
@@ -19,7 +19,7 @@ module NewRelic::Security
           return event
         end
   
-        def request_response_on_exit(event)
+        def grpc_client_on_exit(event)
           NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
           NewRelic::Security::Agent::Utils.create_exit_event(event)
         rescue => exception
