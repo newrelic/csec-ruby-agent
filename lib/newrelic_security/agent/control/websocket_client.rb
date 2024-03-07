@@ -100,10 +100,19 @@ module NewRelic::Security
           message_json = message.to_json
           NewRelic::Security::Agent.logger.debug "Sending #{message.jsonName} : #{message_json}"
           res = @ws.send(message_json)
-          NewRelic::Security::Agent.agent.event_sent_count.increment if res && message.jsonName == :Event
+          if res && message.jsonName == :Event
+            NewRelic::Security::Agent.agent.event_sent_count.increment
+            if NewRelic::Security::Agent::Utils.is_IAST_request?(message.httpRequest[:headers])
+              NewRelic::Security::Agent.agent.iast_event_stats.sent.increment
+            else
+              NewRelic::Security::Agent.agent.rasp_event_stats.sent.increment
+            end
+          end
+          NewRelic::Security::Agent.agent.exit_event_stats.sent.increment if res && message.jsonName == :'exit-event'
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in sending message : #{exception.inspect} #{exception.backtrace}"
           NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message(exception.message, "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
         end
 
         def close(reconnect = true)

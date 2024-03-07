@@ -33,6 +33,7 @@ module NewRelic::Security
           @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
           @cache[:framework] = detect_framework
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
+          @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:json_version] = :'1.1.1'
@@ -98,6 +99,7 @@ module NewRelic::Security
           @cache[:enabled] = true
           NewRelic::Security::Agent.logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
           NewRelic::Security::Agent.init_logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message("Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}", "INFO", caller_locations[0].to_s, Thread.current.name, nil)
         end
 
         private

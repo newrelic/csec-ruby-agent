@@ -43,12 +43,13 @@ module NewRelic::Security
           find_rci(event, stk) if case_type != REFLECTED_XSS && NewRelic::Security::Agent.config[:'security.detection.rci.enabled']
           event.stacktrace = stk[0..user_frame_index].map(&:to_s)
           if case_type == REFLECTED_XSS
+            event.httpResponse[:contentType] = keyword_args[:response_header]
             route = NewRelic::Security::Agent::Control::HTTPContext.get_context.route
             if route && NewRelic::Security::Agent.agent.route_map.include?(route)
               event.stacktrace << route
             end
           end
-          event.apiId = calculate_api_id(event.stacktrace)
+          event.apiId = calculate_api_id(event.stacktrace, event.httpRequest[:method])
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
           if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
             NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
@@ -56,6 +57,12 @@ module NewRelic::Security
           event
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event collector: #{exception.inspect} #{exception.backtrace}"
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message(exception.message, "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
+          if NewRelic::Security::Agent::Utils.is_IAST_request?(event.httpRequest[:headers])
+            NewRelic::Security::Agent.agent.iast_event_stats.error_count.increment
+          else
+            NewRelic::Security::Agent.agent.rasp_event_stats.error_count.increment
+          end
         end
 
         private
@@ -68,8 +75,8 @@ module NewRelic::Security
           return -1
         end
 
-        def calculate_api_id(stk)
-          ::Digest::SHA256.hexdigest(stk.join(PIPE)).to_s
+        def calculate_api_id(stk, method)
+          ::Digest::SHA256.hexdigest("#{stk.join(PIPE)}|#{method}").to_s
         rescue Exception => e
           NewRelic::Security::Agent.logger.error "Exception in calculate_api_id : #{e} #{e.backtrace}"
           nil

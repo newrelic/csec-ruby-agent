@@ -74,6 +74,9 @@ module NewRelic::Security
           exit_event.k2RequestIdentifier = event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID]
           NewRelic::Security::Agent.agent.event_processor.send_exit_event(exit_event)
         end
+      rescue Exception => exception
+        NewRelic::Security::Agent.logger.error "Exception in create_exit_event: #{exception.inspect} #{exception.backtrace}"
+        NewRelic::Security::Agent.agent.exit_event_stats.error_count.increment
       end
 
       def create_fuzz_fail_event(fuzz_request_id)
