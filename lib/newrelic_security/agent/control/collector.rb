@@ -17,8 +17,7 @@ module NewRelic::Security
 
         def collect(case_type, args, event_category = nil, **keyword_args)
           return unless NewRelic::Security::Agent.config[:enabled]
-          return if NewRelic::Security::Agent::Control::HTTPContext.get_context.nil?
-          
+          return if NewRelic::Security::Agent::Control::HTTPContext.get_context.nil? && NewRelic::Security::Agent::Control::GRPCContext.get_context.nil?
           event = NewRelic::Security::Agent::Control::Event.new(case_type, args, event_category)
 
           stk = caller_locations[1..COVERAGE]
@@ -35,7 +34,8 @@ module NewRelic::Security
             event.lineNumber = stk[1].lineno
           end
 
-          event.copy_http_info(NewRelic::Security::Agent::Control::HTTPContext.get_context)
+          event.copy_http_info(NewRelic::Security::Agent::Control::HTTPContext.get_context) if NewRelic::Security::Agent::Control::HTTPContext.get_context
+          event.copy_grpc_info(NewRelic::Security::Agent::Control::GRPCContext.get_context) if NewRelic::Security::Agent::Control::GRPCContext.get_context
           event.isIASTEnable = true if NewRelic::Security::Agent::Utils.is_IAST?
           event.isIASTRequest = true if NewRelic::Security::Agent::Utils.is_IAST_request?(event.httpRequest[:headers])
           find_deserialisation(event, stk) if case_type != REFLECTED_XSS && NewRelic::Security::Agent.config[:'security.detection.deserialization.enabled']
