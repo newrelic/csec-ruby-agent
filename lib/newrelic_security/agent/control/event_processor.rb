@@ -48,7 +48,7 @@ module NewRelic::Security
           health.update_health_check
           NewRelic::Security::Agent.agent.status_logger.add_healthcheck_in_last_healthchecks(health)
           NewRelic::Security::Agent.agent.status_logger.create_snapshot
-          enqueue(health)
+          NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
           health = nil
         end
 
