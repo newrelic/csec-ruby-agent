@@ -120,7 +120,7 @@ module NewRelic::Security
             Thread.current.name = "newrelic_security_healthcheck_thread"
             while true do 
               sleep HEALTH_INTERVAL
-              send_health if NewRelic::Security::Agent.config[:enabled]
+              send_health if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
             end
           }
         rescue Exception => exception
