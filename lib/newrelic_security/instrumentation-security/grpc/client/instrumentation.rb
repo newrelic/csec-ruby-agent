@@ -9,7 +9,8 @@ module NewRelic::Security
           event = nil
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
           host = "grpc://#{instance_variable_get(:@host)}#{method}"
-          event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [host])
+          # TODO: Recheck this parameters, this is diff for other LCs
+          event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [{:host => host, :path => '/'}])
           NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(metadata, event) if event
           event
         rescue => exception

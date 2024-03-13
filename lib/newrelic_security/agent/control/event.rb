@@ -91,6 +91,7 @@ module NewRelic::Security
         end
 
         def copy_grpc_info(ctxt)
+          # TODO: optimise this method and combine copy_http_info and copy_grpc_info
           return if ctxt.nil?
           http_request = {}
           http_request[:body] = ctxt.body

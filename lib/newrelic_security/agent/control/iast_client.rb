@@ -19,6 +19,7 @@ module NewRelic::Security
 
         def initialize
           @http = nil
+          @stub = nil
           @fuzzQ = ::SizedQueue.new(EVENT_QUEUE_SIZE)
           create_dequeue_threads
         end
@@ -49,7 +50,11 @@ module NewRelic::Security
           fuzz_request.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
           fuzz_request.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
           prepared_fuzz_request = ::JSON.parse(fuzz_request)
-          fire_request(prepared_fuzz_request)
+          if prepared_fuzz_request['isGrpc']
+            fire_grpc_request(prepared_fuzz_request)
+          else
+            fire_request(prepared_fuzz_request)
+          end
           prepared_fuzz_request = nil
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in processing fuzz request : #{exception.inspect} #{exception.backtrace}"
@@ -65,6 +70,18 @@ module NewRelic::Security
           NewRelic::Security::Agent.logger.debug "IAST client response : #{request.inspect} \n#{response.inspect}\n\n\n\n"
         rescue Exception => exception
           NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event"
+          NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
+        end
+
+        def fire_grpc_request(request)
+          service = Object.const_get(request['method'].split('/')[0]).superclass
+          method = request['method'].split('/')[1]
+          @stub = service.rpc_stub_class.new("localhost:#{request['serverPort']}", :this_channel_is_insecure) unless @stub
+          response = @stub.send(method, JSON.parse(request['body'], object_class: Books::BookID))
+          # request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
+          NewRelic::Security::Agent.logger.debug "IAST gRPC client response : #{request.inspect} \n#{response.inspect}\n\n\n\n"
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.debug "Unable to fire IAST gRPC fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event"
           NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
         end
 
