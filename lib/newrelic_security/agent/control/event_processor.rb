@@ -48,7 +48,7 @@ module NewRelic::Security
           health.update_health_check
           NewRelic::Security::Agent.agent.status_logger.add_healthcheck_in_last_healthchecks(health)
           NewRelic::Security::Agent.agent.status_logger.create_snapshot
-          enqueue(health)
+          NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
           health = nil
         end
 
@@ -120,7 +120,7 @@ module NewRelic::Security
             Thread.current.name = "newrelic_security_healthcheck_thread"
             while true do 
               sleep HEALTH_INTERVAL
-              send_health if NewRelic::Security::Agent.config[:enabled]
+              send_health if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
             end
           }
         rescue Exception => exception
