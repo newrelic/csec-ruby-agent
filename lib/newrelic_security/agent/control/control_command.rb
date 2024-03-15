@@ -28,7 +28,7 @@ module NewRelic::Security
             when 11
               NewRelic::Security::Agent.logger.debug "Control command : '11', #{message_object.to_json}"
               NewRelic::Security::Agent.config.update_port = message_object[:reflectedMetaData][LISTEN_PORT].to_i unless NewRelic::Security::Agent.config[:listen_port]
-              NewRelic::Security::Agent.agent.iast_client.enqueue(message_object[:arguments])
+              NewRelic::Security::Agent.agent.iast_client.enqueue(message_object)
             when 12
               NewRelic::Security::Agent.logger.info "Validator asked to reconnect(CC#12), calling reconnect_at_will"
               reconnect_at_will

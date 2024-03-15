@@ -12,6 +12,9 @@ module NewRelic::Security
       BODY = 'body'
       HEADERS = 'headers'
       VERSION = 'version'
+      IS_GRPC = 'isGrpc'
+      INPUT_CLASS = 'inputClass'
+      SERVER_PORT_1 = 'serverPort'
 
       class IASTClient
         
@@ -37,21 +40,21 @@ module NewRelic::Security
           @iast_dequeue_thread = Thread.new do
             Thread.current.name = "newrelic_security_iast_thread"
             loop do
-              fuzz_request = @fuzzQ.deq #thread blocks when the queue is empty
-              process_fuzz_request(fuzz_request[0])
-              fuzz_request = nil
+              message_object = @fuzzQ.deq #thread blocks when the queue is empty
+              process_fuzz_request(message_object)
+              message_object = nil
             end
           end
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event queue creation : #{exception.inspect}"
         end
 
-        def process_fuzz_request(fuzz_request)
-          fuzz_request.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
-          fuzz_request.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
-          prepared_fuzz_request = ::JSON.parse(fuzz_request)
-          if prepared_fuzz_request['isGrpc']
-            fire_grpc_request(prepared_fuzz_request)
+        def process_fuzz_request(message_object)
+          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
+          prepared_fuzz_request = ::JSON.parse(message_object[:arguments][0])
+          if prepared_fuzz_request[IS_GRPC]
+            fire_grpc_request(prepared_fuzz_request, message_object[:reflectedMetaData])
           else
             fire_request(prepared_fuzz_request)
           end
@@ -73,11 +76,12 @@ module NewRelic::Security
           NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
         end
 
-        def fire_grpc_request(request)
-          service = Object.const_get(request['method'].split('/')[0]).superclass
-          method = request['method'].split('/')[1]
-          @stub = service.rpc_stub_class.new("localhost:#{request['serverPort']}", :this_channel_is_insecure) unless @stub
-          response = @stub.send(method, JSON.parse(request['body'], object_class: Books::BookID))
+        def fire_grpc_request(request, reflected_metadata)
+          service = Object.const_get(request[METHOD].split(SLASH)[0]).superclass
+          method = request[METHOD].split(SLASH)[1]
+          @stub = service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure) unless @stub
+          response = @stub.public_send(method, Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY]))
+          # response = @stub.send(method, JSON.parse(request['body'], object_class: OpenStruct))
           # request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
           NewRelic::Security::Agent.logger.debug "IAST gRPC client response : #{request.inspect} \n#{response.inspect}\n\n\n\n"
         rescue Exception => exception
