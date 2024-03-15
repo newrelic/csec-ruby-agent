@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'digest'
+require 'pathname'
 
 module NewRelic::Security
   module Agent
@@ -18,7 +19,7 @@ module NewRelic::Security
         def collect(case_type, args, event_category = nil, **keyword_args)
           return unless NewRelic::Security::Agent.config[:enabled]
           return if NewRelic::Security::Agent::Control::HTTPContext.get_context.nil?
-          
+          args.map! { |file| Pathname.new(file).relative? ? File.join(Dir.pwd, file) : file } if [FILE_OPERATION, FILE_INTEGRITY].include?(case_type)
           event = NewRelic::Security::Agent::Control::Event.new(case_type, args, event_category)
 
           stk = caller_locations[1..COVERAGE]
