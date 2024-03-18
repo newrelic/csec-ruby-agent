@@ -2,7 +2,9 @@ require 'newrelic_security/agent/control/event_subscriber'
 require 'newrelic_security/agent/control/websocket_client'
 require 'newrelic_security/agent/control/event_processor'
 require 'newrelic_security/agent/control/iast_client'
+require 'newrelic_security/agent/control/iast_data_transfer_request'
 require 'newrelic_security/agent/control/control_command'
+require 'newrelic_security/agent/control/fuzz_request'
 require 'newrelic_security/agent/control/reflected_xss'
 require 'newrelic_security/agent/control/http_context'
 require 'newrelic_security/agent/control/grpc_context'
@@ -10,7 +12,9 @@ require 'newrelic_security/agent/control/collector'
 require 'newrelic_security/agent/control/app_info'
 require 'newrelic_security/agent/control/health_check'
 require 'newrelic_security/agent/control/event'
+require 'newrelic_security/agent/control/critical_message'
 require 'newrelic_security/agent/control/event_counter'
+require 'newrelic_security/agent/control/event_stats'
 require 'newrelic_security/agent/control/exit_event'
 require 'newrelic_security/agent/control/fuzz_fail_event'
 require 'newrelic_security/instrumentation-security/instrumentation_loader'
@@ -20,7 +24,7 @@ module NewRelic::Security
   module Agent
     class Agent
 
-      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :status_logger
+      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :status_logger, :iast_event_stats, :rasp_event_stats, :exit_event_stats
 
       def initialize
         NewRelic::Security::Agent.config
@@ -34,6 +38,9 @@ module NewRelic::Security
         @event_processed_count = NewRelic::Security::Agent::Control::EventCounter.new
         @event_sent_count = NewRelic::Security::Agent::Control::EventCounter.new
         @event_drop_count = NewRelic::Security::Agent::Control::EventCounter.new
+        @iast_event_stats = NewRelic::Security::Agent::Control::EventStats.new
+        @rasp_event_stats = NewRelic::Security::Agent::Control::EventStats.new
+        @exit_event_stats = NewRelic::Security::Agent::Control::EventStats.new
       end
 
       def init
@@ -69,6 +76,7 @@ module NewRelic::Security
 
       def start_iast_client
         @iast_client&.iast_dequeue_thread&.kill
+        @iast_client&.iast_data_transfer_request_processor_thread&.kill
         @iast_client = nil
         @iast_client = NewRelic::Security::Agent::Control::IASTClient.new
       end
