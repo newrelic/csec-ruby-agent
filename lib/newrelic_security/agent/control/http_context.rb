@@ -15,7 +15,7 @@ module NewRelic::Security
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :route, :cache
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache
 
         def initialize(env)
           @time_stamp = current_time_millis
@@ -29,17 +29,19 @@ module NewRelic::Security
           strio = env[RACK_INPUT]
 					if strio.instance_of?(::StringIO)
 						offset = strio.tell
-						@body = strio.read #after read, offset changes
+						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024) #after read, offset changes
 						strio.seek(offset)
 					elsif defined?(::Rack) && strio.instance_of?(::Rack::Lint::InputWrapper)
-						@body = strio.read
+						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
 					elsif defined?(::PhusionPassenger::Utils::TeeInput) && strio.instance_of?(::PhusionPassenger::Utils::TeeInput)
-						@body = strio.read
+						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
 					end
+          @data_truncated = @body && @body.size >= NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024
 					strio.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
           NewRelic::Security::Agent.agent.http_request_count.increment
+          NewRelic::Security::Agent.agent.iast_client.completed_requests[@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID)
         end
 
         def current_time_millis
