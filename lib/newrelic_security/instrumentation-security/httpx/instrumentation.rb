@@ -17,7 +17,7 @@ module NewRelic::Security
         ob[:URI]     = uri.to_s
         ob[:path]    = uri.path
         ob[:query]   = uri.query
-        ob[:Body] = args[0].body.to_s
+        ob[:Body]    = args[0].body.bytesize.positive? ? args[0].body.to_s : ""
         ob[:Headers] = args[0].headers
         ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
         event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
