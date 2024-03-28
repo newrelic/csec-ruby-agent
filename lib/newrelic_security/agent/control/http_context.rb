@@ -41,7 +41,9 @@ module NewRelic::Security
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
           NewRelic::Security::Agent.agent.http_request_count.increment
-          NewRelic::Security::Agent.agent.iast_client.completed_requests[@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID)
+          uuid = @headers[NR_CSEC_TRACING_DATA] ? @headers[NR_CSEC_TRACING_DATA].split(';')[0].split('/')[0] : NewRelic::Security::Agent.config[:uuid]
+          NewRelic::Security::Agent.agent.iast_client.generated_event[uuid] = {} unless NewRelic::Security::Agent.agent.iast_client.generated_event[uuid]
+          # NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID) # TODO: Check with SE, whether empty entries are required or not.
         end
 
         def current_time_millis
