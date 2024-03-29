@@ -24,8 +24,8 @@ module NewRelic::Security
           @headers = env.select { |key, _| key.include?(HTTP_) }
           @headers = @headers.transform_keys{ |key| key[5..-1].gsub(UNDERSCORE, HYPHEN).downcase }
           request = Rack::Request.new(env) if defined? ::Rack
-					@params = request.params
-					@params.each { |k, v| v.force_encoding(Encoding::UTF_8) if v.is_a?(String) }
+					@params = request&.params
+					@params&.each { |k, v| v.force_encoding(Encoding::UTF_8) if v.is_a?(String) }
           strio = env[RACK_INPUT]
 					if strio.instance_of?(::StringIO)
 						offset = strio.tell
@@ -37,7 +37,7 @@ module NewRelic::Security
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
 					end
           @data_truncated = @body && @body.size >= NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024
-					strio.rewind
+					strio&.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
           NewRelic::Security::Agent.agent.http_request_count.increment

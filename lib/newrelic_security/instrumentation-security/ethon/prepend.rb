@@ -7,8 +7,6 @@ module NewRelic::Security
 
           def fabricate(url, action_name, options)
             fabricate_on_enter(url, action_name, options) { return super }
-          rescue Exception => e
-            puts "exception in : #{e} #{e.backtrace}"
           end
   
           def headers=(headers)

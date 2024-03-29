@@ -29,7 +29,7 @@ module NewRelic::Security
         def perform_on_enter(*args)
           event = nil
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-          context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id]
+          context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
           uri = ::URI.parse(url)
           ob = {}
           ob[:Method] = context[:method] if context
@@ -44,9 +44,9 @@ module NewRelic::Security
           ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
           event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
           headers_copy = {}
-          headers_copy.merge!(context[:headers]) if context.key?(:headers)
+          headers_copy.merge!(context[:headers]) if context&.key?(:headers)
           NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(headers_copy, event) if event
-          self.headers = headers_copy
+          self.headers = headers_copy if self.headers 
           event
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
