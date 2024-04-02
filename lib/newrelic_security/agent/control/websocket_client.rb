@@ -20,6 +20,7 @@ module NewRelic::Security
       NR_ACCOUNT_ID = 'NR-ACCOUNT-ID'
       NR_CSEC_ENTITY_NAME = 'NR-CSEC-ENTITY-NAME'
       NR_CSEC_ENTITY_GUID = 'NR-CSEC-ENTITY-GUID'
+      NR_CSEC_IAST_DATA_TRANSFER_MODE = 'NR-CSEC-IAST-DATA-TRANSFER-MODE'
 
       class WebsocketClient
         include Singleton
@@ -41,14 +42,15 @@ module NewRelic::Security
           headers[NR_ACCOUNT_ID] = NewRelic::Security::Agent.config[:account_id]
           headers[NR_CSEC_ENTITY_NAME] = NewRelic::Security::Agent.config[:app_name]
           headers[NR_CSEC_ENTITY_GUID] = NewRelic::Security::Agent.config[:entity_guid]
-          
+          headers[NR_CSEC_IAST_DATA_TRANSFER_MODE] = PULL
+
           begin
             cert_store = ::OpenSSL::X509::Store.new
             cert_store.add_cert ::OpenSSL::X509::Certificate.new(::IO.read("#{__dir__}/../resources/cert.pem"))
             NewRelic::Security::Agent.logger.info "Websocket connection URL : #{NewRelic::Security::Agent.config[:validator_service_url]}"
             connection = NewRelic::Security::WebSocket::Client::Simple.connect NewRelic::Security::Agent.config[:validator_service_url], headers: headers, cert_store: cert_store
             @ws = connection
-          
+
             connection.on :open do
               NewRelic::Security::Agent.logger.debug "Websocket connected with IC, AgentEventMachine #{connection.inspect}"
               NewRelic::Security::Agent.init_logger.info "[STEP-4] => Web socket connection to SaaS validator established successfully"
@@ -64,13 +66,13 @@ module NewRelic::Security
                 ControlCommand.handle_ic_command(msg.data)
               end
             end
-        
+
             connection.on :close do |e|
               NewRelic::Security::Agent.logger.info "Closing websocket connection : #{e.inspect}\n"
               NewRelic::Security::Agent.config.disable_security
               Thread.new { NewRelic::Security::Agent.agent.reconnect(0) } if e
             end
-            
+
             connection.on :error do |e|
               NewRelic::Security::Agent.logger.error "Error in websocket connection : #{e.inspect} #{e.backtrace}"
               Thread.new { NewRelic::Security::Agent::Control::WebsocketClient.instance.close(true) }
@@ -93,15 +95,24 @@ module NewRelic::Security
           end
           headers = nil
         end
-      
+
         def send(message)
           message_json = message.to_json
           NewRelic::Security::Agent.logger.debug "Sending #{message.jsonName} : #{message_json}"
           res = @ws.send(message_json)
-          NewRelic::Security::Agent.agent.event_sent_count.increment if res && message.jsonName == :Event
+          if res && message.jsonName == :Event
+            NewRelic::Security::Agent.agent.event_sent_count.increment
+            if NewRelic::Security::Agent::Utils.is_IAST_request?(message.httpRequest[:headers])
+              NewRelic::Security::Agent.agent.iast_event_stats.sent.increment
+            else
+              NewRelic::Security::Agent.agent.rasp_event_stats.sent.increment
+            end
+          end
+          NewRelic::Security::Agent.agent.exit_event_stats.sent.increment if res && message.jsonName == :'exit-event'
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in sending message : #{exception.inspect} #{exception.backtrace}"
           NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message(exception.message, "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
         end
 
         def close(reconnect = true)
@@ -112,7 +123,7 @@ module NewRelic::Security
           return @ws.open? if @ws
           false
         end
-        
+
       end
     end
   end
