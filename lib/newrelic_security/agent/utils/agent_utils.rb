@@ -103,6 +103,8 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route}"
             end
           end
+        elsif framework == :roda
+          NewRelic::Security::Agent.logger.warn "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end

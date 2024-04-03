@@ -107,6 +107,7 @@ module NewRelic::Security
         def detect_framework
           return :rails if defined?(::Rails)
           return :sinatra if defined?(::Sinatra)
+          return :roda if defined?(::Roda)
         end
 
         def generate_uuid
