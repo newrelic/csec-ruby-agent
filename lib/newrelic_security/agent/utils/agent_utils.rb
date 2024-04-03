@@ -10,7 +10,6 @@ module NewRelic::Security
       VULNERABILITY_SCAN = 'vulnerabilityScan'
       ENABLED = 'enabled'
       IAST_SCAN = 'iastScan'
-      COLON_IAST_COLON = ':IAST:'
       VULNERABLE = 'VULNERABLE'
 
       def is_IAST?
@@ -32,7 +31,7 @@ module NewRelic::Security
             while i < fuzz_request.length()
                 begin
                   fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
-                  fuzz_request.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
+                  fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
                   dirname = ::File.dirname(fuzz_request[i])
                   ::FileUtils.mkdir_p(dirname, :mode => 0666) unless ::File.directory?(dirname)
                   ::File.open(fuzz_request[i], ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
@@ -75,6 +74,9 @@ module NewRelic::Security
           exit_event.k2RequestIdentifier = event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID]
           NewRelic::Security::Agent.agent.event_processor.send_exit_event(exit_event)
         end
+      rescue Exception => exception
+        NewRelic::Security::Agent.logger.error "Exception in create_exit_event: #{exception.inspect} #{exception.backtrace}"
+        NewRelic::Security::Agent.agent.exit_event_stats.error_count.increment
       end
 
       def create_fuzz_fail_event(fuzz_request_id)
@@ -101,6 +103,8 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route}"
             end
           end
+        elsif framework == :roda
+          NewRelic::Security::Agent.logger.warn "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end
