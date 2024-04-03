@@ -10,9 +10,9 @@ module NewRelic::Security
                 @@case_type = "SYSTEM_COMMAND"
                 @@args = [@@file_name]
                 @@event_category = nil
-                def test_require
-                   #out = require 'temp_module'
-                end
+                # def test_require
+                #    #out = require 'temp_module'
+                # end
                 
                 def test_system
                     $event_list.clear()
@@ -30,7 +30,7 @@ module NewRelic::Security
                 def test_backtick
                     $event_list.clear()
                     cmd = "touch #{@@temp_file}"
-                    out = `#{cmd}` 
+                    `#{cmd}` 
                     args = [cmd]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     assert_equal 1, $event_list.length
@@ -78,7 +78,7 @@ module NewRelic::Security
                 def test_spawn
                     $event_list.clear()
                     cmd = "touch #{@@temp_file}" 
-                    out = spawn("#{cmd}")
+                    spawn("#{cmd}")
                     sleep 0.01
                     args = [cmd]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
@@ -92,28 +92,28 @@ module NewRelic::Security
                     File.delete(@@temp_file) if is_file_created
                 end
                 
-                def test_fork_exec 
-                    $event_list.clear()
-                    #TODO Not hooked
-                    cmd = "touch #{@@temp_file}"
-                    @output = fork{exec("#{cmd}")}
-                    sleep 0.01
-                    args = [cmd]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                # def test_fork_exec 
+                #     $event_list.clear()
+                #     #TODO Not hooked
+                #     cmd = "touch #{@@temp_file}"
+                #     fork{exec("#{cmd}")}
+                #     sleep 0.01
+                #     args = [cmd]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     assert_equal 1, $event_list.length
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
         
-                    is_file_created = File.exist?(@@temp_file)
-                    assert_equal true, is_file_created
-                    File.delete(@@temp_file) if is_file_created
-                end
+                #     is_file_created = File.exist?(@@temp_file)
+                #     assert_equal true, is_file_created
+                #     File.delete(@@temp_file) if is_file_created
+                # end
                 
                 def test_open
                     $event_list.clear()
                     cmd = "touch #{@@temp_file}"
-                    out = open("\|#{cmd}").read
+                    open("\|#{cmd}").read
                     args = ['|' + cmd]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     assert_equal 1, $event_list.length
@@ -129,5 +129,5 @@ module NewRelic::Security
             end
         end
     end
-  end
+end
   

@@ -11,7 +11,7 @@ module NewRelic::Security
 
       class Event
 
-        attr_accessor :sourceMethod, :userMethodName, :userFileName, :lineNumber,  :id, :apiId, :isIASTEnable, :isIASTRequest, :httpRequest, :stacktrace, :metaData
+        attr_accessor :sourceMethod, :userMethodName, :userFileName, :lineNumber,  :id, :apiId, :isIASTEnable, :isIASTRequest, :httpRequest, :httpResponse, :stacktrace, :metaData, :parentId
         attr_reader :jsonName, :caseType, :eventCategory, :parameters
         
         def initialize(case_type, args, event_category)
@@ -21,15 +21,13 @@ module NewRelic::Security
           @eventType = :sec_event
           @framework = NewRelic::Security::Agent.config[:framework]
           @groupName = NewRelic::Security::Agent.config[:mode]
-          @nodeId = nil
-          @customerId = nil
-          @emailId = nil
           @policyVersion = nil
           @collectorVersion = NewRelic::Security::VERSION
           @buildNumber = nil
           @jsonVersion = NewRelic::Security::Agent.config[:json_version]
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @httpRequest = Hash.new
+          @httpResponse = Hash.new
           @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s } }
           @linkingMetadata = add_linking_metadata
           @pid = pid
@@ -48,6 +46,7 @@ module NewRelic::Security
           @isAPIBlocked = nil
           @isIASTEnable = false
           @isIASTRequest = false
+          @parentId = nil
         end
 
         def as_json
@@ -89,6 +88,7 @@ module NewRelic::Security
           http_request[:headers] = ctxt.headers
           http_request[:contentType] = ctxt.req[CONTENT_TYPE] if ctxt.req.has_key?(CONTENT_TYPE)
           http_request[:headers][CONTENT_TYPE1] = ctxt.req[CONTENT_TYPE] if ctxt.req.has_key?(CONTENT_TYPE)
+          http_request[:dataTruncated] = ctxt.data_truncated
           @httpRequest = http_request
           @metaData[:isClientDetectedFromXFF] = ctxt.headers.has_key?(X_FORWARDED_FOR) ? true : false
         end

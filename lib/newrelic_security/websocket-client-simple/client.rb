@@ -71,6 +71,8 @@ module NewRelic::Security
                       emit :message, msg
                     end
                   end
+                rescue IOError => e
+                  close false
                 rescue => e
                   emit :error, e
                 end
@@ -86,6 +88,9 @@ module NewRelic::Security
             frame = NewRelic::Security::WebSocket::Frame::Outgoing::Client.new(:data => data, :type => type, :version => @handshake.version)
             begin
               @socket.write frame.to_s
+            rescue IOError => e
+              @pipe_broken = true
+              emit :__close, e
             rescue Errno::EPIPE => e
               @pipe_broken = true
               emit :__close, e
@@ -95,7 +100,7 @@ module NewRelic::Security
             end
           end
   
-          def close
+          def close(reconnect = true)
             return if @closed
             if !@pipe_broken
               send nil, :type => :close
@@ -103,7 +108,7 @@ module NewRelic::Security
             @closed = true
             @socket.close if @socket
             @socket = nil
-            emit :__close
+            emit :__close, reconnect
             Thread.kill @thread if @thread
           end
   

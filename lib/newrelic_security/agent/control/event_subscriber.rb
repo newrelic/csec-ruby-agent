@@ -7,9 +7,12 @@ module NewRelic::Security
               NewRelic::Security::Agent.logger.info "NewRelic server_source_configuration_added for pid : #{Process.pid}, Parent Pid : #{Process.ppid}"
               NewRelic::Security::Agent.init_logger.info "NewRelic server_source_configuration_added for pid : #{Process.pid}, Parent Pid : #{Process.ppid}"
               NewRelic::Security::Agent.config.update_server_config
-              NewRelic::Security::Agent.logger.info "Security agent is disabled.\n" unless NewRelic::Security::Agent.config[:enabled]
-              NewRelic::Security::Agent.init_logger.info "Security agent is disabled." unless NewRelic::Security::Agent.config[:enabled]
-              NewRelic::Security::Agent.agent.init if NewRelic::Security::Agent.config[:enabled]
+              if NewRelic::Security::Agent.config[:enabled] && !NewRelic::Security::Agent.config[:high_security]
+                NewRelic::Security::Agent.agent.init
+              else
+                NewRelic::Security::Agent.logger.info "New Relic Security is disabled by one of the user provided config `security.enabled` or `high_security`."
+                NewRelic::Security::Agent.init_logger.info "New Relic Security is disabled by one of the user provided config `security.enabled` or `high_security`."
+              end
             }
             ::NewRelic::Agent.instance.events.subscribe(:security_policy_received) { |received_policy| 
               NewRelic::Security::Agent.logger.info "security_policy_received pid ::::::: #{Process.pid} #{Process.ppid}, #{received_policy}"

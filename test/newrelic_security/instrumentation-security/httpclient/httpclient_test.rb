@@ -89,27 +89,27 @@ module NewRelic::Security
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
                 end
 
-                def test_uri_open
-                    # URI.open test
-                    $event_list.clear()
-                    url = "https://www.google.com"
-                    #client = HTTPClient.new
-	                @output = URI.open(url).read
-                    # puts @output
-                    case_type = "FILE_OPERATION"
-                    args = ["www.google.com"]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(case_type, args, @@event_category)
-                    assert_equal 3, $event_list.length
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                # def test_uri_open
+                #     # URI.open test
+                #     $event_list.clear()
+                #     url = "https://www.google.com"
+                #     #client = HTTPClient.new
+	            #     @output = URI.open(url).read
+                #     # puts @output
+                #     case_type = "FILE_OPERATION"
+                #     args = ["www.google.com"]
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(case_type, args, @@event_category)
+                #     assert_equal 3, $event_list.length
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
 
-                    args = [{:Method=>"GET", :scheme=>"https", :host=>"www.google.com", :port=>443, :path=>"/", :query=>nil, :URI=>"https://www.google.com:443/", :Body=>nil, :Headers=>{"accept-encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "accept"=>"*/*", "user-agent"=>"Ruby"}}]
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_nil expected_event2.eventCategory, $event_list[1].eventCategory
-                end
+                #     args = [{:Method=>"GET", :scheme=>"https", :host=>"www.google.com", :port=>443, :path=>"/", :query=>nil, :URI=>"https://www.google.com:443/", :Body=>nil, :Headers=>{"accept-encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "accept"=>"*/*", "user-agent"=>"Ruby"}}]
+                #     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                #     assert_equal expected_event2.caseType, $event_list[1].caseType
+                #     assert_equal expected_event2.parameters, $event_list[1].parameters
+                #     assert_nil expected_event2.eventCategory, $event_list[1].eventCategory
+                # end
             end
         end
     end

@@ -9,7 +9,7 @@ module NewRelic::Security
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_delete?(var)
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, var)
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, var, DELETE)
         else
           # TODO: Add handling read_filter for outside app root directory files, example ../abc.txt
           NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{var}"
@@ -34,7 +34,7 @@ module NewRelic::Security
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         if NewRelic::Security::Instrumentation::InstrumentationUtils.notify_app_integrity_delete?(var)
-          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, var)
+          event = NewRelic::Security::Agent::Control::Collector.collect(FILE_INTEGRITY, var, DELETE)
         else
           # TODO: Add handling read_filter for outside app root directory files, example ../abc.txt
           NewRelic::Security::Agent.logger.debug "Filtered because File name exist in filtered list #{self.class}.#{__method__} Args:: #{var}"

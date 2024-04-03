@@ -1,0 +1,90 @@
+name: PR Continuous Integration
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  run_rubocop:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        with:
+          ruby-version: '3.2'
+      - run: bundle
+      - run: rubocop
+
+  unit_tests:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2]
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: bundle install
+
+      - name: Bundle test environment
+        run: BUNDLE_GEMFILE=Gemfile_test bundle install
+
+      - name: Run Unit Tests
+        run: bundle exec rake test
+        env:
+          VERBOSE_TEST_OUTPUT: true
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
+        with:
+          name: coverage-report-unit-tests
+          path: lib/coverage_*/.resultset.json
+
+  simplecov:
+    needs: unit_tests
+    runs-on: ubuntu-22.04
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        with:
+          ruby-version: '3.1'
+      - run: bundle
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # tag v3.0.2
+      - name: Collate Coverage Results
+        run: bundle exec rake coverage:report
+      - name: Upload coverage results
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
+        with:
+          name: coverage-report-combined
+          path: lib/coverage_results
+          retention-days: 2
+      - name: Simplecov Report
+        uses: ./.github/actions/simplecov-report
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          resultPath: lib/coverage_results/.last_run.json
+          failedThreshold: 40
+          failedThresholdBranch: 17
+

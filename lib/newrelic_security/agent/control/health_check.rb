@@ -14,9 +14,6 @@ module NewRelic::Security
           @timestamp = current_time_millis
           @version = EMPTY_STRING
           @groupName = NewRelic::Security::Agent.config[:mode]
-          @nodeId = nil
-          @customerId = nil
-          @emailId = nil
           @policyVersion = nil
           @framework = NewRelic::Security::Agent.config[:framework]
           @protectedServer = nil
@@ -30,12 +27,12 @@ module NewRelic::Security
           @httpRequestCount = 0
           @protectedVulnerabilties = nil
           @protectedDB = nil
-          @isHost = nil
-          @isPod = nil
-          @isContainer = nil
           @linkingMetadata = add_linking_metadata
           @stats = {}
           @serviceStatus = {} # TODO: Fill this
+          @iastEventStats = {}
+          @raspEventStats = {}
+          @exitEventStats = {}
         end
 
         def as_json
@@ -63,12 +60,15 @@ module NewRelic::Security
           @stats[:processHeapUsageMB] = nil
           @stats[:processDirDiskFreeSpaceMB] = nil
           @stats[:rootDiskFreeSpaceMB] = nil
-          @serviceStatus[:websocket] = NewRelic::Security::Agent.agent.websocket_client.is_open? ? 'OK' : 'Error'
+          @serviceStatus[:websocket] = NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open? ? 'OK' : 'Error'
           @serviceStatus[:logWriter] = NewRelic::Security::Agent.logger ? 'OK' : 'Error'
           @serviceStatus[:initLogWriter] = NewRelic::Security::Agent.init_logger ? 'OK' : 'Error'
           @serviceStatus[:statusLogWriter] = NewRelic::Security::Agent.agent.status_logger ? 'OK' : 'Error'
           @serviceStatus[:agentActiveStat] = NewRelic::Security::Agent.config[:enabled] ? 'OK' : 'Error'
           @serviceStatus[:iastRestClient] = NewRelic::Security::Agent::Utils.is_IAST? && !NewRelic::Security::Agent.agent.iast_client ? 'Error' : 'OK'
+          @iastEventStats = NewRelic::Security::Agent.agent.iast_event_stats.prepare_for_health_check
+          @raspEventStats = NewRelic::Security::Agent.agent.rasp_event_stats.prepare_for_health_check
+          @exitEventStats = NewRelic::Security::Agent.agent.exit_event_stats.prepare_for_health_check
         rescue Exception => exception
           NewRelic::Security::Agent::logger.error "Exception in finding update_health_check : #{exception.inspect} #{exception.backtrace}"
         end

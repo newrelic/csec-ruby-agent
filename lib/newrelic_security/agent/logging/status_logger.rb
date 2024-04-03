@@ -43,7 +43,7 @@ module NewRelic::Security
             status_template << "\nAgent mode: #{NewRelic::Security::Agent.config[:mode]}"
             status_template << "\nApplication server: #{NewRelic::Security::Agent.config[:app_server]}"
             status_template << "\nApplication Framework: #{NewRelic::Security::Agent.config[:framework]}"
-            status_template << "\nWebsocket connection to Prevent Web: #{NewRelic::Security::Agent.config[:validator_service_url]}, Status: #{NewRelic::Security::Agent.agent.websocket_client.is_open? ? 'OK' : 'Error'}"
+            status_template << "\nWebsocket connection to Prevent Web: #{NewRelic::Security::Agent.config[:validator_service_url]}, Status: #{NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open? ? 'OK' : 'Error'}"
             status_template << "\nInstrumentation successful:"
             status_template << "\nTracking loaded modules in the application:"
             status_template << "\nPolicy applied successfully. Policy version is: #{NewRelic::Security::Agent.config[:policy]['version']}"
@@ -83,7 +83,7 @@ module NewRelic::Security
         private
 
         def write_status_log_in_file(data)
-          FileUtils.mkdir_p(::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR), :mode => 0777) unless File.directory?(::File.join(SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR))
+          FileUtils.mkdir_p(::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR)) unless File.directory?(::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR))
           filename = File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR, SNAPSHOTS_DIR, "ruby-security-collector-status-#{NewRelic::Security::Agent.config[:uuid]}.log")
           File.open(filename, 'w') {
             |file| file.write(data)

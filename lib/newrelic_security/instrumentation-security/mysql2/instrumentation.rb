@@ -4,6 +4,7 @@ require_relative 'chain'
 module NewRelic::Security
   module Instrumentation
     module Mysql2::Client
+
       def query_on_enter(sql, options)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"

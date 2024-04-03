@@ -6,11 +6,12 @@ module NewRelic::Security
 
         private
 
-        def require(name)
-          retval = nil
-          event = require_on_enter(name) { retval = super }
-          require_on_exit(event, retval, name) { return retval }
-        end
+        # TODO: This hook is useful for applying instrumentation on dynamically loaded modules, dynamic loading of module is unsupported for now.
+        # def require(name)
+        #   retval = nil
+        #   event = require_on_enter(name) { retval = super }
+        #   require_on_exit(event, retval, name) { return retval }
+        # end
 
         def system(*var)
           retval = nil

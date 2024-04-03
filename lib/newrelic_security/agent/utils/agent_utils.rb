@@ -10,7 +10,6 @@ module NewRelic::Security
       VULNERABILITY_SCAN = 'vulnerabilityScan'
       ENABLED = 'enabled'
       IAST_SCAN = 'iastScan'
-      COLON_IAST_COLON = ':IAST:'
       VULNERABLE = 'VULNERABLE'
 
       def is_IAST?
@@ -32,8 +31,9 @@ module NewRelic::Security
             while i < fuzz_request.length()
                 begin
                   fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+                  fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
                   dirname = ::File.dirname(fuzz_request[i])
-                  ::FileUtils.mkdir_p(dirname, :mode => 0777) unless ::File.directory?(dirname)
+                  ::FileUtils.mkdir_p(dirname, :mode => 0666) unless ::File.directory?(dirname)
                   ::File.open(fuzz_request[i], ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
                       # puts "Ownership acquired by : #{Process.pid}"
                   end
@@ -74,6 +74,9 @@ module NewRelic::Security
           exit_event.k2RequestIdentifier = event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID]
           NewRelic::Security::Agent.agent.event_processor.send_exit_event(exit_event)
         end
+      rescue Exception => exception
+        NewRelic::Security::Agent.logger.error "Exception in create_exit_event: #{exception.inspect} #{exception.backtrace}"
+        NewRelic::Security::Agent.agent.exit_event_stats.error_count.increment
       end
 
       def create_fuzz_fail_event(fuzz_request_id)
@@ -141,14 +144,14 @@ module NewRelic::Security
           listen_port = z.instance_variable_get(:@config)[:Port]
           NewRelic::Security::Agent.logger.debug "Detected port from WEBrick::GenericServer : #{listen_port}"
         } if defined?(::WEBrick::GenericServer)
-        if NewRelic::Security::Agent.config[:'security.applicationinfo.port'] != -1
-          listen_port = NewRelic::Security::Agent.config[:'security.applicationinfo.port']
-          NewRelic::Security::Agent.logger.info "Using application listen port from newrelic.yml security.applicationinfo.port : #{listen_port}"
+        if NewRelic::Security::Agent.config[:'security.application_info.port'] != 0
+          listen_port = NewRelic::Security::Agent.config[:'security.application_info.port']
+          NewRelic::Security::Agent.logger.info "Using application listen port from newrelic.yml security.application_info.port : #{listen_port}"
         end
         if listen_port
           NewRelic::Security::Agent.logger.info "Detected application listen_port : #{listen_port}"
         else
-          NewRelic::Security::Agent.logger.warn "Unable to detect application listen port, IAST can not run without application listen port. Please provide application listen port in security.applicationinfo.port in newrelic.yml"
+          NewRelic::Security::Agent.logger.warn "Unable to detect application listen port, IAST can not run without application listen port. Please provide application listen port in security.application_info.port in newrelic.yml"
         end
         listen_port
       rescue Exception => exception
