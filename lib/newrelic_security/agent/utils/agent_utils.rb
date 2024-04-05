@@ -11,6 +11,7 @@ module NewRelic::Security
       ENABLED = 'enabled'
       IAST_SCAN = 'iastScan'
       VULNERABLE = 'VULNERABLE'
+      ASTERISK = '*'
 
       def is_IAST?
         return false if NewRelic::Security::Agent.config[:policy].empty?
@@ -169,6 +170,14 @@ module NewRelic::Security
           JRuby.objectspace = false
           NewRelic::Security::Agent.config.jruby_objectspace_enabled = false
         end
+      end
+
+      def license_key
+        NewRelic::Security::Agent.config[:license_key]
+      end
+
+      def filtered_log(log)
+        log.gsub(license_key, ASTERISK * license_key.size)
       end
     end
   end

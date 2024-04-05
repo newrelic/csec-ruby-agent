@@ -52,7 +52,7 @@ module NewRelic::Security
             @ws = connection
 
             connection.on :open do
-              NewRelic::Security::Agent.logger.debug "Websocket connected with IC, AgentEventMachine #{connection.inspect}"
+              NewRelic::Security::Agent.logger.debug "Websocket connected with IC, AgentEventMachine #{NewRelic::Security::Agent::Utils.filtered_log(connection.inspect)}"
               NewRelic::Security::Agent.init_logger.info "[STEP-4] => Web socket connection to SaaS validator established successfully"
               NewRelic::Security::Agent.agent.event_processor.send_app_info
               NewRelic::Security::Agent.config.enable_security

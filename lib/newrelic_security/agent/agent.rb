@@ -44,7 +44,7 @@ module NewRelic::Security
       end
 
       def init
-        NewRelic::Security::Agent.logger.info "Initializing Security Agent with config : #{NewRelic::Security::Agent.config.inspect}\n"
+        NewRelic::Security::Agent.logger.info "Initializing Security Agent with config : #{NewRelic::Security::Agent::Utils.filtered_log(NewRelic::Security::Agent.config.inspect)}\n"
         @ready = false
         create_status_logger
         start_event_processor
