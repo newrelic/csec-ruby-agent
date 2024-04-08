@@ -103,6 +103,12 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route}"
             end
           end
+        elsif framework == :padrino
+          ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
+            z.instance_variable_get(:@routes).each { |route| 
+              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.instance_variable_get(:@path)}"
+            }
+          }
         elsif framework == :roda
           NewRelic::Security::Agent.logger.warn "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
         else
