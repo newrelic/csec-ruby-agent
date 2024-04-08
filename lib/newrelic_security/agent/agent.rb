@@ -33,7 +33,7 @@ module NewRelic::Security
         @started = false
         @event_subscriber = NewRelic::Security::Agent::Control::EventSubscriber.new
         @started = true
-        @route_map = []
+        @route_map = ::Set.new
         @http_request_count = NewRelic::Security::Agent::Control::EventCounter.new
         @event_processed_count = NewRelic::Security::Agent::Control::EventCounter.new
         @event_sent_count = NewRelic::Security::Agent::Control::EventCounter.new
