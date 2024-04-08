@@ -107,6 +107,8 @@ module NewRelic::Security
           ObjectSpace.each_object(::Grape::Endpoint) { |z|
             z.routes.each { |route|
               NewRelic::Security::Agent.agent.route_map << "#{route.options[:method]}@#{route.options[:namespace]}"
+            }
+          }
         elsif framework == :padrino
           ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
             z.instance_variable_get(:@routes).each { |route| 
