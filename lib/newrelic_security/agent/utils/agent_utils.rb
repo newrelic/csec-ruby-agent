@@ -108,9 +108,11 @@ module NewRelic::Security
           ObjectSpace.each_object(::Grape::Endpoint) { |z|
             z.routes.each { |route|
               NewRelic::Security::Agent.agent.route_map << "#{route.options[:method]}@#{route.options[:namespace]}"
+            }
+          }
         elsif framework == :padrino
           ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
-            z.instance_variable_get(:@routes).each { |route| 
+            z.instance_variable_get(:@routes).each { |route|
               NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.instance_variable_get(:@path)}"
             }
           }
@@ -168,8 +170,8 @@ module NewRelic::Security
 
       def app_root
         #so far assuming it as Rails
-        #TBD, determing the frame work then use appropriate APIs 
-        #val = Rails.root 
+        #TBD, determing the frame work then use appropriate APIs
+        #val = Rails.root
         root = nil
         root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack
         root
