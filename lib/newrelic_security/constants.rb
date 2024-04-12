@@ -54,4 +54,5 @@ module NewRelic::Security
   RACK_URL_SCHEME = 'rack.url_scheme'
   CONTENT_TYPE1 = 'content-Type'
   PULL = 'PULL'
+  SHA1 = 'sha1'
 end
