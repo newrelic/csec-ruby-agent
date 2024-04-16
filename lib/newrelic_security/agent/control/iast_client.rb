@@ -69,7 +69,7 @@ module NewRelic::Security
               if batch_size > 100 && remaining_record_capacity > batch_size
                 iast_data_transfer_request = NewRelic::Security::Agent::Control::IASTDataTransferRequest.new
                 iast_data_transfer_request.batchSize = batch_size * 2
-                iast_data_transfer_request.pendingRequestIds = pending_request_ids
+                iast_data_transfer_request.pendingRequestIds = pending_request_ids.to_a
                 iast_data_transfer_request.completedRequests = completed_requests
                 NewRelic::Security::Agent.agent.event_processor.send_iast_data_transfer_request(iast_data_transfer_request)
               end
