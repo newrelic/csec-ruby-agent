@@ -109,6 +109,7 @@ module NewRelic::Security
           return :padrino if defined?(::Padrino)
           return :sinatra if defined?(::Sinatra)
           return :roda if defined?(::Roda)
+          return :grape if defined?(::Grape)
         end
 
         def generate_uuid
