@@ -142,6 +142,11 @@ module NewRelic::Security
           listen_port, _ = ::Socket.unpack_sockaddr_in(env['unicorn.socket'].getsockname)
           NewRelic::Security::Agent.logger.debug "Detected port from unicorn.socket Unicorn::TCPClient : #{listen_port}"
         end
+        ObjectSpace.each_object(::Falcon::Server) { |z|
+          NewRelic::Security::Agent.config.app_server = :falcon
+          listen_port = z.endpoint.instance_variable_get(:@specification)[1]
+          NewRelic::Security::Agent.logger.debug "Detected port from Falcon::Server : #{listen_port}"
+        } if defined?(::Falcon::Server)
         ObjectSpace.each_object(::Thin::Backends::TcpServer) { |z|
           NewRelic::Security::Agent.config.app_server = :thin
           listen_port = z.instance_variable_get(:@port)
