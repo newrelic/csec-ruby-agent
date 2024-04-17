@@ -89,7 +89,6 @@ module NewRelic::Security
         end
 
         def reconnect_at_will
-          @stop_fuzzing = true
           if NewRelic::Security::Agent::Utils.is_IAST?
             while NewRelic::Security::Agent.agent.iast_client.fuzzQ && NewRelic::Security::Agent.agent.iast_client.fuzzQ.size > 0
               NewRelic::Security::Agent.logger.info "Waiting for fuzzQ to get empty, current size: #{NewRelic::Security::Agent.agent.iast_client.fuzzQ.size}"

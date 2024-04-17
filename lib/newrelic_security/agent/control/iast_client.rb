@@ -3,6 +3,7 @@ require 'net/http'
 require 'json'
 require 'uri'
 require 'set'
+require 'resolv'
 
 module NewRelic::Security
   module Agent
@@ -16,11 +17,10 @@ module NewRelic::Security
 
       class IASTClient
         
-        attr_reader :fuzzQ, :iast_dequeue_thread
+        attr_reader :fuzzQ, :iast_dequeue_threads
         attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :pending_request_ids, :completed_requests, :iast_data_transfer_request_processor_thread
 
         def initialize
-          @http = nil
           @fuzzQ = ::SizedQueue.new(FUZZQ_QUEUE_SIZE)
           @cooldown_till_timestamp = current_time_millis
           @last_fuzz_cc_timestamp = current_time_millis
@@ -40,12 +40,15 @@ module NewRelic::Security
 
         def create_dequeue_threads
           # TODO: Create 3 or more consumers for event sending
-          @iast_dequeue_thread = Thread.new do
-            Thread.current.name = "newrelic_security_iast_thread"
-            loop do
-              fuzz_request = @fuzzQ.deq #thread blocks when the queue is empty
-              fire_request(fuzz_request.id, fuzz_request.request)
-              fuzz_request = nil
+          @iast_dequeue_threads = []
+          3.times do |t|
+            @iast_dequeue_threads << Thread.new do
+              Thread.current.name = "newrelic_security_iast_thread-#{t}"
+              loop do
+                fuzz_request = @fuzzQ.deq #thread blocks when the queue is empty
+                fire_request(fuzz_request.id, fuzz_request.request)
+                fuzz_request = nil
+              end
             end
           end
         rescue Exception => exception
@@ -84,17 +87,18 @@ module NewRelic::Security
         end
 
         def fire_request(fuzz_request_id, request)
-          unless @http
-            @http = ::Net::HTTP.new('localhost', NewRelic::Security::Agent.config[:listen_port])
-            @http.open_timeout = 5
+          unless ::Thread.current[:http]
+            Thread.current[:http] = ::Net::HTTP.new('127.0.0.1', NewRelic::Security::Agent.config[:listen_port])
+            Thread.current[:http].open_timeout = 5
           end
           request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
-          response = @http.send_request(request[METHOD], ::URI.parse(request[URL]).to_s, request[BODY], request[HEADERS])
+          response = Thread.current[:http].send_request(request[METHOD], ::URI.parse(request[URL]).to_s, request[BODY], request[HEADERS])
           NewRelic::Security::Agent.logger.debug "IAST fuzz request : #{request.inspect} \nresponse: #{response.inspect}\n"
         rescue Exception => exception
           NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event for #{request.inspect}\n"
           NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
         ensure
+          NewRelic::Security::Agent.agent.iast_client.completed_requests[fuzz_request_id] = []
           NewRelic::Security::Agent.agent.iast_client.pending_request_ids.delete(fuzz_request_id)
         end
 
