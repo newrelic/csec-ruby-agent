@@ -11,6 +11,7 @@ module NewRelic::Security
       ENABLED = 'enabled'
       IAST_SCAN = 'iastScan'
       VULNERABLE = 'VULNERABLE'
+      ASTERISK = '*'
 
       def is_IAST?
         return false if NewRelic::Security::Agent.config[:policy].empty?
@@ -166,6 +167,7 @@ module NewRelic::Security
         else
           NewRelic::Security::Agent.logger.warn "Unable to detect application listen port, IAST can not run without application listen port. Please provide application listen port in security.application_info.port in newrelic.yml"
         end
+        disable_object_space_in_jruby if NewRelic::Security::Agent.config[:jruby_objectspace_enabled]
         listen_port
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Exception in port detection : #{exception.inspect} #{exception.backtrace}"
@@ -178,6 +180,21 @@ module NewRelic::Security
         root = nil
         root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack
         root
+      end
+
+      def disable_object_space_in_jruby
+        if RUBY_ENGINE == 'jruby' && JRuby.objectspace
+          JRuby.objectspace = false
+          NewRelic::Security::Agent.config.jruby_objectspace_enabled = false
+        end
+      end
+
+      def license_key
+        NewRelic::Security::Agent.config[:license_key]
+      end
+
+      def filtered_log(log)
+        log.gsub(license_key, ASTERISK * license_key.size)
       end
     end
   end

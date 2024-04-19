@@ -37,6 +37,7 @@ module NewRelic::Security
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:json_version] = :'1.1.1'
+          @cache[:jruby_objectspace_enabled] = false
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new
@@ -87,6 +88,10 @@ module NewRelic::Security
 
         def app_server=(app_server)
           @cache[:app_server] = app_server
+        end
+
+        def jruby_objectspace_enabled=(jruby_objectspace_enabled)
+          @cache[:jruby_objectspace_enabled] = jruby_objectspace_enabled
         end
 
         def disable_security
