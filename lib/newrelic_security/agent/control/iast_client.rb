@@ -4,6 +4,7 @@ require 'json'
 require 'uri'
 require 'set'
 require 'resolv'
+require 'resolv-replace'
 
 module NewRelic::Security
   module Agent
@@ -92,8 +93,10 @@ module NewRelic::Security
             Thread.current[:http].open_timeout = 5
           end
           request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
+          time_before_request = (Time.now.to_f * 1000).to_i
           response = Thread.current[:http].send_request(request[METHOD], ::URI.parse(request[URL]).to_s, request[BODY], request[HEADERS])
-          NewRelic::Security::Agent.logger.debug "IAST fuzz request : #{request.inspect} \nresponse: #{response.inspect}\n"
+          time_after_request = (Time.now.to_f * 1000).to_i
+          NewRelic::Security::Agent.logger.debug "IAST fuzz request : time taken : #{time_after_request - time_before_request}ms, #{request.inspect} \nresponse: #{response.inspect}\n"
         rescue Exception => exception
           NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event for #{request.inspect}\n"
           NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
