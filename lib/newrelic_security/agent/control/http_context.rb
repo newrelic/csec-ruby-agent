@@ -34,6 +34,8 @@ module NewRelic::Security
 						strio.seek(offset)
 					elsif defined?(::Rack) && defined?(::Rack::Lint::InputWrapper) && strio.instance_of?(::Rack::Lint::InputWrapper)
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
+          elsif defined?(::Protocol::Rack::Input) && defined?(::Protocol::Rack::Input) && strio.instance_of?(::Protocol::Rack::Input)
+            @body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
 					elsif defined?(::PhusionPassenger::Utils::TeeInput) && strio.instance_of?(::PhusionPassenger::Utils::TeeInput)
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
 					end

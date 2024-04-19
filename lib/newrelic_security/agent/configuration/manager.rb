@@ -37,6 +37,7 @@ module NewRelic::Security
           @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
+          @cache[:jruby_objectspace_enabled] = false
           @cache[:json_version] = :'1.2.0'
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
@@ -93,6 +94,10 @@ module NewRelic::Security
 
         def app_server=(app_server)
           @cache[:app_server] = app_server
+        end
+
+        def jruby_objectspace_enabled=(jruby_objectspace_enabled)
+          @cache[:jruby_objectspace_enabled] = jruby_objectspace_enabled
         end
 
         def disable_security
