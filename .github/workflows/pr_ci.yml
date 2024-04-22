@@ -19,6 +19,7 @@ jobs:
   unit_tests:
     needs: run_rubocop
     runs-on: ubuntu-22.04
+    if: success() || failure() # TODO: Remove this line before release
     strategy:
       fail-fast: false
       matrix:
@@ -58,6 +59,7 @@ jobs:
   simplecov:
     needs: unit_tests
     runs-on: ubuntu-22.04
+    if: success() || failure() # TODO: Remove this line before release
     if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       pull-requests: write
