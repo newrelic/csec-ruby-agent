@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@1746f4ab65b179e0ea60a494b83293b640dd5bba # tag v4.3.2
         with:
           name: coverage-report-unit-tests
-          path: lib/coverage_*/.resultset.json
+          path: lib/coverage_*/.resultset-${{ matrix.ruby-version }}.json
 
   simplecov:
     needs: unit_tests
@@ -89,4 +89,6 @@ jobs:
           resultPath: lib/coverage_results/.last_run.json
           failedThreshold: 40
           failedThresholdBranch: 17
+      - name: Clear all Coverage Results
+        run: bundle exec rake coverage:clear
 
