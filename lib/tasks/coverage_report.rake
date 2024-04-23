@@ -10,12 +10,17 @@ if ENV['CI']
       require 'fileutils'
 
       SimpleCov.coverage_dir('coverage_results')
-      SimpleCov.collate(Dir['./coverage_*/.resultset.json']) do
+      files = Dir['**/coverage-report-unit-tests-*/coverage_*/.resultset.json']
+      puts "pwd : #{system('pwd')}"
+      puts "ls : #{system('ls')}"
+      puts "ls coverage-report-unit-tests: #{system('ls coverage-report-unit-tests*')}"
+      puts "ls lib: #{system('ls lib')}"
+      SimpleCov.collate(files) do
         formatter SimpleCov::Formatter::HTMLFormatter
         refuse_coverage_drop
       end
 
-      Dir['coverage_{[!r][!e][!s][!u][!l][!t][!s]}*'].each { |dir| FileUtils.rm_rf(dir) }
+      Dir['coverage-report-unit-tests-*'].each { |dir| FileUtils.rm_rf(dir) }
     end
 
     desc 'Removes all coverage_* directories'
