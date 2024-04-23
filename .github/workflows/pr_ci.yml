@@ -59,7 +59,7 @@ jobs:
           ruby-version: '3.1'
       - run: bundle
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # tag v3.0.2
+        uses: actions/download-artifact@9c19ed7fe5d278cd354c7dfd5d3b88589c7e2395 # tag v4.1.6
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results

@@ -10,8 +10,9 @@ if ENV['CI']
       require 'fileutils'
 
       SimpleCov.coverage_dir('coverage_results')
-      files = Dir['lib/coverage_*/.resultset.json']
+      files = Dir['./lib/coverage_*/.resultset.json']
       puts "Files: #{files}"
+      puts "ls : #{system('ls')}\n\n#{system('ls lib')}"
       SimpleCov.collate(files) do
         formatter SimpleCov::Formatter::HTMLFormatter
         refuse_coverage_drop
