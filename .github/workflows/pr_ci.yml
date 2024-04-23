@@ -54,8 +54,8 @@ jobs:
       - name: Save coverage results
         uses: actions/upload-artifact@1746f4ab65b179e0ea60a494b83293b640dd5bba # tag v4.3.2
         with:
-          name: coverage-report-unit-tests
-          path: lib/coverage_*/.resultset-${{ matrix.ruby-version }}.json
+          name: coverage-report-unit-tests-${{ matrix.ruby-version }}
+          path: lib/coverage_*/.resultset.json
 
   simplecov:
     needs: unit_tests
