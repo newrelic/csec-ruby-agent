@@ -33,6 +33,7 @@ module NewRelic::Security
           if fuzz_request.length() >= 7
             decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7])
             if decrypted_data
+              NewRelic::Security::Agent.logger.debug "Encrypted data: #{fuzz_request[6]},  decrypted data: #{decrypted_data}, Sha256: #{fuzz_request[7]}"
               decrypted_data.split(COMMA).each do |filename|
                 begin
                   filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
