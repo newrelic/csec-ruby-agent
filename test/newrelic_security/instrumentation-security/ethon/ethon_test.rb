@@ -98,6 +98,10 @@ module NewRelic::Security
             end
 
             class TestEthonMulti < Minitest::Test
+                def setup
+                    NewRelic::Security::Agent::Control::HTTPContext.set_context({})
+                end
+
                 def test_get
                     $event_list.clear()
                     url = "http://www.google.com"
@@ -121,6 +125,10 @@ module NewRelic::Security
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                end
+                
+                def teardown
+                    NewRelic::Security::Agent::Control::HTTPContext.reset_context
                 end
             end
 
