@@ -153,7 +153,7 @@ module NewRelic::Security
                     # UPDATE event test 
                     statement = client.prepare("UPDATE fake_users SET name = ?, email= ? WHERE name = ?")
                     statement.execute("john", "me@john.com", "abc")
-                    args = [{:parameters=>["john", "me@john.com", "abc"]}]
+                    args = [{:sql=>"UPDATE fake_users SET name = ?, email= ? WHERE name = ?", :parameters=>["john", "me@john.com", "abc"]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
                     assert_equal expected_event.caseType, $event_list[0].caseType

@@ -142,6 +142,7 @@ module NewRelic::Security
                     args2 = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES ($1, $2, $3, $4)", :parameters=>["abc", "me@abc.com", "A", "http://blog.abc.com"]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    puts "$event_list : #{$event_list.inspect}"
                     assert_equal 2, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
