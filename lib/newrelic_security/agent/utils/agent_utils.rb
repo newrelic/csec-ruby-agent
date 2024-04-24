@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 require 'fileutils'
 require 'socket'
+require 'openssl'
 
 module NewRelic::Security
   module Agent
@@ -11,6 +12,8 @@ module NewRelic::Security
       ENABLED = 'enabled'
       IAST_SCAN = 'iastScan'
       VULNERABLE = 'VULNERABLE'
+      AES_256_CBC = 'AES-256-CBC'
+      H_ASTERIK = 'H*'
       ASTERISK = '*'
 
       def is_IAST?
@@ -28,22 +31,37 @@ module NewRelic::Security
         if is_IAST? && is_IAST_request?(headers)
           fuzz_request = headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)
           if fuzz_request.length() >= 7
-            i = 6
-            while i < fuzz_request.length()
+            decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7])
+            if decrypted_data
+              NewRelic::Security::Agent.logger.debug "Encrypted data: #{fuzz_request[6]},  decrypted data: #{decrypted_data}, Sha256: #{fuzz_request[7]}"
+              decrypted_data.split(COMMA).each do |filename|
                 begin
-                  fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
-                  fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
-                  dirname = ::File.dirname(fuzz_request[i])
+                  filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+                  filename.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
+                  dirname = ::File.dirname(filename)
                   ::FileUtils.mkdir_p(dirname, :mode => 0666) unless ::File.directory?(dirname)
-                  ::File.open(fuzz_request[i], ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
+                  ::File.open(filename, ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
                       # puts "Ownership acquired by : #{Process.pid}"
-                  end
+                  end unless ::File.exist?(filename)
                 rescue
                 end
-                i = i + 1
+              end
             end
           end
         end
+      end
+
+      def decrypt_data(name, sha)
+        cipher = ::OpenSSL::Cipher.new AES_256_CBC
+        cipher.decrypt
+        cipher.key = NewRelic::Security::Agent.config[:extraction_key]
+        decrypted = cipher.update [name].pack(H_ASTERIK)
+        decrypted << cipher.final
+        fname = decrypted[16..-1]
+        return fname if ::Digest::SHA256.hexdigest(fname) == sha
+        nil
+      rescue Exception => exception
+        NewRelic::Security::Agent.logger.error "Exception in decrypt_data: #{exception.inspect} #{exception.backtrace}"
       end
 
       def delete_created_files

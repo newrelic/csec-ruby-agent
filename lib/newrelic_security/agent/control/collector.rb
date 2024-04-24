@@ -52,7 +52,7 @@ module NewRelic::Security
           end
           # In rails 5 method name keeps chaning for same api call (ex: _app_views_sqli_sqlinjectionattackcase_html_erb__1999281606898621405_2624809100).
           # Hence, considering only frame absolute_path & lineno for apiId calculation.
-          event.apiId = calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method])
+          event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method])}"
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
           if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
             NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
