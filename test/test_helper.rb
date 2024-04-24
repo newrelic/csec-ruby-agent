@@ -11,6 +11,8 @@ $:.uniq!
 require_relative 'simplecov_test_helper'
 require 'rubygems'
 require 'rake'
+require 'rack'
+require 'rack/handler'
 
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
@@ -39,6 +41,7 @@ Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f }
 module NewRelic::Security
   module Agent  
     @agent = NewRelic::Security::Agent::Agent.new
+    @sample_server = Thread.new { ::Rack::Server.start app: SampleServer, Port: 9291 }
   end
 end
 

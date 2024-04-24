@@ -16,6 +16,7 @@ module NewRelic::Security
           @cache[:app_root] = File.expand_path('../../resources/temp', __FILE__)
           @cache[:policy] = Hash.new
           @cache[:'security.detection.rxss.enabled'] = true
+          @cache[:'security.request.body_limit'] = 300
         end
       end
     end
