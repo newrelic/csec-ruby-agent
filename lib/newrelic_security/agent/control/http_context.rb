@@ -10,6 +10,7 @@ module NewRelic::Security
       UNDERSCORE = '_'
       HYPHEN = '-'
       REQUEST_METHOD = 'REQUEST_METHOD'
+      PATH_INFO = 'PATH_INFO'
       RACK_INPUT = 'rack.input'
       CGI_VARIABLES = ::Set.new(%W[ AUTH_TYPE CONTENT_LENGTH CONTENT_TYPE GATEWAY_INTERFACE HTTPS PATH_INFO PATH_TRANSLATED REQUEST_URI QUERY_STRING REMOTE_ADDR REMOTE_HOST REMOTE_IDENT REMOTE_USER REQUEST_METHOD SCRIPT_NAME SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE rack.url_scheme ])
 
@@ -31,8 +32,10 @@ module NewRelic::Security
 						offset = strio.tell
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024) #after read, offset changes
 						strio.seek(offset)
-					elsif defined?(::Rack) && strio.instance_of?(::Rack::Lint::InputWrapper)
+					elsif defined?(::Rack) && defined?(::Rack::Lint::InputWrapper) && strio.instance_of?(::Rack::Lint::InputWrapper)
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
+          elsif defined?(::Protocol::Rack::Input) && defined?(::Protocol::Rack::Input) && strio.instance_of?(::Protocol::Rack::Input)
+            @body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
 					elsif defined?(::PhusionPassenger::Utils::TeeInput) && strio.instance_of?(::PhusionPassenger::Utils::TeeInput)
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
 					end
@@ -40,6 +43,7 @@ module NewRelic::Security
 					strio&.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
+          @route = "#{env[REQUEST_METHOD].to_s}@#{env[PATH_INFO].to_s}"
           NewRelic::Security::Agent.agent.http_request_count.increment
           NewRelic::Security::Agent.agent.iast_client.completed_requests[@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID)
         end

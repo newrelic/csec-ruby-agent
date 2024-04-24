@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 require 'fileutils'
 require 'socket'
+require 'openssl'
 
 module NewRelic::Security
   module Agent
@@ -11,6 +12,9 @@ module NewRelic::Security
       ENABLED = 'enabled'
       IAST_SCAN = 'iastScan'
       VULNERABLE = 'VULNERABLE'
+      AES_256_CBC = 'AES-256-CBC'
+      H_ASTERIK = 'H*'
+      ASTERISK = '*'
 
       def is_IAST?
         return false if NewRelic::Security::Agent.config[:policy].empty?
@@ -27,22 +31,37 @@ module NewRelic::Security
         if is_IAST? && is_IAST_request?(headers)
           fuzz_request = headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)
           if fuzz_request.length() >= 7
-            i = 6
-            while i < fuzz_request.length()
+            decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7])
+            if decrypted_data
+              NewRelic::Security::Agent.logger.debug "Encrypted data: #{fuzz_request[6]},  decrypted data: #{decrypted_data}, Sha256: #{fuzz_request[7]}"
+              decrypted_data.split(COMMA).each do |filename|
                 begin
-                  fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
-                  fuzz_request[i].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
-                  dirname = ::File.dirname(fuzz_request[i])
+                  filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+                  filename.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
+                  dirname = ::File.dirname(filename)
                   ::FileUtils.mkdir_p(dirname, :mode => 0666) unless ::File.directory?(dirname)
-                  ::File.open(fuzz_request[i], ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
+                  ::File.open(filename, ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
                       # puts "Ownership acquired by : #{Process.pid}"
-                  end
+                  end unless ::File.exist?(filename)
                 rescue
                 end
-                i = i + 1
+              end
             end
           end
         end
+      end
+
+      def decrypt_data(name, sha)
+        cipher = ::OpenSSL::Cipher.new AES_256_CBC
+        cipher.decrypt
+        cipher.key = NewRelic::Security::Agent.config[:extraction_key]
+        decrypted = cipher.update [name].pack(H_ASTERIK)
+        decrypted << cipher.final
+        fname = decrypted[16..-1]
+        return fname if ::Digest::SHA256.hexdigest(fname) == sha
+        nil
+      rescue Exception => exception
+        NewRelic::Security::Agent.logger.error "Exception in decrypt_data: #{exception.inspect} #{exception.backtrace}"
       end
 
       def delete_created_files
@@ -103,6 +122,20 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route}"
             end
           end
+        elsif framework == :grape
+          ObjectSpace.each_object(::Grape::Endpoint) { |z|
+            z.routes.each { |route|
+              NewRelic::Security::Agent.agent.route_map << "#{route.options[:method]}@#{route.options[:namespace]}"
+            }
+          }
+        elsif framework == :padrino
+          ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
+            z.instance_variable_get(:@routes).each { |route|
+              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.instance_variable_get(:@path)}"
+            }
+          }
+        elsif framework == :roda
+          NewRelic::Security::Agent.logger.warn "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end
@@ -128,6 +161,11 @@ module NewRelic::Security
           listen_port, _ = ::Socket.unpack_sockaddr_in(env['unicorn.socket'].getsockname)
           NewRelic::Security::Agent.logger.debug "Detected port from unicorn.socket Unicorn::TCPClient : #{listen_port}"
         end
+        ObjectSpace.each_object(::Falcon::Server) { |z|
+          NewRelic::Security::Agent.config.app_server = :falcon
+          listen_port = z.endpoint.instance_variable_get(:@specification)[1]
+          NewRelic::Security::Agent.logger.debug "Detected port from Falcon::Server : #{listen_port}"
+        } if defined?(::Falcon::Server)
         ObjectSpace.each_object(::Thin::Backends::TcpServer) { |z|
           NewRelic::Security::Agent.config.app_server = :thin
           listen_port = z.instance_variable_get(:@port)
@@ -147,6 +185,7 @@ module NewRelic::Security
         else
           NewRelic::Security::Agent.logger.warn "Unable to detect application listen port, IAST can not run without application listen port. Please provide application listen port in security.application_info.port in newrelic.yml"
         end
+        disable_object_space_in_jruby if NewRelic::Security::Agent.config[:jruby_objectspace_enabled]
         listen_port
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Exception in port detection : #{exception.inspect} #{exception.backtrace}"
@@ -154,11 +193,26 @@ module NewRelic::Security
 
       def app_root
         #so far assuming it as Rails
-        #TBD, determing the frame work then use appropriate APIs 
-        #val = Rails.root 
+        #TBD, determing the frame work then use appropriate APIs
+        #val = Rails.root
         root = nil
         root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack
         root
+      end
+
+      def disable_object_space_in_jruby
+        if RUBY_ENGINE == 'jruby' && JRuby.objectspace
+          JRuby.objectspace = false
+          NewRelic::Security::Agent.config.jruby_objectspace_enabled = false
+        end
+      end
+
+      def license_key
+        NewRelic::Security::Agent.config[:license_key]
+      end
+
+      def filtered_log(log)
+        log.gsub(license_key, ASTERISK * license_key.size)
       end
     end
   end
