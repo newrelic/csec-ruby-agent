@@ -9,6 +9,7 @@ require 'newrelic_security/agent/control/reflected_xss'
 require 'newrelic_security/agent/control/http_context'
 require 'newrelic_security/agent/control/collector'
 require 'newrelic_security/agent/control/app_info'
+require 'newrelic_security/agent/control/application_url_mappings'
 require 'newrelic_security/agent/control/health_check'
 require 'newrelic_security/agent/control/event'
 require 'newrelic_security/agent/control/critical_message'
@@ -28,11 +29,12 @@ module NewRelic::Security
       def initialize
         NewRelic::Security::Agent.config
         create_agent_home
+        enable_object_space_in_jruby
         NewRelic::Security::Agent.config.save_uuid
         @started = false
         @event_subscriber = NewRelic::Security::Agent::Control::EventSubscriber.new
         @started = true
-        @route_map = []
+        @route_map = ::Set.new
         @http_request_count = NewRelic::Security::Agent::Control::EventCounter.new
         @event_processed_count = NewRelic::Security::Agent::Control::EventCounter.new
         @event_sent_count = NewRelic::Security::Agent::Control::EventCounter.new
@@ -43,7 +45,7 @@ module NewRelic::Security
       end
 
       def init
-        NewRelic::Security::Agent.logger.info "Initializing Security Agent with config : #{NewRelic::Security::Agent.config.inspect}\n"
+        NewRelic::Security::Agent.logger.info "Initializing Security Agent with config : #{NewRelic::Security::Agent::Utils.filtered_log(NewRelic::Security::Agent.config.inspect)}\n"
         @ready = false
         create_status_logger
         start_event_processor
@@ -93,6 +95,13 @@ module NewRelic::Security
         find_or_create_file_path(log_dir)
         tmp_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, TMP_DIR)
         find_or_create_file_path(tmp_dir)
+      end
+
+      def enable_object_space_in_jruby
+        if RUBY_ENGINE == 'jruby' && !JRuby.objectspace
+          JRuby.objectspace = true
+          NewRelic::Security::Agent.config.jruby_objectspace_enabled = true
+        end
       end
 
       def find_or_create_file_path(path)

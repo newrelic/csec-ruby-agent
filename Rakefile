@@ -10,7 +10,7 @@ task :test_bundle do
 end
 
 Rake::TestTask.new(:test) do |t|
-  ENV['BUNDLE_GEMFILE'] = 'Gemfile_test'
+  # ENV['BUNDLE_GEMFILE'] = 'Gemfile_test'
   t.libs << 'test'
   t.libs << 'lib'
   t.test_files = FileList['test/**/*_test.rb']
