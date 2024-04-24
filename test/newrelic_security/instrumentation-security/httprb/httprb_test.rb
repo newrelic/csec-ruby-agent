@@ -38,11 +38,11 @@ module NewRelic::Security
 
                 def test_post_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/create"
-                    args = [{:Method=>:post, :scheme=>:https, :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/create", :path=>"/api/v1/create", :query=>nil, :Body=>"{\"name\":\"testuser\",\"salary\":\"123\",\"age\":\"23\"}", :Headers=>{}}]
-                    response = HTTP.post(url, :json => {:name => "testuser", :salary => "123",:age => "23"})
+                    url = "http://localhost:9291/books"
+                    args = [{:Method=>:post, :scheme=>:http, :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books", :path=>"/books", :query=>nil, :Body=>"{\"title\":\"New\",\"author\":\"New Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
+                    response = HTTP.headers(args[0][:Headers]).post(url, :json => {:title => "New", :author => "New Author"} )
                     @output = response.code
-                    assert_equal 200, @output
+                    assert_equal 201, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -52,9 +52,9 @@ module NewRelic::Security
 
                 def test_put_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/update/2"
-                    args = [{:Method=>:put, :scheme=>:https, :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/update/2", :path=>"/api/v1/update/2", :query=>nil, :Body=>"{\"name\":\"testuser\",\"salary\":\"123\",\"age\":\"23\"}", :Headers=>{}}]
-                    response = HTTP.put(url, :json => {:name => "testuser", :salary => "123",:age => "23"})
+                    url = "http://localhost:9291/books/1"
+                    args = [{:Method=>:put, :scheme=>:http, :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"{\"title\":\"New\",\"author\":\"New Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
+                    response = HTTP.headers(args[0][:Headers]).put(url, :json => {:title => "New", :author => "New Author"})
                     @output = response.code
                     assert_equal 200, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
@@ -66,11 +66,11 @@ module NewRelic::Security
 
                 def test_delete_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/delete/1"
-                    args = [{:Method=>:delete, :scheme=>:https, :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/delete/1", :path=>"/api/v1/delete/1", :query=>nil, :Body=>"", :Headers=>{}}]
+                    url = "http://localhost:9291/books/1"
+                    args = [{:Method=>:delete, :scheme=>:http, :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"", :Headers=>{}}]
                     response = HTTP.delete(url)
                     @output = response.code
-                    assert_equal 200, @output
+                    assert_equal 204, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
