@@ -27,8 +27,6 @@ class SampleServer < Rack::Builder
     book = JSON.parse(env['rack.input'].read)
      # Simulate creating a new book in a database
      [201, {'Content-Type' => 'application/json'}, [{id: 2, title: book['title'], author: book['author']}.to_json]]
-  rescue Exception => e
-    puts "e: #{e} #{e.backtrace}"
   end
 
   def self.update_book(env)

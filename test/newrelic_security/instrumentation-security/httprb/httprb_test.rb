@@ -53,8 +53,8 @@ module NewRelic::Security
                 def test_put_json
                     $event_list.clear()
                     url = "http://localhost:9291/books/1"
-                    args = [{:Method=>:put, :scheme=>:http, :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"{\"title\":\"New\",\"author\":\"New Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
-                    response = HTTP.headers(args[0][:Headers]).put(url, :json => {:title => "New", :author => "New Author"})
+                    args = [{:Method=>:put, :scheme=>:http, :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"{\"title\":\"Update Book\",\"author\":\"Update Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
+                    response = HTTP.headers(args[0][:Headers]).put(url, :json => {:title => "Update Book", :author => "Update Author"})
                     @output = response.code
                     assert_equal 200, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)

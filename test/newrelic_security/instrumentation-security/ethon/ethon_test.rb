@@ -43,12 +43,12 @@ module NewRelic::Security
 
                 def test_post_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/create"
-                    args = [{:Method=>:post, :scheme=>"https", :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/create", :path=>"/api/v1/create", :query=>nil, :Body=>{:name=>"testuser", :salary=>"123", :age=>"23"}, :Headers=>{"User-Agent"=>"ethon"}}]
+                    url = "http://localhost:9291/books"
+                    args = [{:Method=>:post, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books", :path=>"/books", :query=>nil, :Body=>"{\"title\" : \"New Book\", \"author\": \"New Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
                     # response = HTTPX.post(url, :json => {:name => "testuser", :salary => "123", :age => "23"})
                     easy = Ethon::Easy.new
-                    easy.http_request(url, :post, { body: {:name => "testuser", :salary => "123", :age => "23"}})
-                    easy.headers = {'User-Agent' => 'ethon'}
+                    easy.http_request(url, :post, body: '{"title" : "New Book", "author": "New Author"}')
+                    easy.headers = {'Content-Type' => 'application/json'}
                     response = easy.perform
                     assert_equal :ok, response
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
@@ -60,12 +60,12 @@ module NewRelic::Security
 
                 def test_put_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/update/2"
-                    args = [{:Method=>:put, :scheme=>"https", :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/update/2", :path=>"/api/v1/update/2", :query=>nil, :Body=>{:name=>"testuser", :salary=>"123", :age=>"23"}, :Headers=>{"User-Agent"=>"ethon"}}]
+                    url = "http://localhost:9291/books/1"
+                    args = [{:Method=>:put, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"{\"title\": \"Update Book\", \"author\": \"Update Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
                     # response = HTTPX.put(url, :json => {:name => "testuser", :salary => "123",:age => "23"})
                     easy = Ethon::Easy.new
-                    easy.http_request(url, :put, { body: {:name => "testuser", :salary => "123", :age => "23"}})
-                    easy.headers = {'User-Agent' => 'ethon'}
+                    easy.http_request(url, :put, { body: '{"title": "Update Book", "author": "Update Author"}'})
+                    easy.headers = {'Content-Type' => 'application/json'}
                     response = easy.perform
                     assert_equal :ok, response
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
@@ -77,8 +77,8 @@ module NewRelic::Security
 
                 def test_delete_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/delete/1"
-                    args = [{:Method=>:delete, :scheme=>"https", :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/delete/1", :path=>"/api/v1/delete/1", :query=>nil, :Body=>nil, :Headers=>{"User-Agent"=>"ethon"}}]
+                    url = "http://localhost:9291/books/1"
+                    args = [{:Method=>:delete, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>nil, :Headers=>{"User-Agent"=>"ethon"}}]
                     # response = HTTPX.delete(url)
                     easy = Ethon::Easy.new
                     easy.http_request(url, :delete)

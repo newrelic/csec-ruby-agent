@@ -72,7 +72,7 @@ module NewRelic::Security
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
           ic_args = []
           easy_handles.each do |easy|
-            context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[easy.object_id]
+            context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[easy.object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
             uri = ::URI.parse(easy.url)
             ob = {}
             ob[:Method] = context[:method] if context
@@ -89,7 +89,7 @@ module NewRelic::Security
           end
           event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, ic_args)
           easy_handles.each do |easy|
-            context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[easy.object_id]
+            context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[easy.object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
             headers_copy = {}
             headers_copy.merge!(context[:headers]) if context.key?(:headers)
             NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(headers_copy, event) if event
