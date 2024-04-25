@@ -16,7 +16,7 @@ module NewRelic::Security
                     @output = response.code
                     assert_equal 200, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
@@ -30,7 +30,7 @@ module NewRelic::Security
                     @output = response.code
                     assert_equal 200, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
@@ -44,7 +44,7 @@ module NewRelic::Security
                     @output = response.code
                     assert_equal 201, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
@@ -58,7 +58,7 @@ module NewRelic::Security
                     @output = response.code
                     assert_equal 200, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
@@ -72,7 +72,7 @@ module NewRelic::Security
                     @output = response.code
                     assert_equal 204, @output
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
+                    assert_equal 2, $event_list.length
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
