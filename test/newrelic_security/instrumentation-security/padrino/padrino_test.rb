@@ -102,7 +102,7 @@ module NewRelic::Security
           assert_equal "HTTP/1.0", http_context.headers["version"]
         end
 
-        def test_get_with_query_param
+        def test_get_url_not_found
           puts NewRelic::Security::Agent::Utils.get_app_routes(:padrino)
           get('/user/404')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
