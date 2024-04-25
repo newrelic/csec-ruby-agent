@@ -34,7 +34,7 @@ end
 module NewRelic::Security
   module Test
     module Instrumentation
-      class TestSinatra < Minitest::Test
+      class TestPadrino < Minitest::Test
         include Rack::Test::Methods
         # include Mocha::API
 
