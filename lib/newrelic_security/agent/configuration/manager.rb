@@ -1,5 +1,6 @@
 require 'securerandom'
 require 'socket'
+require 'openssl'
 require 'newrelic_security/agent/configuration/default_source'
 require 'newrelic_security/agent/configuration/environment_source'
 require 'newrelic_security/agent/configuration/manual_source'
@@ -36,13 +37,16 @@ module NewRelic::Security
           @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
-          @cache[:json_version] = :'1.1.1'
+          @cache[:jruby_objectspace_enabled] = false
+          @cache[:json_version] = :'1.2.0'
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new
           @manual_source = NewRelic::Security::Agent::Configuration::ManualSource.new
           @yaml_source = NewRelic::Security::Agent::Configuration::YamlSource.new
           @default_source = NewRelic::Security::Agent::Configuration::DefaultSource.new
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.error "Exception in Configuration::Manager.initialize : #{exception.inspect} #{exception.backtrace}"
         end
   
         def [](key)
@@ -78,7 +82,10 @@ module NewRelic::Security
           @cache[:account_id] = server_source[:account_id]
           @cache[:application_id] = server_source[:application_id]
           @cache[:entity_guid] = server_source[:entity_guid]
-          @cache[:primary_application_id] = server_source[:primary_application_id]           
+          @cache[:primary_application_id] = server_source[:primary_application_id]
+          @cache[:extraction_key] = generate_key(@cache[:entity_guid])
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.error "Exception in update_server_config : #{exception.inspect} #{exception.backtrace}"
         end
 
         def update_port=(listen_port)
@@ -87,6 +94,10 @@ module NewRelic::Security
 
         def app_server=(app_server)
           @cache[:app_server] = app_server
+        end
+
+        def jruby_objectspace_enabled=(jruby_objectspace_enabled)
+          @cache[:jruby_objectspace_enabled] = jruby_objectspace_enabled
         end
 
         def disable_security
@@ -154,6 +165,10 @@ module NewRelic::Security
           ::File.read(uuid_file_name)
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in uuid file creation : #{exception.inspect} #{exception.backtrace}"
+        end
+
+        def generate_key(entity_guid)
+          ::OpenSSL::PKCS5.pbkdf2_hmac(entity_guid, entity_guid[0..15], 1024, 32, SHA1)
         end
       end
     end

@@ -9,7 +9,7 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.debug "res, res.class #{res.class} #{res.inspect}"
         NewRelic::Security::Agent.logger.debug "Logger print from add instrumentation api."
         NewRelic::Security::Agent.logger.debug "Agent.agent : #{NewRelic::Security::Agent.agent.inspect}"
-        NewRelic::Security::Agent.logger.debug "Agent.config : #{NewRelic::Security::Agent.config.inspect}"
+        NewRelic::Security::Agent.logger.debug "Agent.config : #{NewRelic::Security::Agent::Utils.filtered_log(NewRelic::Security::Agent.config.inspect)}"
         NewRelic::Security::Agent.init_logger.info "[STEP-6] => Application instrumentation applied successfully"
       end
 
