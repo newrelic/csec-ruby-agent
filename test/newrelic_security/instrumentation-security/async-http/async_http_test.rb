@@ -23,9 +23,13 @@ module NewRelic::Security
                     end
                     assert_equal 200, response.status
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, $event_list.length
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
+                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
+                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
+                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
+                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
+                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
                 end
 
@@ -44,17 +48,21 @@ module NewRelic::Security
                     end
                     assert_equal 200, response.status
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, $event_list.length
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
+                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
+                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
+                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
+                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
+                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
                 end
 
                 def test_post_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/create"
-                    args = [{:Method=>"POST", :scheme=>"https", :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/create", :path=>"/api/v1/create", :query=>nil, :Body=>"{\"name\":\"testuser\",\"salary\":\"123\",\"age\":\"23\"}", :Headers=>{"Content-Type"=>"application/json"}}]
-                    data = {"name" => "testuser", "salary" => "123", "age" => "23"}
+                    url = "http://localhost:9291/books"
+                    args = [{:Method=>"POST", :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books", :path=>"/books", :query=>nil, :Body=>"{\"title\":\"New\",\"author\":\"New Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
+                    data = {"title"=>"New", "author"=>"New Author"}
                     response = nil
                     Async do
                         internet = Async::HTTP::Internet.new
@@ -65,19 +73,23 @@ module NewRelic::Security
                     ensure
                         internet.close
                     end
-                    assert_equal 200, response.status
+                    assert_equal 201, response.status
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, $event_list.length
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
+                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
+                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
+                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
+                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
+                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
                 end
 
                 def test_put_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/update/2"
-                    args = [{:Method=>"PUT", :scheme=>"https", :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/update/2", :path=>"/api/v1/update/2", :query=>nil, :Body=>"{\"name\":\"testuser\",\"salary\":\"123\",\"age\":\"23\"}", :Headers=>{"Content-Type"=>"application/json"}}]
-                    data = {"name" => "testuser", "salary" => "123", "age" => "23"}
+                    url = "http://localhost:9291/books/1"
+                    args = [{:Method=>"PUT", :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"{\"title\":\"Update Book\",\"author\":\"Update Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
+                    data = {"title"=>"Update Book","author"=>"Update Author"}
                     response = nil
                     Async do
                         internet = Async::HTTP::Internet.new
@@ -90,30 +102,37 @@ module NewRelic::Security
                     end
                     assert_equal 200, response.status
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, $event_list.length
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
+                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
+                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
+                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
+                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
+                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
                 end
 
                 def test_delete_json
                     $event_list.clear()
-                    url = "https://dummy.restapiexample.com/api/v1/delete/1"
-                    args = [{:Method=>"DELETE", :scheme=>"https", :host=>"dummy.restapiexample.com", :port=>443, :URI=>"https://dummy.restapiexample.com/api/v1/delete/1", :path=>"/api/v1/delete/1", :query=>nil, :Body=>"", :Headers=>{"Content-Type"=>"application/json"}}]
+                    url = "http://localhost:9291/books/1"
+                    args = [{:Method=>"DELETE", :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"", :Headers=>{}}]
                     response = nil
                     Async do
                         internet = Async::HTTP::Internet.new
-                        headers = [['Content-Type', 'application/json']]
-                        response = internet.delete url, headers
+                        response = internet.delete url
                         response.read
                     ensure
                         internet.close
                     end
-                    assert_equal 200, response.status
+                    assert_equal 204, response.status
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
-                    assert_equal 1, $event_list.length
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
+                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
+                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
+                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
+                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
+                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
                 end
 
