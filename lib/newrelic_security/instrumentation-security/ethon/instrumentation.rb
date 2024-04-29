@@ -91,7 +91,7 @@ module NewRelic::Security
           easy_handles.each do |easy|
             context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[easy.object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
             headers_copy = {}
-            headers_copy.merge!(context[:headers]) if context.key?(:headers)
+            headers_copy.merge!(context[:headers]) if context&.key?(:headers)
             NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(headers_copy, event) if event
             easy.headers = headers_copy
           end

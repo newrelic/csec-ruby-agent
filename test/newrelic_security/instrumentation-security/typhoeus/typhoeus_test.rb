@@ -1,11 +1,15 @@
 require 'typhoeus'
 require_relative '../../../test_helper'
-require 'newrelic_security/instrumentation-security/typhoeus/instrumentation'
+require 'newrelic_security/instrumentation-security/ethon/instrumentation'
 
 module NewRelic::Security
     module Test
         module Instrumentation
             class TestTyphoeus < Minitest::Test
+
+                def setup
+                    NewRelic::Security::Agent::Control::HTTPContext.set_context({})
+                end
 
                 def test_get
                     $event_list.clear()
@@ -44,7 +48,7 @@ module NewRelic::Security
                 def test_post_json
                     $event_list.clear()
                     url = "http://localhost:9291/books"
-                    args = [{:Method=>:post, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books", :path=>"/books", :query=>nil, :Body=>"{\"title\":\"New\",\"author\":\"New Author\"}", :Headers=>{:"Content-Type"=>"application/json"}}]
+                    args = [{:Method=>:post, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books?field1=a%20field", :path=>"/books", :query=>nil, :Body=>"{\"title\":\"New\",\"author\":\"New Author\"}", :Headers=>{:"Content-Type"=>"application/json"}}]
                     data = {"title"=>"New","author"=>"New Author"}
                     request = Typhoeus::Request.new(
                         url,
@@ -69,7 +73,7 @@ module NewRelic::Security
                 def test_put_json
                     $event_list.clear()
                     url = "http://localhost:9291/books/1"
-                    args = [{:Method=>:put, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"{\"title\":\"Update Book\",\"author\":\"Update Author\"}", :Headers=>{:"Content-Type"=>"application/json"}}]
+                    args = [{:Method=>:put, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1?field1=a%20field", :path=>"/books/1", :query=>nil, :Body=>"{\"title\":\"Update Book\",\"author\":\"Update Author\"}", :Headers=>{:"Content-Type"=>"application/json"}}]
                     data = {"title"=>"Update Book","author"=>"Update Author"}
                     request = Typhoeus::Request.new(
                         url,
@@ -118,7 +122,7 @@ module NewRelic::Security
                     args = [{:Method=>:get, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com?q=test", :path=>"", :query=>"q=test", :Body=>nil, :Headers=>{"User-Agent"=>"Typhoeus - https://github.com/typhoeus/typhoeus", "Expect"=>""}}]
                     hydra = Typhoeus::Hydra.hydra
                     request = Typhoeus::Request.new(url)
-                    hydra.queue(request)
+                    hydra.queue(request)    
                     response = hydra.run
                     assert_equal 200, request.response.response_code
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
@@ -130,6 +134,10 @@ module NewRelic::Security
                     assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
                     assert_nil $event_list[0].parameters[0][:Body]
                     assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                end
+
+                def teardown
+                    NewRelic::Security::Agent::Control::HTTPContext.reset_context
                 end
 
             end

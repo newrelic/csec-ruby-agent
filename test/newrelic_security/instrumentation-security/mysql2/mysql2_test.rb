@@ -171,7 +171,7 @@ module NewRelic::Security
                     expected_result = {"name"=>"john", "email"=>"me@john.com", "grade"=>"A", "blog"=>"http://blog.abc.com"}
                     assert_equal expected_result, @output
                     # event verification
-                    args = [{:parameters=>["john"]}]
+                    args = [{:sql=>"SELECT * FROM fake_users WHERE name = ?", :parameters=>["john"]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -182,7 +182,7 @@ module NewRelic::Security
                     # DELETE event test 
                     statement = client.prepare("DELETE FROM fake_users WHERE name= ?") 
                     statement.execute("john")
-                    args = [{:parameters=>["john"]}]
+                    args = [{:sql=>"DELETE FROM fake_users WHERE name= ?", :parameters=>["john"]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
                     assert_equal expected_event.caseType, $event_list[0].caseType

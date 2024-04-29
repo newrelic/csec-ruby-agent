@@ -154,7 +154,7 @@ module NewRelic::Security
             ic_args.push(hash)
           end
         end
-        if ic_args[0].has_key?(:sql)
+        if ic_args[0]&.has_key?(:sql)
           event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, ic_args, SQLITE) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(ic_args[0][:sql])
         else
           event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, ic_args, SQLITE)

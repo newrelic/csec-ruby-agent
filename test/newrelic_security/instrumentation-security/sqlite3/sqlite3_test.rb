@@ -10,6 +10,10 @@ module NewRelic::Security
                 @@event_category = "SQLITE"
                 @@database_name = __dir__ + "/test.db"
 
+                def setup
+                    NewRelic::Security::Agent::Control::HTTPContext.set_context({})
+                end
+
                 def test_execute
                     db = SQLite3::Database.new @@database_name
                     db.execute("DROP TABLE IF EXISTS fake_users")
@@ -334,6 +338,10 @@ module NewRelic::Security
                     assert_equal expected_event6.parameters, $event_list[0].parameters
                     assert_equal expected_event6.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
+                end
+
+                def teardown
+                    NewRelic::Security::Agent::Control::HTTPContext.reset_context
                 end
 
             end

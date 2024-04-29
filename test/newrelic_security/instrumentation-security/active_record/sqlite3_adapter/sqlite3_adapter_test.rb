@@ -22,6 +22,10 @@ module NewRelic::Security
                 @@case_type = "SQL_DB_COMMAND"
                 @@event_category = "SQLITE"
 
+                def setup
+                    NewRelic::Security::Agent::Control::HTTPContext.set_context({})
+                end
+
                 def test_exec_query 
                     ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: $database_name
                     FakeUser.delete_all
@@ -142,6 +146,10 @@ module NewRelic::Security
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
                     ActiveRecord::Base.remove_connection
                     $event_list.clear()
+                end
+
+                def teardown
+                    NewRelic::Security::Agent::Control::HTTPContext.reset_context
                 end
 
             end
