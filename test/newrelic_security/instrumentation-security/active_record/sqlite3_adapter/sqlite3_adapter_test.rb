@@ -19,8 +19,6 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestSQLite3Adapter < Minitest::Test
-                @@case_type = "SQL_DB_COMMAND"
-                @@event_category = "SQLITE"
 
                 def setup
                     NewRelic::Security::Agent::Control::HTTPContext.set_context({})
@@ -38,10 +36,10 @@ module NewRelic::Security
                         args1 = [{:sql=>"            SELECT sql FROM\n              (SELECT * FROM sqlite_master UNION ALL\n               SELECT * FROM sqlite_temp_master)\n            WHERE type = 'table' AND name = 'fake_users'\n", :parameters=>[]}]
                         args2 = [{:sql=>"SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table','view')", :parameters=>[]}]
                         args3 = [{:sql=>"INSERT INTO \"fake_users\" (\"id\", \"name\", \"email\", \"ssn\") VALUES (?, ?, ?, ?)", :parameters=>["1", "John", "me@john.com", "11"]}]         
-                        expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                        expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                        expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
-                        assert_equal 4, $event_list.length
+                        expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, SQLITE)
+                        expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, SQLITE)
+                        expected_event3 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args3, SQLITE)
+                        assert_equal 4, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                         # sqlite_master
                         assert_equal expected_event1.caseType, $event_list[0].caseType
                         assert_equal expected_event1.parameters, $event_list[0].parameters
@@ -69,10 +67,10 @@ module NewRelic::Security
                         args1 = [{:sql=>"SELECT sqlite_version(*)", :parameters=>[]}]
                         args2 = [{:sql=>"SELECT sql FROM\n  (SELECT * FROM sqlite_master UNION ALL\n   SELECT * FROM sqlite_temp_master)\nWHERE type = 'table' AND name = 'fake_users'\n", :parameters=>[]}]
                         args3 = [{:sql=>"INSERT INTO \"fake_users\" (\"id\",\"email\",\"name\",\"ssn\") VALUES (1, 'me@john.com', 'John', '11') ON CONFLICT  DO NOTHING", :parameters=>[]}]         
-                        expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                        expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                        expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
-                        assert_equal 3, $event_list.length
+                        expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, SQLITE)
+                        expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, SQLITE)
+                        expected_event3 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args3, SQLITE)
+                        assert_equal 3, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                         # sqlite_version
                         assert_equal expected_event1.caseType, $event_list[0].caseType
                         assert_equal expected_event1.parameters, $event_list[0].parameters
@@ -97,8 +95,8 @@ module NewRelic::Security
                     assert_equal "11", output.ssn
                     # event verify
                     args1 = [{:sql=>"SELECT \"fake_users\".* FROM \"fake_users\" WHERE \"fake_users\".\"id\" = ? LIMIT ?", :parameters=>["1", "1"]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, SQLITE)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     expected_sql_list = args1[0][:sql].split(" ")
                     sql_fetch_list = $event_list[0].parameters[0][:sql].split(" ")
                     assert_equal expected_event1.caseType, $event_list[0].caseType
@@ -117,9 +115,9 @@ module NewRelic::Security
                     # event verify
                     args1 = [{:sql=>"SELECT \"fake_users\".* FROM \"fake_users\" WHERE \"fake_users\".\"id\" = ? LIMIT ?", :parameters=>["1", "1"]}]
                     args2 = [{:sql=>"UPDATE \"fake_users\" SET \"name\" = ? WHERE \"fake_users\".\"id\" = ?", :parameters=>["Jack", "1"]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    assert_equal 2, $event_list.length
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, SQLITE)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, SQLITE)
+                    assert_equal 2, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     # select event
                     expected_sql_list = args1[0][:sql].split(" ")
                     sql_fetch_list = $event_list[0].parameters[0][:sql].split(" ")
@@ -139,8 +137,8 @@ module NewRelic::Security
                     assert_equal 1, output
                     # event verify
                     args1 = [{:sql=>"DELETE FROM \"fake_users\" WHERE \"fake_users\".\"id\" = ?", :parameters=>["1"]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, SQLITE)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  

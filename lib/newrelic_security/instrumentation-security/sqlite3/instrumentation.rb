@@ -28,29 +28,6 @@ module NewRelic::Security
         yield
       end
 
-      def execute2_on_enter(sql, *bind_vars)
-        event = nil
-        NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-        hash = {}
-        hash[:sql] = sql
-        hash[:parameters] = bind_vars.map(&:to_s)
-        event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, [hash], SQLITE) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(hash[:sql])
-      rescue => exception
-        NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
-      ensure
-        yield
-        return event
-      end
-
-      def execute2_on_exit(event)
-        NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
-        NewRelic::Security::Agent::Utils.create_exit_event(event)
-      rescue => exception
-        NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
-      ensure
-        yield
-      end
-
       def execute_batch_on_enter(sql, bind_vars, *args)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
@@ -97,7 +74,11 @@ module NewRelic::Security
         yield
       end
 
-      def prepare_on_enter(sql)
+    end
+
+    module SQLite3::Statement
+
+      def initialize_on_enter(db, sql)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
       rescue => exception
@@ -107,7 +88,7 @@ module NewRelic::Security
         return event
       end
 
-      def prepare_on_exit(event, retval, sql)
+      def initialize_on_exit(event, retval, sql)
         NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
         NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[retval.object_id] = { :sql => sql } if NewRelic::Security::Agent::Control::HTTPContext.get_context
       rescue => exception
@@ -115,10 +96,6 @@ module NewRelic::Security
       ensure
         yield
       end
-
-    end
-
-    module SQLite3::Statement
 
       def bind_params_on_enter(*bind_vars)
         event = nil
@@ -154,7 +131,7 @@ module NewRelic::Security
             ic_args.push(hash)
           end
         end
-        if ic_args[0]&.has_key?(:sql)
+        if ic_args[0].has_key?(:sql)
           event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, ic_args, SQLITE) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(ic_args[0][:sql])
         else
           event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, ic_args, SQLITE)
