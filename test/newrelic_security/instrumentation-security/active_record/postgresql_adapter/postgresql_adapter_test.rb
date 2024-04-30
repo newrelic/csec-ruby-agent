@@ -9,15 +9,10 @@ require 'newrelic_security/instrumentation-security/active_record/postgresql_ada
 class NewUser < ActiveRecord::Base
 end
 
-# test setup
-$test_file_path = __dir__ 
-
 module NewRelic::Security
     module Test
         module Instrumentation
             class TestPostgresqlAdapter < Minitest::Test
-                @@case_type = "SQL_DB_COMMAND"
-                @@event_category = "POSTGRES"
                 @@before_all_flag = false
     
                 def setup
@@ -53,23 +48,23 @@ module NewRelic::Security
 
                 def test_exec_query_exec_update_exec_delete
                     ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
-                    load  $test_file_path +'/db/schema.rb'
+                    load  __dir__ + '/db/schema.rb'
                     NewUser.delete_all
                     $event_list.clear()
 
                     # INSERT test
                     if RUBY_VERSION < '2.5.0'
-                        user = NewUser.create(id: 1, email: 'me@john.com', name: 'John', ssn: '11')
+                        NewUser.create(id: 1, email: 'me@john.com', name: 'John', ssn: '11')
                         # event verify 
                         args1 = [{:sql=>"INSERT INTO \"new_users\" (\"id\", \"name\", \"email\", \"ssn\") VALUES ($1, $2, $3, $4) RETURNING \"id\"", :parameters=>["1", "John", "me@john.com", "11"]}]
-                        expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                        assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                        expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
+                        assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                         # insert event
                         assert_equal expected_event1.caseType, $event_list[0].caseType
                         assert_equal expected_event1.parameters, $event_list[0].parameters
                         assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
                     else
-                        result = NewUser.insert(
+                        NewUser.insert(
                         { id: 1,
                         email: 'me@john.com',
                         name: 'John',
@@ -77,8 +72,8 @@ module NewRelic::Security
                     )
                         # insert event 
                         args1 = [{:sql=>"INSERT INTO \"new_users\" (\"id\",\"email\",\"name\",\"ssn\") VALUES (1, 'me@john.com', 'John', '11') ON CONFLICT  DO NOTHING RETURNING \"id\"", :parameters=>[]}]
-                        expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                        assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                        expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
+                        assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                         assert_equal expected_event1.caseType, $event_list[0].caseType
                         assert_equal expected_event1.parameters, $event_list[0].parameters
                         assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
@@ -95,11 +90,11 @@ module NewRelic::Security
                     # exec_query event verify 
                     args1 = [{:sql=>"SELECT \"new_users\".* FROM \"new_users\" WHERE \"new_users\".\"id\" = $1 LIMIT $2", :parameters=>["1", "1"]}]
                     args2 = [{:sql=>"select statement from pg_prepared_statements where name = 'a2'", :parameters=>[]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, POSTGRES)
                     expected_sql_list = args1[0][:sql].split(" ")
                     puts "$event_list : #{$event_list.inspect}"
-                    assert_equal 2, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    assert_equal 2, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     sql_fetch_list1 = $event_list[0].parameters[0][:sql].split(" ")
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_sql_list, sql_fetch_list1
@@ -128,12 +123,12 @@ module NewRelic::Security
                     args1 = [{:sql=>"SELECT \"new_users\".* FROM \"new_users\" WHERE \"new_users\".\"id\" = $1 LIMIT $2", :parameters=>["1", "1"]}]
                     args2 = [{:sql=>"select statement from pg_prepared_statements where name = 'a2'", :parameters=>[]}]
                     args3 = [{:sql=>"UPDATE \"new_users\" SET \"name\" = $1 WHERE \"new_users\".\"id\" = $2", :parameters=>["Jack", "1"]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, POSTGRES)
+                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args3, POSTGRES)
                     expected_sql_list = args1[0][:sql].split(" ")
 
-                    assert_equal 4, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    assert_equal 4, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     # select event
                     sql_fetch_list1 = $event_list[0].parameters[0][:sql].split(" ")
                     assert_equal expected_event1.caseType, $event_list[0].caseType
@@ -163,8 +158,8 @@ module NewRelic::Security
                     assert_equal 1, output
                     # event verify
                     args1 = [{:sql=>"DELETE FROM \"new_users\" WHERE \"new_users\".\"id\" = $1", :parameters=>["1"]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
@@ -174,7 +169,7 @@ module NewRelic::Security
 
                 def test_execute
                     ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
-                    load  $test_file_path +'/db/schema.rb'
+                    load  __dir__ + '/db/schema.rb'
                     NewUser.delete_all
 
                     # INSERT test
@@ -182,8 +177,8 @@ module NewRelic::Security
                     ActiveRecord::Base.connection.execute("INSERT INTO new_users (id, email, name, ssn) VALUES (1, 'me@abc.com', 'John', '11')")
                     # execute event verify 
                     args1 = [{:sql=>"INSERT INTO new_users (id, email, name, ssn) VALUES (1, 'me@abc.com', 'John', '11')", :parameters=>[]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
@@ -193,8 +188,8 @@ module NewRelic::Security
                     ActiveRecord::Base.connection.execute("UPDATE new_users SET name = 'john', email= 'me@john.com' WHERE name = 'abc'")
                     # execute event verify 
                     args1 = [{:sql=>"UPDATE new_users SET name = 'john', email= 'me@john.com' WHERE name = 'abc'", :parameters=>[]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
@@ -211,8 +206,8 @@ module NewRelic::Security
                     assert_equal expected_result, output
                     # event verification
                     args = [{:sql=>"SELECT * FROM new_users", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, POSTGRES)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -222,8 +217,8 @@ module NewRelic::Security
                     ActiveRecord::Base.connection.execute("DELETE FROM new_users WHERE name= 'john'")
                     # execute event verify 
                     args1 = [{:sql=>"DELETE FROM new_users WHERE name= 'john'", :parameters=>[]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args1, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  

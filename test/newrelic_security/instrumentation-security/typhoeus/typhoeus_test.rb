@@ -8,11 +8,11 @@ module NewRelic::Security
             class TestTyphoeus < Minitest::Test
 
                 def setup
+                    $event_list.clear()
                     NewRelic::Security::Agent::Control::HTTPContext.set_context({})
                 end
 
                 def test_get
-                    $event_list.clear()
                     url = "http://www.google.com?q=test"
                     args = [{:Method=>:get, :URI=>"http://www.google.com?q=test", :Body=>nil, :Headers=>{"User-Agent"=>"Typhoeus - https://github.com/typhoeus/typhoeus", "Expect"=>""}, :scheme=>"http", :host=>"www.google.com", :port=>80, :path=>"", :query=>"q=test"}]
                     response = Typhoeus.get(url) # input=https://www.google.com
@@ -25,11 +25,10 @@ module NewRelic::Security
                     assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
                     assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
                     assert_nil $event_list[0].parameters[0][:Body]
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
 
                 def test_get_ssl
-                    $event_list.clear()
                     url = "https://www.google.com?q=test"
                     args = [{:Method=>:get, :URI=>"https://www.google.com?q=test", :Body=>nil, :Headers=>{"User-Agent"=>"Typhoeus - https://github.com/typhoeus/typhoeus", "Expect"=>""}, :scheme=>"https", :host=>"www.google.com", :port=>443, :path=>"", :query=>"q=test"}]
                     response = Typhoeus.get(url) # input=https://www.google.com
@@ -42,11 +41,10 @@ module NewRelic::Security
                     assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
                     assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
                     assert_nil $event_list[0].parameters[0][:Body]
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
 
                 def test_post_json
-                    $event_list.clear()
                     url = "http://localhost:9291/books"
                     args = [{:Method=>:post, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books?field1=a%20field", :path=>"/books", :query=>nil, :Body=>"{\"title\":\"New\",\"author\":\"New Author\"}", :Headers=>{:"Content-Type"=>"application/json"}}]
                     data = {"title"=>"New","author"=>"New Author"}
@@ -67,11 +65,10 @@ module NewRelic::Security
                     assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
                     assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
                     assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
 
                 def test_put_json
-                    $event_list.clear()
                     url = "http://localhost:9291/books/1"
                     args = [{:Method=>:put, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1?field1=a%20field", :path=>"/books/1", :query=>nil, :Body=>"{\"title\":\"Update Book\",\"author\":\"Update Author\"}", :Headers=>{:"Content-Type"=>"application/json"}}]
                     data = {"title"=>"Update Book","author"=>"Update Author"}
@@ -92,11 +89,10 @@ module NewRelic::Security
                     assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
                     assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
                     assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
 
                 def test_delete_json
-                    $event_list.clear()
                     url = "http://localhost:9291/books/1"
                     args = [{:Method=>:delete, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/api/v1/delete/1", :query=>nil, :Body=>nil, :Headers=>{}}]
                     request = Typhoeus::Request.new(
@@ -113,17 +109,16 @@ module NewRelic::Security
                     assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
                     assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
                     assert_nil $event_list[0].parameters[0][:Body]
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
 
                 def test_typhoeus_hydra
-                    $event_list.clear()
                     url = "https://www.google.com?q=test"
                     args = [{:Method=>:get, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com?q=test", :path=>"", :query=>"q=test", :Body=>nil, :Headers=>{"User-Agent"=>"Typhoeus - https://github.com/typhoeus/typhoeus", "Expect"=>""}}]
                     hydra = Typhoeus::Hydra.hydra
                     request = Typhoeus::Request.new(url)
                     hydra.queue(request)    
-                    response = hydra.run
+                    hydra.run
                     assert_equal 200, request.response.response_code
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
@@ -133,7 +128,7 @@ module NewRelic::Security
                     assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
                     assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
                     assert_nil $event_list[0].parameters[0][:Body]
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
 
                 def teardown

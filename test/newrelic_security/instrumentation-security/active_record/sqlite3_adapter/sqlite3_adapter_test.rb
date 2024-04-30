@@ -8,10 +8,9 @@ class FakeUser < ActiveRecord::Base
 end
 
 # test setup
-test_file_path = __dir__ 
-$database_name = test_file_path + "/db/test.db"
+$database_name = __dir__ + "/db/test.db"
 ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: $database_name
-load  test_file_path +'/db/schema.rb'
+load  "#{__dir__}/db/schema.rb"
 
 require 'newrelic_security/instrumentation-security//active_record/sqlite3_adapter/instrumentation'
 
@@ -31,7 +30,7 @@ module NewRelic::Security
 
                     # INSERT test
                     if RUBY_VERSION < '2.5.0'
-                        user = FakeUser.create(id: 1, email: 'me@john.com', name: 'John', ssn: '11')
+                        FakeUser.create(id: 1, email: 'me@john.com', name: 'John', ssn: '11')
                         # 4 event verify 
                         args1 = [{:sql=>"            SELECT sql FROM\n              (SELECT * FROM sqlite_master UNION ALL\n               SELECT * FROM sqlite_temp_master)\n            WHERE type = 'table' AND name = 'fake_users'\n", :parameters=>[]}]
                         args2 = [{:sql=>"SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table','view')", :parameters=>[]}]

@@ -8,14 +8,15 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestExcon < Minitest::Test
-                def test_excon
+                def setup
                     $event_list.clear()
+                end
+
+                def test_excon
                     url = "https://www.google.com"
                     @output = Excon.get(url).body
-                    case_type = "HTTP_REQUEST"
                     args = [{:Method=>:get, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"www.google.com", :path=>"", :query=>nil, :Body=>nil}]
-                    event_category = nil
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(case_type, args, event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
                     assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
@@ -23,9 +24,9 @@ module NewRelic::Security
                     assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
                     assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
                     assert_equal expected_event.parameters[0][:path], $event_list[0].parameters[0][:path]
-                    assert_nil expected_event.parameters[0][:query], $event_list[0].parameters[0][:query]
-                    assert_nil expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].parameters[0][:query]
+                    assert_nil $event_list[0].parameters[0][:Body]
+                    assert_nil $event_list[0].eventCategory
                 end
                 
                 # def test_faraday_excon

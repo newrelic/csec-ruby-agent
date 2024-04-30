@@ -6,28 +6,25 @@ module NewRelic::Security
   module Test
     module Instrumentation
       class TestPTY < Minitest::Test
-        @@temp_file = $test_path + "/resources/tmp.txt"
-        @@case_type = "SYSTEM_COMMAND"
-        @@event_category = nil
+        TEMP_FILE = $test_path + "/resources/tmp.txt"
+
+        def setup
+          $event_list.clear()
+        end
         
         def test_spawn
-          $event_list.clear()
-          cmd = "touch #{@@temp_file}"
-          args = [cmd]
-          @output = PTY.spawn("#{cmd}")
-          #puts @output
-          expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-          assert_equal 1, $event_list.length
+          cmd = "touch #{TEMP_FILE}"
+          PTY.spawn("#{cmd}")
+          expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
+          assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
           assert_equal expected_event.caseType, $event_list[0].caseType
           assert_equal expected_event.parameters, $event_list[0].parameters
-          assert_nil expected_event.eventCategory, $event_list[0].eventCategory
-          File.delete(@@temp_file) if File.exist?(@@temp_file)
+          assert_nil $event_list[0].eventCategory
+          File.delete(TEMP_FILE) if File.exist?(TEMP_FILE)
         end
 
         def test_getpty
-          $event_list.clear()
-          cmd = "touch #{@@temp_file}"
-          args = [cmd]
+          cmd = "touch #{TEMP_FILE}"
           PTY::getpty("#{cmd}") do |reader, writer, pid|
             while true
               begin
@@ -36,16 +33,19 @@ module NewRelic::Security
                 break
               end
             end
-            @output = pid.to_s
           end
-          #puts @output
-          expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-          assert_equal 1, $event_list.length
+          expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
+          assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
           assert_equal expected_event.caseType, $event_list[0].caseType
           assert_equal expected_event.parameters, $event_list[0].parameters
-          assert_nil expected_event.eventCategory, $event_list[0].eventCategory
-          File.delete(@@temp_file) if File.exist?(@@temp_file)
+          assert_nil $event_list[0].eventCategory
+          File.delete(TEMP_FILE) if File.exist?(TEMP_FILE)
         end
+
+        def teardown
+          $event_list.clear()
+        end
+
       end
     end
   end

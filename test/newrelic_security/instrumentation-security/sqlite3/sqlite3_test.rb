@@ -6,14 +6,14 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestSqlite3 < Minitest::Test
-                @@database_name = __dir__ + "/test.db"
+                DATABASE_NAME = __dir__ + "/test.db"
 
                 def setup
                     NewRelic::Security::Agent::Control::HTTPContext.set_context({})
                 end
 
                 def test_execute
-                    db = SQLite3::Database.new @@database_name
+                    db = SQLite3::Database.new DATABASE_NAME
                     db.execute("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
                     # Create a table test
@@ -94,7 +94,7 @@ module NewRelic::Security
                 end
 
                 def test_execute2
-                    db = SQLite3::Database.new @@database_name
+                    db = SQLite3::Database.new DATABASE_NAME
                     db.execute2("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
                     # Create a table test
@@ -165,7 +165,7 @@ module NewRelic::Security
                 end
 
                 def test_execute_batch
-                    db = SQLite3::Database.new @@database_name
+                    db = SQLite3::Database.new DATABASE_NAME
                     db.execute_batch("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
                     
@@ -258,7 +258,7 @@ module NewRelic::Security
                 end
 
                 def test_execute_batch2
-                    db = SQLite3::Database.new @@database_name
+                    db = SQLite3::Database.new DATABASE_NAME
                     db.execute_batch2("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
                     

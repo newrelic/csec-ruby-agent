@@ -7,8 +7,6 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestMysql2 < Minitest::Test
-                @@case_type = "SQL_DB_COMMAND"
-                @@event_category = "MYSQL"
                 @@before_all_flag = false
     
                 def setup
@@ -51,8 +49,8 @@ module NewRelic::Security
                     # CREATE event test 
                     client.query("create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))")
                     args = [{:sql=>"create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -61,8 +59,8 @@ module NewRelic::Security
                     # INSERT event test 
                     client.query("INSERT INTO fake_users (name, email, grade, blog) VALUES ('abc', 'me@abc.com', 'A', 'http://blog.abc.com')")
                     args = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES ('abc', 'me@abc.com', 'A', 'http://blog.abc.com')", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -71,8 +69,8 @@ module NewRelic::Security
                     # UPDATE event test 
                     client.query("UPDATE fake_users SET name = 'john', email= 'me@john.com' WHERE name = 'abc'")
                     args = [{:sql=>"UPDATE fake_users SET name = 'john', email= 'me@john.com' WHERE name = 'abc'", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -88,8 +86,8 @@ module NewRelic::Security
                     assert_equal expected_result, @output
                     # event verification
                     args = [{:sql=>"SELECT * FROM fake_users WHERE name= 'john'", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -98,8 +96,8 @@ module NewRelic::Security
                     # DELETE event test 
                     client.query("DELETE FROM fake_users WHERE name= 'john'") 
                     args = [{:sql=>"DELETE FROM fake_users WHERE name= 'john'", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -115,8 +113,8 @@ module NewRelic::Security
                     # DROP event test 
                     client.query("DROP TABLE fake_users") 
                     args = [{:sql=>"DROP TABLE fake_users", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -132,8 +130,8 @@ module NewRelic::Security
                     # CREATE event test 
                     client.query("create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))")
                     args = [{:sql=>"create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -143,8 +141,8 @@ module NewRelic::Security
                     statement = client.prepare("INSERT INTO fake_users (name, email, grade, blog) VALUES (?, ?, ?, ?)")
                     statement.execute("abc", "me@abc.com", "A", "http://blog.abc.com")
                     args = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES (?, ?, ?, ?)", :parameters=>["abc", "me@abc.com", "A", "http://blog.abc.com"]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -154,8 +152,8 @@ module NewRelic::Security
                     statement = client.prepare("UPDATE fake_users SET name = ?, email= ? WHERE name = ?")
                     statement.execute("john", "me@john.com", "abc")
                     args = [{:sql=>"UPDATE fake_users SET name = ?, email= ? WHERE name = ?", :parameters=>["john", "me@john.com", "abc"]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -172,8 +170,8 @@ module NewRelic::Security
                     assert_equal expected_result, @output
                     # event verification
                     args = [{:sql=>"SELECT * FROM fake_users WHERE name = ?", :parameters=>["john"]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -183,8 +181,8 @@ module NewRelic::Security
                     statement = client.prepare("DELETE FROM fake_users WHERE name= ?") 
                     statement.execute("john")
                     args = [{:sql=>"DELETE FROM fake_users WHERE name= ?", :parameters=>["john"]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
@@ -200,8 +198,8 @@ module NewRelic::Security
                     # DROP event test 
                     client.query("DROP TABLE fake_users") 
                     args = [{:sql=>"DROP TABLE fake_users", :parameters=>[]}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, MYSQL)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
