@@ -5,7 +5,7 @@ require 'newrelic_security/instrumentation-security/httprb/instrumentation'
 module NewRelic::Security
     module Test
         module Instrumentation
-            class TestNetHTTP < Minitest::Test
+            class TestHTTP < Minitest::Test
 
                 def setup
                     $event_list.clear()
