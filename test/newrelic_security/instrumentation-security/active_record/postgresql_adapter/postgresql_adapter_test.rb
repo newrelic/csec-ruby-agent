@@ -2,19 +2,15 @@ require 'rails'
 require 'pg'
 require 'docker'
 require 'active_record'
+require "active_record/connection_adapters/postgresql_adapter"
 require_relative '../../../../test_helper'
-require 'newrelic_security/instrumentation-security/pg/instrumentation'
+require 'newrelic_security/instrumentation-security/active_record/postgresql_adapter/instrumentation'
 
 class NewUser < ActiveRecord::Base
 end
 
-image = Docker::Image.create('fromImage' => 'postgres:latest')
-image.refresh!
-
 # test setup
 $test_file_path = __dir__ 
-ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
-require 'newrelic_security/instrumentation-security//active_record/postgresql_adapter/instrumentation'
 
 module NewRelic::Security
     module Test
