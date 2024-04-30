@@ -94,7 +94,7 @@ module NewRelic::Security
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, POSTGRES)
                     expected_sql_list = args1[0][:sql].split(" ")
                     puts "$event_list : #{$event_list.inspect}"
-                    assert_equal 2, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
+                    assert_equal 3, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     sql_fetch_list1 = $event_list[0].parameters[0][:sql].split(" ")
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_sql_list, sql_fetch_list1
