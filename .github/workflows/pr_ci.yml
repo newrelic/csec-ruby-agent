@@ -10,6 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0]
+        instrumentation-method: ['prepend', 'chain']
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -36,11 +37,12 @@ jobs:
         env:
           VERBOSE_TEST_OUTPUT: true
           BUNDLE_GEMFILE: 'Gemfile_test'
+          NR_CSEC_INSTRUMENTATION_METHOD: ${{ matrix.instrumentation-method }}
 
       - name: Save coverage results
         uses: actions/upload-artifact@1746f4ab65b179e0ea60a494b83293b640dd5bba # tag v4.3.2
         with:
-          name: coverage-report-unit-tests-${{ matrix.ruby-version }}
+          name: coverage-report-unit-tests-${{ matrix.ruby-version }}-${{ matrix.instrumentation-method }}
           path: lib/coverage_*/.resultset.json
 
   simplecov:
