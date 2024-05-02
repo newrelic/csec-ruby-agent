@@ -1,5 +1,4 @@
 require 'rails'
-require 'pg'
 require 'active_record'
 require "active_record/connection_adapters/postgresql_adapter"
 require_relative '../../../../test_helper'

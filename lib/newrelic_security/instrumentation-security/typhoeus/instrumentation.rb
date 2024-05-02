@@ -67,3 +67,4 @@ end
 
 # NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:typhoeus, ::Typhoeus::Request, ::NewRelic::Security::Instrumentation::Typhoeus::Request)
 # NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:typhoeus, ::Typhoeus::Hydra, ::NewRelic::Security::Instrumentation::Typhoeus::Hydra)
+# TODO: Remove typhoeus instrumentation files, as this is Ethon based client. Ethon instrumentation is already supported.
