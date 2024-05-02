@@ -16,14 +16,6 @@ module NewRelic::Security
                 execute_on_exit(event) { return retval }
               end
 
-              alias_method :execute2_without_security, :execute2
-    
-              def execute2(sql, *bind_vars)
-                retval = nil
-                event = execute2_on_enter(sql, *bind_vars) { retval = execute2_without_security(sql, *bind_vars) }
-                execute2_on_exit(event) { return retval }
-              end
-
               alias_method :execute_batch_without_security, :execute_batch
     
               def execute_batch(sql, bind_vars = [], *args)
@@ -39,14 +31,6 @@ module NewRelic::Security
                 event = execute_batch2_on_enter(sql) { retval = execute_batch2_without_security(sql, &block) }
                 execute_batch2_on_exit(event) { return retval }
               end
-
-              alias_method :prepare_without_security, :prepare
-    
-              def prepare(sql)
-                retval = nil
-                event = prepare_on_enter(sql) { retval = prepare_without_security(sql) }
-                prepare_on_exit(event, retval, sql) { return retval }
-              end
               
             end
           end
@@ -59,6 +43,14 @@ module NewRelic::Security
           def self.instrument!
             ::SQLite3::Statement.class_eval do
               include NewRelic::Security::Instrumentation::SQLite3::Statement
+
+              alias_method :initialize_without_security, :initialize
+    
+              def initialize(db, sql)
+                retval = nil
+                event = initialize_on_enter(db, sql) { retval = initialize_without_security(db, sql) }
+                initialize_on_exit(event, retval, sql) { return retval }
+              end
 
               alias_method :bind_params_without_security, :bind_params
 

@@ -10,7 +10,7 @@ module NewRelic::Security
   
             def call(method, url, headers = nil, body = nil)
               retval = nil
-              event = call_on_enter(method, url, headers = nil, body = nil) { retval = call_without_security(method, url, headers, body) }
+              event = call_on_enter(method, url, headers, body) { retval = call_without_security(method, url, headers, body) }
               call_on_exit(event) { return retval }
             end
           end
