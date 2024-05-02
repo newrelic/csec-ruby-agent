@@ -7,7 +7,7 @@ require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 
 ENV['NR_CSEC_LOG_LEVEL'] = 'INFO'
-# ENV['NR_CSEC_INSTRUMENTATION_METHOD'] = 'prepend'
+ENV['NR_CSEC_INSTRUMENTATION_METHOD'] = 'prepend'
 
 $: << File.expand_path('../../lib', __FILE__)
 $: << File.expand_path('../../test', __FILE__)
