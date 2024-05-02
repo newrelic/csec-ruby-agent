@@ -43,6 +43,7 @@ module NewRelic::Security
           find_deserialisation(event, stk) if case_type != REFLECTED_XSS && NewRelic::Security::Agent.config[:'security.detection.deserialization.enabled']
           find_rci(event, stk) if case_type != REFLECTED_XSS && NewRelic::Security::Agent.config[:'security.detection.rci.enabled']
           event.stacktrace = stk[0..user_frame_index].map(&:to_s)
+          route = nil
           if case_type == REFLECTED_XSS
             event.httpResponse[:contentType] = keyword_args[:response_header]
             route = NewRelic::Security::Agent::Control::HTTPContext.get_context.route
@@ -52,7 +53,7 @@ module NewRelic::Security
           end
           # In rails 5 method name keeps chaning for same api call (ex: _app_views_sqli_sqlinjectionattackcase_html_erb__1999281606898621405_2624809100).
           # Hence, considering only frame absolute_path & lineno for apiId calculation.
-          event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method])}"
+          event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route)}"
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
           if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
             NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
@@ -78,7 +79,8 @@ module NewRelic::Security
           return -1
         end
 
-        def calculate_api_id(stk, method)
+        def calculate_api_id(stk, method, route)
+          stk << route if route
           ::Digest::SHA256.hexdigest("#{stk.join(PIPE)}|#{method}").to_s
         rescue Exception => e
           NewRelic::Security::Agent.logger.error "Exception in calculate_api_id : #{e} #{e.backtrace}"
