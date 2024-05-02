@@ -1,5 +1,4 @@
 require 'mongo'
-require 'docker'
 require 'json'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/mongo/instrumentation'
@@ -11,37 +10,15 @@ module NewRelic::Security
                 @@before_all_flag = false
     
                 def setup
+                    $event_list.clear()
                     unless @@before_all_flag
-                        before_all
+                        NewRelic::Security::Test::DatabaseHelper.create_mongodb_container
                         @@before_all_flag = true
                     end
                 end
 
-                def before_all
-                    # server setup
-                    mongo_config = {
-                        'Image' => 'mongo:latest',
-                        'name' => 'mongo_test',
-                        'HostConfig' => {
-                        'PortBindings' => {
-                            '27017/tcp' => [{ 'HostPort' => '27018' }]
-                        }
-                        }
-                    }
-                    image = Docker::Image.create('fromImage' => 'mongo:latest')
-                    image.refresh!
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create(mongo_config)
-                    container.start
-                    sleep 5
-                    $event_list.clear()
-                end
-
                 def test_insert_one_update_one_delete_one_find
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -144,7 +121,7 @@ module NewRelic::Security
                 end
                 
                 def test_insert_many_update_many_delete_many
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -252,7 +229,7 @@ module NewRelic::Security
                 end
 
                 def test_insert_one_QueryCache_enabled
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -284,7 +261,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_update_one
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -326,7 +303,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_delete_one
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -367,7 +344,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_one_and_delete
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -401,7 +378,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_update_many
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -436,7 +413,7 @@ module NewRelic::Security
                 end
 
                 def test_find_delete_many
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -479,7 +456,7 @@ module NewRelic::Security
                 end
 
                 def test_replace_one
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -517,7 +494,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_replace_one
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -555,7 +532,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_one_and_replace
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -593,7 +570,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_one_and_update
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -632,11 +609,7 @@ module NewRelic::Security
                 end 
 
                 Minitest.after_run do
-                    # remove server
-                    begin
-                       Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
+                    NewRelic::Security::Test::DatabaseHelper.remove_mysql_container
                 end
 
             end

@@ -1,6 +1,5 @@
 require 'rails'
 require 'pg'
-require 'docker'
 require 'active_record'
 require "active_record/connection_adapters/postgresql_adapter"
 require_relative '../../../../test_helper'
@@ -17,37 +16,13 @@ module NewRelic::Security
     
                 def setup
                     unless @@before_all_flag
-                        before_all
+                        NewRelic::Security::Test::DatabaseHelper.create_postgresql_container
                         @@before_all_flag = true
                     end
                 end
 
-                def before_all
-                    # server setup
-                    pg_config = {
-                        'Image' => 'postgres:latest',
-                        'name' => 'pg_test',
-                        'Env' => ['POSTGRES_HOST_AUTH_METHOD=trust'],
-                        'HostConfig' => {
-                            'PortBindings' => {
-                            '5432/tcp' => [{ 'HostPort' => '5433' }]
-                            }
-                        }
-                    }
-                    image = Docker::Image.create('fromImage' => 'postgres:latest')
-                    image.refresh!
-                    begin
-                        Docker::Container.get('pg_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create(pg_config)
-                    container.start
-                    sleep 5
-                    $event_list.clear()
-                end
-
                 def test_exec_query_exec_update_exec_delete
-                    ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
+                    ActiveRecord::Base.establish_connection adapter: 'postgresql', database: POSTGRESQL_DATABASE, :port => POSTGRESQL_PORT, :host => POSTGRESQL_HOST, :user => POSTGRESQL_USER
                     load  __dir__ + '/db/schema.rb'
                     NewUser.delete_all
                     $event_list.clear()
@@ -93,7 +68,6 @@ module NewRelic::Security
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, POSTGRES)
                     expected_sql_list = args1[0][:sql].split(" ")
-                    puts "$event_list : #{$event_list.inspect}"
                     assert_equal 3, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     sql_fetch_list1 = $event_list[0].parameters[0][:sql].split(" ")
                     assert_equal expected_event1.caseType, $event_list[0].caseType
@@ -168,7 +142,7 @@ module NewRelic::Security
                 end
 
                 def test_execute
-                    ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'postgres', :port => 5433, :host => 'localhost', :user => 'postgres'
+                    ActiveRecord::Base.establish_connection adapter: 'postgresql', database: POSTGRESQL_DATABASE, :port => POSTGRESQL_PORT, :host => POSTGRESQL_HOST, :user => POSTGRESQL_USER
                     load  __dir__ + '/db/schema.rb'
                     NewUser.delete_all
 
@@ -227,11 +201,7 @@ module NewRelic::Security
                 end
 
                 Minitest.after_run do
-                    # remove server
-                    begin
-                       Docker::Container.get('pg_test').remove(force: true)
-                    rescue
-                    end
+                    NewRelic::Security::Test::DatabaseHelper.create_postgresql_container
                 end
                 
             end

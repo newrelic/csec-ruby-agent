@@ -1,5 +1,4 @@
 require 'mysql2'
-require 'docker'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/mysql2/instrumentation'
 
@@ -10,39 +9,16 @@ module NewRelic::Security
                 @@before_all_flag = false
     
                 def setup
+                    $event_list.clear()
                     NewRelic::Security::Agent::Control::HTTPContext.set_context({})
                     unless @@before_all_flag
-                        before_all
+                        NewRelic::Security::Test::DatabaseHelper.create_mysql_container
                         @@before_all_flag = true
                     end
                 end
 
-                def before_all
-                    # server setup
-                    mysql_config = {
-                        'Image' => 'mysql:latest',
-                        'name' => 'mysql_test',
-                        'Env' => ['MYSQL_ALLOW_EMPTY_PASSWORD=yes', 'MYSQL_USER=test', 'MYSQL_DATABASE=testdb'],
-                        'HostConfig' => {
-                            'PortBindings' => {
-                            '3306/tcp' => [{ 'HostPort' => '3307' }]
-                            }
-                        }
-                    }
-                    image = Docker::Image.create('fromImage' => 'mysql:latest')
-                    image.refresh!
-                    begin
-                        Docker::Container.get('mysql_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create(mysql_config)
-                    container.start
-                    sleep 15
-                    $event_list.clear()
-                end
-
                 def test_query
-                    client = Mysql2::Client.new(:host => "127.0.0.1", :username => "root", :password => '', :database => 'testdb', :port => 3307)
+                    client = Mysql2::Client.new(:host => MYSQL_HOST, :username => MYSQL_USERNAME, :password => MYSQL_PASSWORD, :database => MYSQL_DATABASE, :port => MYSQL_PORT)
                     client.query("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
 
@@ -123,7 +99,7 @@ module NewRelic::Security
                 end
 
                 def test_execute
-                    client = Mysql2::Client.new(:host => "127.0.0.1", :username => "root", :password => '', :database => 'testdb', :port => 3307)
+                    client = Mysql2::Client.new(:host => MYSQL_HOST, :username => MYSQL_USERNAME, :password => MYSQL_PASSWORD, :database => MYSQL_DATABASE, :port => MYSQL_PORT)
                     client.query("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
 
@@ -208,15 +184,12 @@ module NewRelic::Security
                 end
 
                 def teardown
+                    $event_list.clear()
                     NewRelic::Security::Agent::Control::HTTPContext.reset_context
                 end
 
                 Minitest.after_run do
-                    # remove server
-                    begin
-                       Docker::Container.get('mysql_test').remove(force: true)
-                    rescue
-                    end
+                    NewRelic::Security::Test::DatabaseHelper.remove_mysql_container
                 end
 
             end

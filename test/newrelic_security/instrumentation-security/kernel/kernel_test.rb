@@ -5,7 +5,7 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestKernel < Minitest::Test
-                TEMP_FILE = $test_path + "/resources/tmp.txt"
+                TEMP_FILE = TEST_PATH + "/resources/tmp.txt"
                 # def test_require
                 #    #out = require 'temp_module'
                 # end

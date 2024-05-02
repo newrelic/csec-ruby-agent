@@ -6,7 +6,7 @@ module NewRelic::Security
   module Test
     module Instrumentation
       class TestPTY < Minitest::Test
-        TEMP_FILE = $test_path + "/resources/tmp.txt"
+        TEMP_FILE = TEST_PATH + "/resources/tmp.txt"
 
         def setup
           $event_list.clear()
@@ -28,7 +28,7 @@ module NewRelic::Security
           PTY::getpty("#{cmd}") do |reader, writer, pid|
             while true
               begin
-                puts reader.readline
+                reader.readline
               rescue
                 break
               end

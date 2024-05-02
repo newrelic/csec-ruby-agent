@@ -5,9 +5,9 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestIO < Minitest::Test
-                FILE_NAME = $test_path + "/resources/sample_file.txt"
-                FILE2_NAME = $test_path + "/resources/sample_file2.txt"
-                TEMP_FILE = $test_path + "/resources/tmp.txt"
+                FILE_NAME = TEST_PATH + "/resources/sample_file.txt"
+                FILE2_NAME = TEST_PATH + "/resources/sample_file2.txt"
+                TEMP_FILE = TEST_PATH + "/resources/tmp.txt"
 
                 def setup
                     $event_list.clear()

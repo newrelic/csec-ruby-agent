@@ -5,8 +5,8 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestDir < Minitest::Test
-                TMP_DIR = $test_path + "/resources/tmp"
-                TEMP_DIR = $test_path + "/resources/temp"
+                TMP_DIR = TEST_PATH + "/resources/tmp"
+                TEMP_DIR = TEST_PATH + "/resources/temp"
 
                 def test_mkdir_rmdir_file_operation
                     # mkdir test

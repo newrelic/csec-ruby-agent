@@ -6,7 +6,7 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestFile < Minitest::Test
-                TEMP_DIR = $test_path + "/resources/temp"
+                TEMP_DIR = TEST_PATH + "/resources/temp"
                 TEMP_FILE = TEMP_DIR + "/abc.txt"
                 
                 def test_delete
