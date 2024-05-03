@@ -34,6 +34,7 @@ module NewRelic::Security
               fuzz_request.case_type = message_object[:arguments][1]
               NewRelic::Security::Agent.agent.iast_client.pending_request_ids << message_object[:id]
               NewRelic::Security::Agent.agent.iast_client.enqueue(fuzz_request)
+              fuzz_request = nil
             when 12
               NewRelic::Security::Agent.logger.info "Validator asked to reconnect(CC#12), calling reconnect_at_will"
               reconnect_at_will
@@ -89,18 +90,10 @@ module NewRelic::Security
         end
 
         def reconnect_at_will
-          @stop_fuzzing = true
-          if NewRelic::Security::Agent::Utils.is_IAST?
-            while NewRelic::Security::Agent.agent.iast_client.fuzzQ && NewRelic::Security::Agent.agent.iast_client.fuzzQ.size > 0
-              NewRelic::Security::Agent.logger.info "Waiting for fuzzQ to get empty, current size: #{NewRelic::Security::Agent.agent.iast_client.fuzzQ.size}"
-              sleep 0.1
-            end
-          end
+          NewRelic::Security::Agent.agent.iast_client.fuzzQ.clear
+          NewRelic::Security::Agent.agent.iast_client.completed_requests.clear
+          NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear
           NewRelic::Security::Agent.config.disable_security
-          while NewRelic::Security::Agent.agent.event_processor.eventQ && NewRelic::Security::Agent.agent.event_processor.eventQ.size > 0
-            NewRelic::Security::Agent.logger.info "Waiting for eventQ to get empty, current size: #{NewRelic::Security::Agent.agent.event_processor.eventQ.size}"
-            sleep 0.1
-          end
           Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
         end
 
