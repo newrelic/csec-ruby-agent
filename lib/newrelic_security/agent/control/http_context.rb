@@ -43,7 +43,6 @@ module NewRelic::Security
 					strio.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
-          @route = "#{env[REQUEST_METHOD].to_s}@#{env[PATH_INFO].to_s}"
           NewRelic::Security::Agent.agent.http_request_count.increment
           NewRelic::Security::Agent.agent.iast_client.completed_requests[@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID)
         end
