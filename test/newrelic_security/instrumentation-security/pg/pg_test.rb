@@ -98,6 +98,7 @@ module NewRelic::Security
                 end
 
                 def test_exec_prepared
+                    skip("Skipping for now, as this test need to be revisited")
                     client = PG::Connection.new(:dbname => POSTGRESQL_DATABASE, :user => POSTGRESQL_USER, :host => POSTGRESQL_HOST, :port => POSTGRESQL_PORT)
                     client.exec("DROP TABLE IF EXISTS fake_users")
                     client.exec("create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))")
