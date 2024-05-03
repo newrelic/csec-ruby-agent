@@ -4,7 +4,7 @@ module NewRelic::Security
       module Prepend
         include NewRelic::Security::Instrumentation::NetLDAP
 
-        def search(args = {})
+        def search(args = {}, &block)
           retval = nil
           event = search_on_enter(args) { retval = super }
           search_on_exit(event) { return retval }

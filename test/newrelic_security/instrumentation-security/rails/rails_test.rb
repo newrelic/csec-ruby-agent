@@ -111,7 +111,7 @@ module NewRelic::Security
           assert_equal "GET", method
           assert_equal "/myapi", url
           assert_equal "", query_string
-          assert_equal "", body
+          assert_nil body
           assert_equal "127.0.0.1", clientIP
           assert_equal "80", server_port
           assert_equal "www.example.com", server_name
