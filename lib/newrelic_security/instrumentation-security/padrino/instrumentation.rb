@@ -10,7 +10,10 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         NewRelic::Security::Agent.config.update_port = NewRelic::Security::Agent::Utils.app_port(env) unless NewRelic::Security::Agent.config[:listen_port]
         NewRelic::Security::Agent::Utils.get_app_routes(:padrino) if NewRelic::Security::Agent.agent.route_map.empty?
-        NewRelic::Security::Agent::Control::HTTPContext.set_context(env.instance_variable_get(:@env))
+        extracted_env = env.instance_variable_get(:@env)
+        NewRelic::Security::Agent::Control::HTTPContext.set_context(extracted_env)
+        ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
+        ctxt.route = "#{extracted_env[REQUEST_METHOD].to_s}@#{extracted_env[PATH_INFO].to_s}" if ctxt
         NewRelic::Security::Agent::Utils.parse_fuzz_header
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"

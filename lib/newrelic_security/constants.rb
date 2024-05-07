@@ -46,6 +46,8 @@ module NewRelic::Security
   DELETE = 'delete'
   WRITE = 'write'
   BINWRITE = 'binwrite'
+  REQUEST_METHOD = 'REQUEST_METHOD'
+  PATH_INFO = 'PATH_INFO'
   CONTENT_TYPE = 'CONTENT_TYPE'
   REQUEST_URI = 'REQUEST_URI'
   SERVER_PORT = 'SERVER_PORT'

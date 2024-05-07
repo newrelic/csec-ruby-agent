@@ -1,5 +1,4 @@
 require 'mongo'
-require 'docker'
 require 'json'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/mongo/instrumentation'
@@ -8,42 +7,18 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestMongo < Minitest::Test
-                @@case_type = "NOSQL_DB_COMMAND"
-                @@event_category = "MONGO"
                 @@before_all_flag = false
     
                 def setup
+                    $event_list.clear()
                     unless @@before_all_flag
-                        before_all
+                        NewRelic::Security::Test::DatabaseHelper.create_mongodb_container
                         @@before_all_flag = true
                     end
                 end
 
-                def before_all
-                    # server setup
-                    mongo_config = {
-                        'Image' => 'mongo:latest',
-                        'name' => 'mongo_test',
-                        'HostConfig' => {
-                        'PortBindings' => {
-                            '27017/tcp' => [{ 'HostPort' => '27018' }]
-                        }
-                        }
-                    }
-                    image = Docker::Image.create('fromImage' => 'mongo:latest')
-                    image.refresh!
-                    begin
-                        Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
-                    container = Docker::Container.create(mongo_config)
-                    container.start
-                    sleep 5
-                    $event_list.clear()
-                end
-
                 def test_insert_one_update_one_delete_one_find
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -55,9 +30,9 @@ module NewRelic::Security
                     # insert count
                     assert_equal 1, @output.n         
                     args = [{:payload=>{:document=>{"name"=>"abc", "price"=>"5000"}, :opts=>{}}, :payloadType=>:insert}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     # event count and event data verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 1, mongo_events
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -74,11 +49,11 @@ module NewRelic::Security
                     args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set"=>{"name"=>"pqr"}}, :options=>{}}, :payloadType=>:update}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args3 = [{:payload=>{:filter=>{"name"=>"abc"}, :spec=>{"$set"=>{"name"=>"pqr"}}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
+                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args3, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 3, mongo_events
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -101,9 +76,9 @@ module NewRelic::Security
                     assert_equal "pqr", @output["name"]
                     assert_equal "5000", @output["price"]
                     args = [{:payload=>{:filter=>{"name"=>"pqr"}, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 1, mongo_events
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -117,11 +92,11 @@ module NewRelic::Security
                     args = [{:payload=>{:filter=>{"name"=>"pqr"}, :options=>{}}, :payloadType=>:delete}]
                     args2 = [{:payload=>{:filter=>{"name"=>"pqr"}, :options=>{}}, :payloadType=>:find}]
                     args3 = [{:payload=>{:filter=>{"name"=>"pqr"}, :opts=>{}}, :payloadType=>:delete}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
+                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args3, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 3, mongo_events
                     # delete event
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -146,7 +121,7 @@ module NewRelic::Security
                 end
                 
                 def test_insert_many_update_many_delete_many
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -160,9 +135,9 @@ module NewRelic::Security
                     assert_equal 2, @output     
                     # event verify    
                     args = [{:payload=>{:documents=>[{:_id=>1, :name=>"abc", :price=>"5000"}, {:_id=>2, :name=>"pqr", :price=>"1000"}], :options=>{}}, :payloadType=>:insert}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 1, mongo_events
                     # event data verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -177,11 +152,11 @@ module NewRelic::Security
                     args = [{:payload=>{:filter=>{}, :update=>{"$set"=>{:price=>"2000"}}, :options=>{}}, :payloadType=>:update}]
                     args2 = [{:payload=>{:filter=>{}, :options=>{}}, :payloadType=>:find}]
                     args3 = [{:payload=>{:filter=>{}, :spec=>{"$set"=>{:price=>"2000"}}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
+                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args3, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 3, mongo_events
                     # update_many event verify
                     assert_equal expected_event1.caseType, $event_list[0].caseType
@@ -208,9 +183,9 @@ module NewRelic::Security
                     assert_equal [2, "pqr", "2000"], [@output[3], @output[4], @output[5]]
                     # event verify
                     args = [{:payload=>{:filter=>nil, :options=>{}}, :payloadType=>:find}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 1, mongo_events
                     # event data verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -224,11 +199,11 @@ module NewRelic::Security
                     args = [{:payload=>{:filter=>{:price=>"2000"}, :options=>{}}, :payloadType=>:delete}]
                     args2 = [{:payload=>{:filter=>{:price=>"2000"}, :options=>{}}, :payloadType=>:find}]
                     args3 = [{:payload=>{:filter=>{"price"=>"2000"}, :opts=>{}}, :payloadType=>:delete}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
-                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args3, @@event_category)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
+                    expected_event3 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args3, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 3, mongo_events
                     # delete_many event verify
                     assert_equal expected_event1.caseType, $event_list[0].caseType
@@ -254,7 +229,7 @@ module NewRelic::Security
                 end
 
                 def test_insert_one_QueryCache_enabled
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -268,9 +243,9 @@ module NewRelic::Security
                     assert_equal 1, @output.n        
                     #event verify    
                     args = [{:payload=>{:document=>{"name"=>"abc", "price"=>"5000"}, :opts=>{}}, :payloadType=>:insert}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     # event count and output data verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 1, mongo_events
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
@@ -286,7 +261,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_update_one
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -305,10 +280,10 @@ module NewRelic::Security
                     # event verify     
                     args = [{:payload=>{:filter=>{:name=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :spec=>{"$set"=>{"name"=>"pqr"}}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -328,7 +303,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_delete_one
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -344,10 +319,10 @@ module NewRelic::Security
                     # event verify     
                     args = [{:payload=>{:filter=>{:name=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :opts=>{}}, :payloadType=>:delete}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # delete event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -369,7 +344,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_one_and_delete
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -385,10 +360,10 @@ module NewRelic::Security
                     # event verify     
                     args = [{:payload=>{:filter=>{:name=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :opts=>{}}, :payloadType=>:delete}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # delete event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -403,7 +378,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_update_many
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -420,10 +395,10 @@ module NewRelic::Security
                     assert_equal 2, @output.modified_count  
                     args = [{:payload=>{:filter=>{:price=>"1000"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"price"=>"1000"}, :spec=>{"$set"=>{:price=>"4000"}}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # update_many event verify
                     assert_equal expected_event1.caseType, $event_list[0].caseType
@@ -438,7 +413,7 @@ module NewRelic::Security
                 end
 
                 def test_find_delete_many
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -456,10 +431,10 @@ module NewRelic::Security
                     # event verify
                     args = [{:payload=>{:filter=>{:price=>"1000"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"price"=>"1000"}, :opts=>{}}, :payloadType=>:delete}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # update_many event verify
                     assert_equal expected_event1.caseType, $event_list[0].caseType
@@ -481,7 +456,7 @@ module NewRelic::Security
                 end
 
                 def test_replace_one
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -497,10 +472,10 @@ module NewRelic::Security
                     # event verify     
                     args = [{:payload=>{:filter=>{:name=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :replacement=>{:name=>"pqr"}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -519,7 +494,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_replace_one
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -535,10 +510,10 @@ module NewRelic::Security
                     # event verify     
                     args = [{:payload=>{:filter=>{:name=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :replacement=>{:name=>"pqr"}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -557,7 +532,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_one_and_replace
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -573,10 +548,10 @@ module NewRelic::Security
                     # event verify     
                     args = [{:payload=>{:filter=>{:name=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :document=>{:name=>"pqr"}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -595,7 +570,7 @@ module NewRelic::Security
                 end 
 
                 def test_find_one_and_update
-                    client = Mongo::Client.new(['localhost:27018'], :database => 'testdb')
+                    client = Mongo::Client.new([MONGODB_URL], :database => MONGODB_DATABASE)
                     client[:cars].find.each do |document|
                         client[:cars].delete_one( document )
                     end
@@ -611,10 +586,10 @@ module NewRelic::Security
                     # event verify     
                     args = [{:payload=>{:filter=>{:name=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :document=>{"$set"=>{:name=>"pqr"}}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(@@case_type, args2, @@event_category)
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     # event count verify
-                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(@@case_type)
+                    mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
                     assert_equal 2, mongo_events
                     # update event verify
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -634,11 +609,7 @@ module NewRelic::Security
                 end 
 
                 Minitest.after_run do
-                    # remove server
-                    begin
-                       Docker::Container.get('mongo_test').remove(force: true)
-                    rescue
-                    end
+                    NewRelic::Security::Test::DatabaseHelper.remove_mysql_container
                 end
 
             end

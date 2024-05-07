@@ -76,7 +76,7 @@ module NewRelic::Security
       end
 
       def start_iast_client
-        @iast_client&.iast_dequeue_thread&.kill
+        @iast_client&.iast_dequeue_threads&.each { |t| t.kill if t }
         @iast_client&.iast_data_transfer_request_processor_thread&.kill
         @iast_client = nil
         @iast_client = NewRelic::Security::Agent::Control::IASTClient.new

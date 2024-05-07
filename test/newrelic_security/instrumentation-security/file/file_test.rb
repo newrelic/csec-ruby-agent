@@ -6,36 +6,33 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestFile < Minitest::Test
-                @@temp_dir = $test_path + "/resources/temp"
-                @@temp_file = @@temp_dir + "/abc.txt"
-                @@case_type = "FILE_INTEGRITY"
-                @@args = [@@temp_file]
-                @@event_category = nil
+                TEMP_DIR = TEST_PATH + "/resources/temp"
+                TEMP_FILE = TEMP_DIR + "/abc.txt"
                 
                 def test_delete
-                    Dir.mkdir(@@temp_dir) unless Dir.exist?(@@temp_dir)
-                    File.new(@@temp_file, "w") unless File.exist?(@@temp_file)
+                    Dir.mkdir(TEMP_DIR) unless Dir.exist?(TEMP_DIR)
+                    File.new(TEMP_FILE, "w") unless File.exist?(TEMP_FILE)
                     $event_list.clear()
-                    out = File.delete(@@temp_file)
+                    out = File.delete(TEMP_FILE)
                     assert_equal 1, out
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, @@args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(FILE_INTEGRITY, [TEMP_FILE], DELETE)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(FILE_INTEGRITY)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                 end
 
                 def test_unlink
-                    Dir.mkdir(@@temp_dir) unless Dir.exist?(@@temp_dir)
-                    File.new(@@temp_file, "w") unless File.exist?(@@temp_file)
+                    Dir.mkdir(TEMP_DIR) unless Dir.exist?(TEMP_DIR)
+                    File.new(TEMP_FILE, "w") unless File.exist?(TEMP_FILE)
                     $event_list.clear()
-                    out = File.unlink(@@temp_file)
+                    out = File.unlink(TEMP_FILE)
                     assert_equal 1, out
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, @@args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(FILE_INTEGRITY, [TEMP_FILE], DELETE)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(FILE_INTEGRITY)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                 end
             end
         end

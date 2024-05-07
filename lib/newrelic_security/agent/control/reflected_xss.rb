@@ -45,7 +45,7 @@ module NewRelic::Security
 
         def check_xss(http_req, retval)
           # TODO: Check if enableHTTPRequestPrinting is required.
-          return unless http_req
+          return if http_req.nil? || retval.empty?
           if retval[1].key?(Content_Type) && (retval[1][Content_Type].start_with?(*UNSUPPORTED_MEDIA_TYPES) || retval[1][Content_Type].start_with?(*UNSUPPORTED_CONTENT_TYPES))
             return
           end
