@@ -82,6 +82,7 @@ module NewRelic::Security
         end
 
         def test_call
+          NewRelic::Security::Agent::Utils.get_app_routes(:rails)
           @api_instance = MyApiTest.new('get')
           @api_instance.get_test
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context

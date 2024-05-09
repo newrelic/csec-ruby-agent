@@ -24,6 +24,8 @@ end
 gem 'loofah', '~> 2.19.0'
 gem 'sinatra'
 gem 'padrino'
+gem 'grape'
+gem 'roda'
 gem 'pg'
 gem 'mongo'
 gem 'mysql2'

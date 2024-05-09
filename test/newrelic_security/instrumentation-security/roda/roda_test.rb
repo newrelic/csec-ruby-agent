@@ -1,45 +1,45 @@
-require 'padrino'
+require 'roda'
 require 'rack/test'
 
 require_relative '../../../test_helper'
-require 'newrelic_security/instrumentation-security/padrino/instrumentation'
+require 'newrelic_security/instrumentation-security/roda/instrumentation'
 
-class PadrinoTestApp < Padrino::Application
-  register Padrino::Rendering
-  register Padrino::Routing
-  register Padrino::Helpers
+class RodaTestApp < Roda
 
-  get '/user/login' do
-    'please log in'
-  end
+  route do |r|
+    r.get '/user/login' do
+      'please log in'
+    end
+  
+    r.get 'user', 'login', Integer do |id|
+      "Welcome #{id}"
+    end
+  
+    r.get 'user', 'profile' do
+      "Hello #{r['q']}"
+    end
+  
+    r.post 'user', 'new' do
+      data = request.body.read
+      "User created: #{data}"
+    end
+  
+    # get(/\/regex.*/) do
+    #   'with extra regexes please!'
+    # end
 
-  get '/user/login/:id' do |id|
-    "Welcome #{id}"
-  end
-
-  get '/user/profile' do
-    "Hello #{params[:q]}"
-  end
-
-  post '/user/new' do
-    data = request.body.read
-    "User created: #{data}"
-  end
-
-  get(/\/regex.*/) do
-    'with extra regexes please!'
   end
 end
 
 module NewRelic::Security
   module Test
     module Instrumentation
-      class TestPadrino < Minitest::Test
+      class TestRoda < Minitest::Test
         include Rack::Test::Methods
         # include Mocha::API
 
         def app
-          PadrinoTestApp
+          RodaTestApp
         end
         
         def test_get

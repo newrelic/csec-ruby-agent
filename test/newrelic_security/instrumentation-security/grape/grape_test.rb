@@ -1,45 +1,46 @@
-require 'padrino'
+require 'grape'
 require 'rack/test'
 
 require_relative '../../../test_helper'
-require 'newrelic_security/instrumentation-security/padrino/instrumentation'
+require 'newrelic_security/instrumentation-security/grape/instrumentation'
 
-class PadrinoTestApp < Padrino::Application
-  register Padrino::Rendering
-  register Padrino::Routing
-  register Padrino::Helpers
+class GrapeTestApp < Grape::API
+  namespace :user do
+    resource :login do
+      get do
+        'please log in'
+      end
 
-  get '/user/login' do
-    'please log in'
-  end
+      route_param :id do
+        get do
+          "Welcome #{params[:id]}"
+        end
+      end
+    end
 
-  get '/user/login/:id' do |id|
-    "Welcome #{id}"
-  end
+    resource :profile do
+      get do
+        "Hello #{params[:q]}"
+      end
+    end
 
-  get '/user/profile' do
-    "Hello #{params[:q]}"
-  end
-
-  post '/user/new' do
-    data = request.body.read
-    "User created: #{data}"
-  end
-
-  get(/\/regex.*/) do
-    'with extra regexes please!'
+    resource :new do
+      post do
+        data = request.body.read
+        "User created: #{data}"
+      end
+    end
   end
 end
 
 module NewRelic::Security
   module Test
     module Instrumentation
-      class TestPadrino < Minitest::Test
+      class TestGrape < Minitest::Test
         include Rack::Test::Methods
-        # include Mocha::API
 
         def app
-          PadrinoTestApp
+          GrapeTestApp
         end
         
         def test_get
@@ -66,7 +67,7 @@ module NewRelic::Security
 
           assert_equal 200, last_response.status
           assert_equal 'Welcome 1', last_response.body
-          assert_equal  "GET@/user/login/1", http_context.route
+          assert_equal  "GET@/user/login/:id", http_context.route
           assert_equal Integer, http_context.time_stamp.class
           assert_equal "GET", http_context.method
           assert_equal "/user/login/1", http_context.req["PATH_INFO"]
@@ -106,7 +107,7 @@ module NewRelic::Security
 
           assert_equal 404, last_response.status
           assert last_response.not_found?
-          assert_equal  "GET@/user/404", http_context.route
+          assert_nil http_context.route
           assert_equal Integer, http_context.time_stamp.class
           assert_equal "GET", http_context.method
           assert_equal "/user/404", http_context.req["PATH_INFO"]
@@ -124,7 +125,7 @@ module NewRelic::Security
           post('/user/new', 'Prateek')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
 
-          assert_equal 200, last_response.status
+          assert_equal 201, last_response.status
           assert_equal 'User created: Prateek', last_response.body
           assert_equal  "POST@/user/new", http_context.route
           assert_equal Integer, http_context.time_stamp.class
