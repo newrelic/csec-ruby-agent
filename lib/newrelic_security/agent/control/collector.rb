@@ -58,7 +58,7 @@ module NewRelic::Security
           event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route)}"
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
           if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
-            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
+            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id if NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId]
           end
           event
         rescue Exception => exception
