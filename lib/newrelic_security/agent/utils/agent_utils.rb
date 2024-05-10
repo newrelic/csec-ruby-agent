@@ -127,7 +127,7 @@ module NewRelic::Security
         elsif framework == :padrino
           ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
             z.instance_variable_get(:@routes).each { |route|
-              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.instance_variable_get(:@path)}"
+              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.matcher.instance_variable_get(:@path)}"
             }
           }
         elsif framework == :roda
