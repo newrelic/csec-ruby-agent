@@ -24,7 +24,6 @@ require 'helpers/agent_helper'
 require 'helpers/config_helper'
 require 'helpers/event_helper'
 require 'helpers/init_helper'
-require 'helpers/instrument_helper'
 require 'helpers/sample_server'
 require 'helpers/database_helper'
 
