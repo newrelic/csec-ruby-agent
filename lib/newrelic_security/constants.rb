@@ -38,6 +38,7 @@ module NewRelic::Security
   WORKER = 'worker'
   HYPHEN = '-'
   COMMA = ','
+  AT_THE_RATE = '@'
   SPAWN_METHOD = 'spawn_method'
   DIRECT = 'direct'
   LISTEN_PORT = 'listen_port'
