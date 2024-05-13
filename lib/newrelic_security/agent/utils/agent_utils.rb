@@ -98,12 +98,6 @@ module NewRelic::Security
         NewRelic::Security::Agent.agent.exit_event_stats.error_count.increment
       end
 
-      def create_fuzz_fail_event(fuzz_request_id)
-        fuzz_fail_event = NewRelic::Security::Agent::Control::FuzzFailEvent.new
-        fuzz_fail_event.fuzzHeader = fuzz_request_id
-        NewRelic::Security::Agent.agent.event_processor.send_fuzz_fail_event(fuzz_fail_event)
-      end
-
       def get_app_routes(framework)
         if framework == :rails
           ::Rails.application.routes.routes.each do |route|
