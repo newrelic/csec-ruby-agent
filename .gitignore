@@ -47,7 +47,7 @@ build-iPhoneSimulator/
 # for a library or gem, you might want to ignore these files since the code is
 # intended to run in multiple environments; otherwise, check them in:
 # Gemfile.lock
-# .ruby-version
+.ruby-version
 # .ruby-gemset
 
 # unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
@@ -60,8 +60,13 @@ build-iPhoneSimulator/
 # only the gemspec gets checked in, ignore machine/developer specific lock files
 Gemfile.lock
 
+# bundle the test gems on each machine
+Gemfile_test.lock
+
 # don't commit the home dir
 nr-security-home/
 
 # temp files
 test/resources/tmp.txt
+**/test.db
+**/log/

@@ -25,9 +25,9 @@ module NewRelic::Security
               
               alias_method :read_without_security, :read
 
-              def read(*var)
+              def read(*var, **kwargs)
                 retval = nil
-                event = read_on_enter(*var) { retval = read_without_security(*var) }
+                event = read_on_enter(*var) { retval = read_without_security(*var, **kwargs) }
                 read_on_exit(event, retval) { return retval }
               end
               
@@ -41,18 +41,26 @@ module NewRelic::Security
 
               alias_method :readlines_without_security, :readlines
 
-              def readlines(*var)
+              def readlines(*var, **kwargs)
                 retval = nil
-                event = readlines_on_enter(*var) { retval = readlines_without_security(*var) }
+                event = readlines_on_enter(*var) { retval = readlines_without_security(*var, **kwargs) }
                 readlines_on_exit(event, retval) { return retval }
               end
 
               alias_method :new_without_security, :new
 
-              def new(*var)
-                retval = nil
-                event = new_on_enter(*var) { retval = new_without_security(*var) }
-                new_on_exit(event) { return retval }
+              if RUBY_VERSION < '2.7.0'
+                def new(*var)
+                  retval = nil
+                  event = new_on_enter(*var) { retval = new_without_security(*var) }
+                  new_on_exit(event) { return retval }
+                end
+              else
+                def new(*var, **kwargs)
+                  retval = nil
+                  event = new_on_enter(*var) { retval = new_without_security(*var, **kwargs) }
+                  new_on_exit(event) { return retval }
+                end
               end
 
               alias_method :sysopen_without_security, :sysopen

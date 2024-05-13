@@ -6,30 +6,17 @@ module NewRelic::Security
         def initialize
           @cache = Hash.new
           @cache[:log_level] = ENV['NR_CSEC_LOG_LEVEL']
+          @cache[:log_file_path] = "log"
           @cache[:framework] = ""
           @cache[:groupName] = ""
           @cache[:uuid] = ""
           @cache[:listen_port] = ""
           @cache[:agent_run_id] = ""
           @cache[:linking_metadata] = {}
-          @cache[:app_root] = File.expand_path('../../lib', __FILE__)
+          @cache[:app_root] = File.expand_path('../../resources/temp', __FILE__)
           @cache[:policy] = Hash.new
-        end
-  
-        def [](key)
-          @cache[key]
-        end
-  
-        def has_key?(key)
-          @cache.has_key?(key)
-        end
-  
-        def keys
-          @cache.keys
-        end
-
-        def cache
-          @cache
+          @cache[:'security.detection.rxss.enabled'] = true
+          @cache[:'security.request.body_limit'] = 300
         end
       end
     end

@@ -1,5 +1,6 @@
 require 'securerandom'
 require 'socket'
+require 'openssl'
 require 'newrelic_security/agent/configuration/default_source'
 require 'newrelic_security/agent/configuration/environment_source'
 require 'newrelic_security/agent/configuration/manual_source'
@@ -12,18 +13,18 @@ module NewRelic::Security
       class Manager
         def initialize
           @cache = Hash.new
-          # @cache[:linking_metadata] = ::NewRelic::Agent.linking_metadata
           @cache[:agent_run_id] = ::NewRelic::Agent.agent.service.agent_id
           @cache[:linking_metadata] = ::NewRelic::Agent.linking_metadata
           @cache[:app_name] = ::NewRelic::Agent.config[:app_name][0]
           @cache[:entity_guid] = ::NewRelic::Agent.config[:entity_guid]
           @cache[:license_key] = ::NewRelic::Agent.config[:license_key]
           @cache[:policy] = Hash.new
-          @cache[:uuid] = generate_uuid
           @cache[:account_id] = nil
           @cache[:application_id] = nil
           @cache[:primary_application_id] = nil
+          @cache[:log_file_path] = ::File.absolute_path(::NewRelic::Agent.config[:log_file_path])
           @cache[:log_level] = ::NewRelic::Agent.config[:log_level]
+          @cache[:high_security] = ::NewRelic::Agent.config[:high_security]
           @cache[:'agent.enabled'] = ::NewRelic::Agent.config[:'security.agent.enabled']
           @cache[:enabled] = ::NewRelic::Agent.config[:'security.enabled']
           @cache[:mode] = ::NewRelic::Agent.config[:'security.mode']
@@ -32,16 +33,20 @@ module NewRelic::Security
           @cache[:'security.detection.rxss.enabled'] = ::NewRelic::Agent.config[:'security.detection.rxss.enabled']
           @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
           @cache[:framework] = detect_framework
-          @cache[:'security.applicationinfo.port'] = ::NewRelic::Agent.config[:'security.applicationinfo.port']
+          @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
+          @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
-          @cache[:json_version] = :'1.0.1'
+          @cache[:jruby_objectspace_enabled] = false
+          @cache[:json_version] = :'1.2.0'
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new
           @manual_source = NewRelic::Security::Agent::Configuration::ManualSource.new
           @yaml_source = NewRelic::Security::Agent::Configuration::YamlSource.new
           @default_source = NewRelic::Security::Agent::Configuration::DefaultSource.new
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.error "Exception in Configuration::Manager.initialize : #{exception.inspect} #{exception.backtrace}"
         end
   
         def [](key)
@@ -66,6 +71,10 @@ module NewRelic::Security
           # TODO: add validator received config also after the new, else collector#40 throws error
         end
 
+        def save_uuid
+          @cache[:uuid] = generate_uuid
+        end
+
         def update_server_config
           @cache[:agent_run_id] = ::NewRelic::Agent.agent.service.agent_id
           @cache[:linking_metadata] = ::NewRelic::Agent.linking_metadata
@@ -73,7 +82,10 @@ module NewRelic::Security
           @cache[:account_id] = server_source[:account_id]
           @cache[:application_id] = server_source[:application_id]
           @cache[:entity_guid] = server_source[:entity_guid]
-          @cache[:primary_application_id] = server_source[:primary_application_id]           
+          @cache[:primary_application_id] = server_source[:primary_application_id]
+          @cache[:extraction_key] = generate_key(@cache[:entity_guid])
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.error "Exception in update_server_config : #{exception.inspect} #{exception.backtrace}"
         end
 
         def update_port=(listen_port)
@@ -84,19 +96,31 @@ module NewRelic::Security
           @cache[:app_server] = app_server
         end
 
+        def jruby_objectspace_enabled=(jruby_objectspace_enabled)
+          @cache[:jruby_objectspace_enabled] = jruby_objectspace_enabled
+        end
+
         def disable_security
           @cache[:enabled] = false
+          NewRelic::Security::Agent.logger.info "Security Agent is now INACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.init_logger.info "Security Agent is now INACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
         end
 
         def enable_security
           @cache[:enabled] = true
+          NewRelic::Security::Agent.logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.init_logger.info "Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}\n"
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message("Security Agent is now ACTIVE for #{NewRelic::Security::Agent.config[:uuid]}", "INFO", caller_locations[0].to_s, Thread.current.name, nil)
         end
 
         private
 
         def detect_framework
           return :rails if defined?(::Rails)
+          return :padrino if defined?(::Padrino)
           return :sinatra if defined?(::Sinatra)
+          return :roda if defined?(::Roda)
+          return :grape if defined?(::Grape)
         end
 
         def generate_uuid
@@ -123,10 +147,11 @@ module NewRelic::Security
 
         def fetch_or_create_uuid
           process_identity = ::Gem.win_platform? ? ::Process.pid : ::Process.getpgrp
-          tmp_dir = ::File.join(DEFAULT_SEC_HOME_PATH, TMP_DIR)
+          tmp_dir = ::File.join(@cache[:log_file_path], SEC_HOME_PATH, TMP_DIR)
           if ::File.directory?(tmp_dir)
-            uuid_file_name = ::File.join(DEFAULT_SEC_HOME_PATH, TMP_DIR, process_identity.to_s)
+            uuid_file_name = ::File.join(@cache[:log_file_path], SEC_HOME_PATH, TMP_DIR, process_identity.to_s)
           else
+            ::FileUtils.mkdir_p(TMP_DIR) unless ::File.directory?(TMP_DIR)
             uuid_file_name = ::File.join(TMP_DIR, process_identity.to_s)
           end
           if ::File.exist?(uuid_file_name)
@@ -140,6 +165,10 @@ module NewRelic::Security
           ::File.read(uuid_file_name)
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in uuid file creation : #{exception.inspect} #{exception.backtrace}"
+        end
+
+        def generate_key(entity_guid)
+          ::OpenSSL::PKCS5.pbkdf2_hmac(entity_guid, entity_guid[0..15], 1024, 32, SHA1)
         end
       end
     end

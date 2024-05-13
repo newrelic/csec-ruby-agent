@@ -1,4 +1,4 @@
-require 'websocket'
+require_relative 'websocket-ruby/lib/websocket.rb'
 require 'socket'
 require 'openssl'
 require 'uri'
@@ -42,10 +42,10 @@ module NewRelic::Security
               @socket.hostname = uri.host
               @socket.connect
             end
-            @handshake = ::WebSocket::Handshake::Client.new :url => url, :headers => options[:headers]
+            @handshake = NewRelic::Security::WebSocket::Handshake::Client.new :url => url, :headers => options[:headers]
             @handshaked = false
             @pipe_broken = false
-            frame = ::WebSocket::Frame::Incoming::Client.new
+            frame = NewRelic::Security::WebSocket::Frame::Incoming::Client.new
             @closed = false
             once :__close do |err|
               close
@@ -71,6 +71,8 @@ module NewRelic::Security
                       emit :message, msg
                     end
                   end
+                rescue IOError => e
+                  close false
                 rescue => e
                   emit :error, e
                 end
@@ -83,9 +85,12 @@ module NewRelic::Security
           def send(data, opt={:type => :text})
             return if !@handshaked or @closed
             type = opt[:type]
-            frame = ::WebSocket::Frame::Outgoing::Client.new(:data => data, :type => type, :version => @handshake.version)
+            frame = NewRelic::Security::WebSocket::Frame::Outgoing::Client.new(:data => data, :type => type, :version => @handshake.version)
             begin
               @socket.write frame.to_s
+            rescue IOError => e
+              @pipe_broken = true
+              emit :__close, e
             rescue Errno::EPIPE => e
               @pipe_broken = true
               emit :__close, e
@@ -95,7 +100,7 @@ module NewRelic::Security
             end
           end
   
-          def close
+          def close(reconnect = true)
             return if @closed
             if !@pipe_broken
               send nil, :type => :close
@@ -103,7 +108,7 @@ module NewRelic::Security
             @closed = true
             @socket.close if @socket
             @socket = nil
-            emit :__close
+            emit :__close, reconnect
             Thread.kill @thread if @thread
           end
   

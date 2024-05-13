@@ -17,7 +17,7 @@ module NewRelic::Security
           end
         end
 
-        def read(*var)
+        def read(*var, **kwargs)
           retval = nil
           event = read_on_enter(*var) { retval = super }
           read_on_exit(event, retval) { return retval }
@@ -29,16 +29,24 @@ module NewRelic::Security
           binread_on_exit(event, retval) { return retval }
         end
 
-        def readlines(*var)
+        def readlines(*var, **kwargs)
           retval = nil
           event = readlines_on_enter(*var) { retval = super }
           readlines_on_exit(event, retval) { return retval }
         end
 
-        def new(*var)
-          retval = nil
-          event = new_on_enter(*var) { retval = super }
-          new_on_exit(event) { return retval }
+        if RUBY_VERSION < '2.7.0'
+          def new(*var)
+            retval = nil
+            event = new_on_enter(*var) { retval = super }
+            new_on_exit(event) { return retval }
+          end
+        else
+          def new(*var, **kwargs)
+            retval = nil
+            event = new_on_enter(*var) { retval = super }
+            new_on_exit(event) { return retval }
+          end
         end
 
         def sysopen(*var)

@@ -52,6 +52,7 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         hash = {}
         hash[:sql] = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[args[0].to_s] if NewRelic::Security::Agent::Control::HTTPContext.get_context
+        hash[:sql] = self.exec("select statement from pg_prepared_statements where name = '#{args[0]}'").getvalue(0,0) unless hash[:sql]
         hash[:parameters] = args[1].map(&:to_s)
         event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, [hash], POSTGRES) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(hash[:sql])
         NewRelic::Security::Agent::Control::HTTPContext.get_context.cache.delete(args[0].to_s) if NewRelic::Security::Agent::Control::HTTPContext.get_context

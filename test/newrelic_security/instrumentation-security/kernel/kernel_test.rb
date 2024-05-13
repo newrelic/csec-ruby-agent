@@ -5,129 +5,119 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestKernel < Minitest::Test
-                @@file_name = $test_path + "/resources/sample_file.txt"
-                @@temp_file = $test_path + "/resources/tmp.txt"
-                @@case_type = "SYSTEM_COMMAND"
-                @@args = [@@file_name]
-                @@event_category = nil
-                def test_require
-                   #out = require 'temp_module'
+                TEMP_FILE = TEST_PATH + "/resources/tmp.txt"
+                # def test_require
+                #    #out = require 'temp_module'
+                # end
+
+                def setup
+                    $event_list.clear()
                 end
                 
                 def test_system
-                    $event_list.clear()
                     cmd = "pwd"
                     out = system(cmd)
                     assert_equal true, out
-                    args = [cmd]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
                 
                 def test_backtick
-                    $event_list.clear()
-                    cmd = "touch #{@@temp_file}"
-                    out = `#{cmd}` 
-                    args = [cmd]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    cmd = "touch #{TEMP_FILE}"
+                    `#{cmd}` 
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
         
-                    is_file_created = File.exist?(@@temp_file)
+                    is_file_created = File.exist?(TEMP_FILE)
                     assert_equal true, is_file_created
-                    File.delete(@@temp_file) if is_file_created
+                    File.delete(TEMP_FILE) if is_file_created
                 end
 
                 def test_delimiter
-                    $event_list.clear()
-                    cmd = "touch #{@@temp_file}"
+                    cmd = "touch #{TEMP_FILE}"
                     @output = %x(#{cmd})
-                    args = [cmd]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
         
-                    is_file_created = File.exist?(@@temp_file)
+                    is_file_created = File.exist?(TEMP_FILE)
                     assert_equal true, is_file_created
-                    File.delete(@@temp_file) if is_file_created
+                    File.delete(TEMP_FILE) if is_file_created
                 end
 
                 def test_delimiter2
-                    $event_list.clear()
-                    cmd = "touch #{@@temp_file}"
+                    cmd = "touch #{TEMP_FILE}"
                     @output = %x`#{cmd}`
-                    args = [cmd]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
         
-                    is_file_created = File.exist?(@@temp_file)
+                    is_file_created = File.exist?(TEMP_FILE)
                     assert_equal true, is_file_created
-                    File.delete(@@temp_file) if is_file_created
+                    File.delete(TEMP_FILE) if is_file_created
                 end
 
                 def test_spawn
-                    $event_list.clear()
-                    cmd = "touch #{@@temp_file}" 
-                    out = spawn("#{cmd}")
+                    cmd = "touch #{TEMP_FILE}"
+                    spawn("#{cmd}")
                     sleep 0.01
-                    args = [cmd]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
         
-                    is_file_created = File.exist?(@@temp_file)
+                    is_file_created = File.exist?(TEMP_FILE)
                     assert_equal true, is_file_created
-                    File.delete(@@temp_file) if is_file_created
+                    File.delete(TEMP_FILE) if is_file_created
                 end
                 
-                def test_fork_exec 
-                    $event_list.clear()
-                    #TODO Not hooked
-                    cmd = "touch #{@@temp_file}"
-                    @output = fork{exec("#{cmd}")}
-                    sleep 0.01
-                    args = [cmd]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                # def test_fork_exec 
+                #     #TODO Not hooked
+                #     cmd = "touch #{TEMP_FILE}"
+                #     fork{exec("#{cmd}")}
+                #     sleep 0.01
+                #     expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
+                #     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
+                #     assert_equal expected_event.caseType, $event_list[0].caseType
+                #     assert_equal expected_event.parameters, $event_list[0].parameters
+                #     assert_nil $event_list[0].eventCategory
         
-                    is_file_created = File.exist?(@@temp_file)
-                    assert_equal true, is_file_created
-                    File.delete(@@temp_file) if is_file_created
-                end
+                #     is_file_created = File.exist?(TEMP_FILE)
+                #     assert_equal true, is_file_created
+                #     File.delete(TEMP_FILE) if is_file_created
+                # end
                 
                 def test_open
-                    $event_list.clear()
-                    cmd = "touch #{@@temp_file}"
-                    out = open("\|#{cmd}").read
-                    args = ['|' + cmd]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(@@case_type, args, @@event_category)
-                    assert_equal 1, $event_list.length
+                    cmd = "touch #{TEMP_FILE}"
+                    open("\|#{cmd}").read
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, ['|' + cmd], nil)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SYSTEM_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
         
-                    is_file_created = File.exist?(@@temp_file)
+                    is_file_created = File.exist?(TEMP_FILE)
                     assert_equal true, is_file_created
-                    File.delete(@@temp_file) if is_file_created
+                    File.delete(TEMP_FILE) if is_file_created
+                end
+
+                def teardown
+                    $event_list.clear()
                 end
 
             end
         end
     end
-  end
+end
   

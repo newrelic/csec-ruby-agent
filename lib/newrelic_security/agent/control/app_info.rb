@@ -28,15 +28,12 @@ module NewRelic::Security
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @framework = NewRelic::Security::Agent.config[:framework]
           @groupName = NewRelic::Security::Agent.config[:mode]
-          @nodeId = nil
-          @customerId = nil
-          @emailId = nil
           @userProvidedApplicationInfo = Hash.new
           @policyVersion = nil
           @userDir = nil
           @libraryPath = library_path
           @bootLibraryPath = EMPTY_STRING
-          @binaryName = nil # TODO: check whether name should be ruby or jruby (earlier this was hardcoded to 'ruby')
+          @binaryName = binary_name
           @binaryVersion = binary_version
           @pid = pid
           @cpid = cpid
@@ -76,6 +73,10 @@ module NewRelic::Security
 
         def library_path
           ENV[RUBYLIB].split(COLON)
+        end
+
+        def binary_name
+          RUBY_ENGINE
         end
 
         def binary_version
