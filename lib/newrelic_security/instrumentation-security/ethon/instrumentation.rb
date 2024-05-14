@@ -19,7 +19,7 @@ module NewRelic::Security
 
         def headers_equals_on_enter(headers)
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-          NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id][:headers] = headers if NewRelic::Security::Agent::Control::HTTPContext.get_context
+          NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id][:headers] = headers if NewRelic::Security::Agent::Control::HTTPContext.get_context && NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id]
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
         ensure
@@ -73,21 +73,23 @@ module NewRelic::Security
           ic_args = []
           easy_handles.each do |easy|
             context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[easy.object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
-            uri = ::URI.parse(easy.url)
-            ob = {}
-            ob[:Method] = context[:method] if context
-            ob[:scheme] = uri.scheme
-            ob[:host] = uri.host
-            ob[:port] = uri.port
-            ob[:URI] = easy.url.to_s
-            ob[:path] = uri.path
-            ob[:query] = uri.query
-            ob[:Body] = context[:body] if context
-            ob[:Headers] = context[:headers] if context
-            ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-            ic_args << ob
+            uri = NewRelic::Security::Instrumentation::InstrumentationUtils.parse_uri(easy.url)
+            if uri
+              ob = {}
+              ob[:Method] = context[:method] if context
+              ob[:scheme] = uri.scheme
+              ob[:host] = uri.host
+              ob[:port] = uri.port
+              ob[:URI] = easy.url.to_s
+              ob[:path] = uri.path
+              ob[:query] = uri.query
+              ob[:Body] = context[:body] if context
+              ob[:Headers] = context[:headers] if context
+              ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
+              ic_args << ob
+            end
           end
-          event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, ic_args)
+          event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, ic_args) unless ic_args.empty?
           easy_handles.each do |easy|
             context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[easy.object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
             headers_copy = {}

@@ -16,7 +16,7 @@ module NewRelic::Security
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files
 
         def initialize(env)
           @time_stamp = current_time_millis
@@ -43,6 +43,7 @@ module NewRelic::Security
 					strio&.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
+          @fuzz_files = ::Set.new
           NewRelic::Security::Agent.agent.http_request_count.increment
           NewRelic::Security::Agent.agent.iast_client.completed_requests[@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID)
         end
