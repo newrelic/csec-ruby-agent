@@ -16,7 +16,6 @@ require 'newrelic_security/agent/control/critical_message'
 require 'newrelic_security/agent/control/event_counter'
 require 'newrelic_security/agent/control/event_stats'
 require 'newrelic_security/agent/control/exit_event'
-require 'newrelic_security/agent/control/fuzz_fail_event'
 require 'newrelic_security/instrumentation-security/instrumentation_loader'
 require 'newrelic_security/agent/logging/status_logger'
 
