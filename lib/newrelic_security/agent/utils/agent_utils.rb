@@ -23,7 +23,7 @@ module NewRelic::Security
       end
 
       def is_IAST_request?(headers)
-        headers.key?(NR_CSEC_FUZZ_REQUEST_ID)
+        headers&.key?(NR_CSEC_FUZZ_REQUEST_ID)
       end
 
       def parse_fuzz_header
