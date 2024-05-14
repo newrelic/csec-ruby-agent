@@ -90,9 +90,9 @@ module NewRelic::Security
         end
 
         def reconnect_at_will
-          NewRelic::Security::Agent.agent.iast_client.fuzzQ.clear
-          NewRelic::Security::Agent.agent.iast_client.completed_requests.clear
-          NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear
+          NewRelic::Security::Agent.agent.iast_client.fuzzQ.clear if NewRelic::Security::Agent.agent.iast_client
+          NewRelic::Security::Agent.agent.iast_client.completed_requests.clear if NewRelic::Security::Agent.agent.iast_client
+          NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear if NewRelic::Security::Agent.agent.iast_client
           NewRelic::Security::Agent.config.disable_security
           Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
         end
