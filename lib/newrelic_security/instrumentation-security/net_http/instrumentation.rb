@@ -5,6 +5,7 @@ module NewRelic::Security
   module Instrumentation
     module NetHTTP
 
+      HTTP = 'http'
       HTTP_COLON_SLASH_SLAH = 'http://'
       HTTPS_COLON_SLASH_SLAH = 'https://'
 

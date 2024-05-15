@@ -48,7 +48,6 @@ module NewRelic::Security
   WRITE = 'write'
   BINWRITE = 'binwrite'
   PROTOCOL = 'protocol'
-  HTTP = 'http'
   HTTPS = 'https'
   REQUEST_METHOD = 'REQUEST_METHOD'
   PATH_INFO = 'PATH_INFO'
