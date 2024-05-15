@@ -91,6 +91,10 @@ module NewRelic::Security
           unless ::Thread.current[:http]
             Thread.current[:http] = ::Net::HTTP.new('127.0.0.1', NewRelic::Security::Agent.config[:listen_port])
             Thread.current[:http].open_timeout = 5
+            if request[PROTOCOL] == HTTPS
+              Thread.current[:http].use_ssl = true
+              Thread.current[:http].verify_mode = OpenSSL::SSL::VERIFY_NONE
+            end
           end
           request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
           time_before_request = (Time.now.to_f * 1000).to_i
