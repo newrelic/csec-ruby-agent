@@ -39,6 +39,7 @@ module NewRelic::Security
   HYPHEN = '-'
   COMMA = ','
   SLASH = '/'
+  AT_THE_RATE = '@'
   SPAWN_METHOD = 'spawn_method'
   DIRECT = 'direct'
   LISTEN_PORT = 'listen_port'

@@ -103,7 +103,7 @@ module NewRelic::Security
         end
 
         def prepare_fuzz_request(message_object)
-          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NewRelic::Security::Agent.config[:fuzz_dir_path])
           message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
           prepared_fuzz_request = ::JSON.parse(message_object[:arguments][0])
           prepared_fuzz_request[HEADERS][NR_CSEC_PARENT_ID] = message_object[:id]

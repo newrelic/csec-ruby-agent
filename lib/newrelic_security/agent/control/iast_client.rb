@@ -107,8 +107,7 @@ module NewRelic::Security
           time_after_request = (Time.now.to_f * 1000).to_i
           NewRelic::Security::Agent.logger.debug "IAST fuzz request : time taken : #{time_after_request - time_before_request}ms, #{request.inspect} \nresponse: #{response.inspect}\n"
         rescue Exception => exception
-          NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event for #{request.inspect}\n"
-          NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
+          NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request Request : #{request.inspect} Exception : #{exception.inspect} #{exception.backtrace}"
         ensure
           NewRelic::Security::Agent.agent.iast_client.completed_requests[fuzz_request_id] = []
           NewRelic::Security::Agent.agent.iast_client.pending_request_ids.delete(fuzz_request_id)

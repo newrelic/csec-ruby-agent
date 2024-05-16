@@ -78,11 +78,6 @@ module NewRelic::Security
           exit_event = nil
         end
 
-        def send_fuzz_fail_event(fuzz_fail_event)
-          enqueue(fuzz_fail_event)
-          fuzz_fail_event = nil
-        end
-
         def send_iast_data_transfer_request(iast_data_transfer_request)
           enqueue(iast_data_transfer_request)
           iast_data_transfer_request = nil

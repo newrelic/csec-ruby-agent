@@ -25,6 +25,7 @@ module NewRelic::Security
 
           stk = caller_locations[1..COVERAGE]
           event.sourceMethod = stk[0].label
+          stk.delete_if {|frame| frame.path.match(/newrelic_security/) || frame.path.match(/new_relic/)}
           user_frame_index = get_user_frame_index(stk)
           return if case_type != REFLECTED_XSS && user_frame_index == -1 # TODO: Add log message here: "Filtered because User Stk frame NOT FOUND   \r\n"
           if user_frame_index != -1
@@ -32,9 +33,10 @@ module NewRelic::Security
             event.userFileName = stk[user_frame_index].path
             event.lineNumber = stk[user_frame_index].lineno
           else
-            event.userMethodName = stk[0].label
-            event.userFileName = stk[1].path
-            event.lineNumber = stk[1].lineno
+            event.sourceMethod = stk[0].label.to_s
+            event.userMethodName = stk[0].label.to_s
+            event.userFileName = stk[0].path
+            event.lineNumber = stk[0].lineno
           end
 
           event.copy_http_info(NewRelic::Security::Agent::Control::HTTPContext.get_context) if NewRelic::Security::Agent::Control::HTTPContext.get_context
@@ -58,7 +60,7 @@ module NewRelic::Security
           event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route)}"
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
           if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
-            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
+            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id if NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId]
           end
           event
         rescue Exception => exception

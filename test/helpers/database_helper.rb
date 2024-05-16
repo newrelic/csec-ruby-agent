@@ -1,4 +1,6 @@
 require 'docker'
+# Uncomment below line and update username to test on mac with docker desktop
+# Docker.authenticate!('username' => '<docker-username>') 
 
 module NewRelic::Security
   module Test
