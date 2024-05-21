@@ -11,7 +11,7 @@ module NewRelic::Security
         hash = {}
         hash[:sql] = sql
         hash[:parameters] = bind_vars.is_a?(String) ? [bind_vars] : bind_vars.map(&:to_s)
-        hash[:parameters] = hash[:parameters] + args unless args.empty?
+        hash[:parameters] = hash[:parameters] + args.map(&:to_s) unless args.empty?
         event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, [hash], SQLITE) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(hash[:sql])
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
