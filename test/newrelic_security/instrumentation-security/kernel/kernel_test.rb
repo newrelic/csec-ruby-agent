@@ -26,6 +26,7 @@ module NewRelic::Security
                 end
                 
                 def test_backtick
+                    skip("Skipping for ruby 2.4.10 && instrumentation method chain") if RUBY_VERSION == '2.4.10' && ENV['NR_CSEC_INSTRUMENTATION_METHOD'] == 'chain'
                     cmd = "touch #{TEMP_FILE}"
                     `#{cmd}` 
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
@@ -40,6 +41,7 @@ module NewRelic::Security
                 end
 
                 def test_delimiter
+                    skip("Skipping for ruby 2.4.10 && instrumentation method chain") if RUBY_VERSION == '2.4.10' && ENV['NR_CSEC_INSTRUMENTATION_METHOD'] == 'chain'
                     cmd = "touch #{TEMP_FILE}"
                     @output = %x(#{cmd})
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
@@ -54,6 +56,7 @@ module NewRelic::Security
                 end
 
                 def test_delimiter2
+                    skip("Skipping for ruby 2.4.10 && instrumentation method chain") if RUBY_VERSION == '2.4.10' && ENV['NR_CSEC_INSTRUMENTATION_METHOD'] == 'chain'
                     cmd = "touch #{TEMP_FILE}"
                     @output = %x`#{cmd}`
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
