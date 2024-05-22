@@ -14,6 +14,9 @@ module NewRelic::Security
       BODY = 'body'
       HEADERS = 'headers'
       VERSION = 'version'
+      IS_GRPC = 'isGrpc'
+      INPUT_CLASS = 'inputClass'
+      SERVER_PORT_1 = 'serverPort'
 
       class IASTClient
         
@@ -21,11 +24,13 @@ module NewRelic::Security
         attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :pending_request_ids, :completed_requests, :iast_data_transfer_request_processor_thread
 
         def initialize
+          @http = nil
+          @stub = nil
           @fuzzQ = ::SizedQueue.new(FUZZQ_QUEUE_SIZE)
           @cooldown_till_timestamp = current_time_millis
           @last_fuzz_cc_timestamp = current_time_millis
           @pending_request_ids = ::Set.new
-          @completed_requests = ::Hash.new
+          @completed_requests = {}
           create_dequeue_threads
           create_iast_data_transfer_request_processor
         end
@@ -46,7 +51,11 @@ module NewRelic::Security
               Thread.current.name = "newrelic_security_iast_thread-#{t}"
               loop do
                 fuzz_request = @fuzzQ.deq #thread blocks when the queue is empty
-                fire_request(fuzz_request.id, fuzz_request.request)
+                if fuzz_request.request[IS_GRPC]
+                  fire_grpc_request(fuzz_request.id, fuzz_request.request, fuzz_request.reflected_metadata)
+                else
+                  fire_request(fuzz_request.id, fuzz_request.request)
+                end
                 fuzz_request = nil
               end
             end
@@ -103,6 +112,20 @@ module NewRelic::Security
           NewRelic::Security::Agent.agent.iast_client.pending_request_ids.delete(fuzz_request_id)
         end
 
+        def fire_grpc_request(fuzz_request_id, request, reflected_metadata)
+          service = Object.const_get(request[METHOD].split(SLASH)[0]).superclass
+          method = request[METHOD].split(SLASH)[1]
+          @stub = service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure) unless @stub
+          response = @stub.public_send(method, Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY]))
+          # response = @stub.send(method, JSON.parse(request['body'], object_class: OpenStruct))
+          # request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
+          NewRelic::Security::Agent.logger.debug "IAST gRPC client response : #{request.inspect} \n#{response.inspect}\n\n\n\n"
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.debug "Unable to fire IAST gRPC fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event"
+          NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
+        ensure
+          NewRelic::Security::Agent.agent.iast_client.pending_request_ids.delete(fuzz_request_id)
+        end
 
       end
     end
