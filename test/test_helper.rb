@@ -7,7 +7,7 @@ require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 
 ENV['NR_CSEC_LOG_LEVEL'] = 'INFO'
-ENV['NR_CSEC_INSTRUMENTATION_METHOD'] = 'prepend'
+# ENV['NR_CSEC_INSTRUMENTATION_METHOD'] = 'prepend' # No need to enable this prepend is already by default in loader
 
 $: << File.expand_path('../../lib', __FILE__)
 $: << File.expand_path('../../test', __FILE__)
@@ -24,7 +24,6 @@ require 'helpers/agent_helper'
 require 'helpers/config_helper'
 require 'helpers/event_helper'
 require 'helpers/init_helper'
-require 'helpers/instrument_helper'
 require 'helpers/sample_server'
 require 'helpers/database_helper'
 
