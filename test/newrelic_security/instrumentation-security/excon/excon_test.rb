@@ -13,6 +13,7 @@ module NewRelic::Security
                 end
 
                 def test_excon
+                    skip("Skipping for ruby 2.4.10 && instrumentation method chain") if RUBY_VERSION == '2.4.10' && ENV['NR_CSEC_INSTRUMENTATION_METHOD'] == 'chain'
                     url = "http://google.com"
                     @output = Excon.get(url).body
                     args = [{:Method=>:get, :scheme=>"http", :host=>"google.com", :port=>80, :URI=>"google.com", :path=>"", :query=>nil, :Body=>nil}]
