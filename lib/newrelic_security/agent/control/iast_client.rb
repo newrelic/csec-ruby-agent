@@ -4,7 +4,7 @@ require 'json'
 require 'uri'
 require 'set'
 require 'resolv'
-require 'resolv-replace'
+# require 'resolv-replace'
 
 module NewRelic::Security
   module Agent
