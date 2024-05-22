@@ -18,8 +18,9 @@ module NewRelic::Security
 
         def collect(case_type, args, event_category = nil, **keyword_args)
           return unless NewRelic::Security::Agent.config[:enabled]
-          return if NewRelic::Security::Agent::Control::HTTPContext.get_context.nil?
+          return if NewRelic::Security::Agent::Control::HTTPContext.get_context.nil? && NewRelic::Security::Agent::Control::GRPCContext.get_context.nil?
           args.map! { |file| Pathname.new(file).relative? ? File.join(Dir.pwd, file) : file } if [FILE_OPERATION, FILE_INTEGRITY].include?(case_type)
+
           event = NewRelic::Security::Agent::Control::Event.new(case_type, args, event_category)
 
           stk = caller_locations[1..COVERAGE]
@@ -38,7 +39,8 @@ module NewRelic::Security
             event.lineNumber = stk[0].lineno
           end
 
-          event.copy_http_info(NewRelic::Security::Agent::Control::HTTPContext.get_context)
+          event.copy_http_info(NewRelic::Security::Agent::Control::HTTPContext.get_context) if NewRelic::Security::Agent::Control::HTTPContext.get_context
+          event.copy_grpc_info(NewRelic::Security::Agent::Control::GRPCContext.get_context) if NewRelic::Security::Agent::Control::GRPCContext.get_context
           event.isIASTEnable = true if NewRelic::Security::Agent::Utils.is_IAST?
           event.isIASTRequest = true if NewRelic::Security::Agent::Utils.is_IAST_request?(event.httpRequest[:headers])
           event.parentId = event.httpRequest[:headers][NR_CSEC_PARENT_ID] if event.httpRequest[:headers].key?(NR_CSEC_PARENT_ID)
