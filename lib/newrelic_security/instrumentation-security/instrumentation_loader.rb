@@ -27,7 +27,6 @@ module NewRelic::Security
 
       def log_and_instrument(method, target_class, instrumenting_module, supportability_name)
         # supportability_name ||= extract_supportability_name(instrumenting_module)
-        puts "Installing New Relic supported #{target_class} instrumentation using #{method}"
         NewRelic::Security::Agent.logger.info "Installing New Relic supported #{target_class} instrumentation using #{method}"
         NewRelic::Security::Agent.logger.info "Supportability/Instrumentation/#{target_class}/#{method}"
         NewRelic::Security::Agent.init_logger.info "Installing New Relic supported #{target_class} instrumentation using #{method}"
