@@ -13,9 +13,9 @@ module NewRelic::Security
                 end
 
                 def test_excon
-                    url = "http://www.google.com"
+                    url = "http://google.com"
                     @output = Excon.get(url).body
-                    args = [{:Method=>:get, :scheme=>"http", :host=>"www.google.com", :port=>80, :URI=>"www.google.com", :path=>"", :query=>nil, :Body=>nil}]
+                    args = [{:Method=>:get, :scheme=>"http", :host=>"google.com", :port=>80, :URI=>"google.com", :path=>"", :query=>nil, :Body=>nil}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
