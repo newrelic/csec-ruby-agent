@@ -116,13 +116,12 @@ module NewRelic::Security
           service = Object.const_get(request[METHOD].split(SLASH)[0]).superclass
           method = request[METHOD].split(SLASH)[1]
           @stub = service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure) unless @stub
-          response = @stub.public_send(method, Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY]))
+          response = @stub.public_send(method, Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY]), metadata: request[HEADERS])
           # response = @stub.send(method, JSON.parse(request['body'], object_class: OpenStruct))
           # request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
           NewRelic::Security::Agent.logger.debug "IAST gRPC client response : #{request.inspect} \n#{response.inspect}\n\n\n\n"
         rescue Exception => exception
-          NewRelic::Security::Agent.logger.debug "Unable to fire IAST gRPC fuzz request : #{exception.inspect} #{exception.backtrace}, sending fuzzfail event"
-          NewRelic::Security::Agent::Utils.create_fuzz_fail_event(request[HEADERS][NR_CSEC_FUZZ_REQUEST_ID])
+          NewRelic::Security::Agent.logger.debug "Unable to fire IAST gRPC fuzz request Request : #{request.inspect} Exception : #{exception.inspect} #{exception.backtrace}"
         ensure
           NewRelic::Security::Agent.agent.iast_client.pending_request_ids.delete(fuzz_request_id)
         end
