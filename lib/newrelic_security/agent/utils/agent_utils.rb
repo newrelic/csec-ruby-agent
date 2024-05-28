@@ -96,6 +96,7 @@ module NewRelic::Security
       end
 
       def get_app_routes(framework)
+        enable_object_space_in_jruby
         if framework == :rails
           ::Rails.application.routes.routes.each do |route|
             if route.verb.is_a?(::Regexp)
@@ -130,6 +131,7 @@ module NewRelic::Security
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end
+        disable_object_space_in_jruby if NewRelic::Security::Agent.config[:jruby_objectspace_enabled]
         NewRelic::Security::Agent.logger.debug "ALL ROUTES : #{NewRelic::Security::Agent.agent.route_map}"
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Error in get app routes : #{exception.inspect} #{exception.backtrace}"
@@ -189,6 +191,13 @@ module NewRelic::Security
         root = nil
         root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack
         root
+      end
+
+      def enable_object_space_in_jruby
+        if RUBY_ENGINE == 'jruby' && !JRuby.objectspace
+          JRuby.objectspace = true
+          NewRelic::Security::Agent.config.jruby_objectspace_enabled = true
+        end
       end
 
       def disable_object_space_in_jruby
