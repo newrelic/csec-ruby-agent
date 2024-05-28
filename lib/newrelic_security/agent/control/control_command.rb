@@ -32,11 +32,7 @@ module NewRelic::Security
               fuzz_request = NewRelic::Security::Agent::Control::FuzzRequest.new(message_object[:id])
               fuzz_request.request = prepare_fuzz_request(message_object)
               fuzz_request.case_type = message_object[:arguments][1]
-<<<<<<< iast-event-ack-arch
-=======
               fuzz_request.reflected_metadata =  message_object[:reflectedMetaData]
-              NewRelic::Security::Agent.agent.iast_client.pending_request_ids << message_object[:id]
->>>>>>> dev
               NewRelic::Security::Agent.agent.iast_client.enqueue(fuzz_request)
               fuzz_request = nil
             when 12
