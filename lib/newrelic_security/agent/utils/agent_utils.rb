@@ -23,7 +23,8 @@ module NewRelic::Security
       end
 
       def is_IAST_request?(headers)
-        headers.key?(NR_CSEC_FUZZ_REQUEST_ID)
+        return true if headers&.key?(NR_CSEC_FUZZ_REQUEST_ID)
+        false
       end
 
       def parse_fuzz_header
@@ -36,10 +37,11 @@ module NewRelic::Security
               NewRelic::Security::Agent.logger.debug "Encrypted data: #{fuzz_request[6]},  decrypted data: #{decrypted_data}, Sha256: #{fuzz_request[7]}"
               decrypted_data.split(COMMA).each do |filename|
                 begin
-                  filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+                  filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NewRelic::Security::Agent.config[:fuzz_dir_path])
                   filename.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
                   dirname = ::File.dirname(filename)
-                  ::FileUtils.mkdir_p(dirname, :mode => 0666) unless ::File.directory?(dirname)
+                  ::FileUtils.mkdir_p(dirname, :mode => 0770) unless ::File.directory?(dirname)
+                  NewRelic::Security::Agent::Control::HTTPContext.get_context&.fuzz_files << filename
                   ::File.open(filename, ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
                       # puts "Ownership acquired by : #{Process.pid}"
                   end unless ::File.exist?(filename)
@@ -68,15 +70,10 @@ module NewRelic::Security
         return unless NewRelic::Security::Agent::Control::HTTPContext.get_context
         headers = NewRelic::Security::Agent::Control::HTTPContext.get_context.headers
         if is_IAST? && is_IAST_request?(headers)
-          fuzz_request = headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)
-          if fuzz_request.length() >= 7
-            i = 6
-            while i < fuzz_request.length()
-                begin
-                    ::File.delete(fuzz_request[i])
-                rescue
-                end
-                i = i + 1
+          NewRelic::Security::Agent::Control::HTTPContext.get_context.fuzz_files.each do |file|
+            begin
+              ::File.delete(file)
+            rescue
             end
           end
         end
@@ -96,12 +93,6 @@ module NewRelic::Security
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Exception in create_exit_event: #{exception.inspect} #{exception.backtrace}"
         NewRelic::Security::Agent.agent.exit_event_stats.error_count.increment
-      end
-
-      def create_fuzz_fail_event(fuzz_request_id)
-        fuzz_fail_event = NewRelic::Security::Agent::Control::FuzzFailEvent.new
-        fuzz_fail_event.fuzzHeader = fuzz_request_id
-        NewRelic::Security::Agent.agent.event_processor.send_fuzz_fail_event(fuzz_fail_event)
       end
 
       def get_app_routes(framework)
@@ -131,7 +122,7 @@ module NewRelic::Security
         elsif framework == :padrino
           ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
             z.instance_variable_get(:@routes).each { |route|
-              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.instance_variable_get(:@path)}"
+              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.matcher.instance_variable_get(:@path)}"
             }
           }
         elsif framework == :roda

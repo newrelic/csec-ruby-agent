@@ -12,9 +12,14 @@ module NewRelic::Security
           @jsonName = :'iast-data-request'
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @batchSize = 10
+<<<<<<< iast-event-ack-arch
           @completedReplay = ::Set.new
           @errorInReplay = ::Set.new
           @generatedEvent = {}
+=======
+          @pendingRequestIds = []
+          @completedRequests = Hash.new
+>>>>>>> dev
         end
         
         def as_json

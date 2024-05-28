@@ -82,6 +82,7 @@ module NewRelic::Security
         end
 
         def test_call
+          NewRelic::Security::Agent::Utils.get_app_routes(:rails)
           @api_instance = MyApiTest.new('get')
           @api_instance.get_test
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
@@ -111,7 +112,7 @@ module NewRelic::Security
           assert_equal "GET", method
           assert_equal "/myapi", url
           assert_equal "", query_string
-          assert_equal nil, body
+          assert_nil body
           assert_equal "127.0.0.1", clientIP
           assert_equal "80", server_port
           assert_equal "www.example.com", server_name

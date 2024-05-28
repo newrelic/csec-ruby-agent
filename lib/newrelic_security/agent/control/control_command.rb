@@ -32,7 +32,13 @@ module NewRelic::Security
               fuzz_request = NewRelic::Security::Agent::Control::FuzzRequest.new(message_object[:id])
               fuzz_request.request = prepare_fuzz_request(message_object)
               fuzz_request.case_type = message_object[:arguments][1]
+<<<<<<< iast-event-ack-arch
+=======
+              fuzz_request.reflected_metadata =  message_object[:reflectedMetaData]
+              NewRelic::Security::Agent.agent.iast_client.pending_request_ids << message_object[:id]
+>>>>>>> dev
               NewRelic::Security::Agent.agent.iast_client.enqueue(fuzz_request)
+              fuzz_request = nil
             when 12
               NewRelic::Security::Agent.logger.info "Validator asked to reconnect(CC#12), calling reconnect_at_will"
               reconnect_at_will
@@ -92,18 +98,10 @@ module NewRelic::Security
         end
 
         def reconnect_at_will
-          @stop_fuzzing = true
-          if NewRelic::Security::Agent::Utils.is_IAST?
-            while NewRelic::Security::Agent.agent.iast_client.fuzzQ && NewRelic::Security::Agent.agent.iast_client.fuzzQ.size > 0
-              NewRelic::Security::Agent.logger.info "Waiting for fuzzQ to get empty, current size: #{NewRelic::Security::Agent.agent.iast_client.fuzzQ.size}"
-              sleep 0.1
-            end
-          end
+          NewRelic::Security::Agent.agent.iast_client.fuzzQ.clear
+          NewRelic::Security::Agent.agent.iast_client.completed_requests.clear
+          NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear
           NewRelic::Security::Agent.config.disable_security
-          while NewRelic::Security::Agent.agent.event_processor.eventQ && NewRelic::Security::Agent.agent.event_processor.eventQ.size > 0
-            NewRelic::Security::Agent.logger.info "Waiting for eventQ to get empty, current size: #{NewRelic::Security::Agent.agent.event_processor.eventQ.size}"
-            sleep 0.1
-          end
           Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
         end
 
@@ -112,15 +110,14 @@ module NewRelic::Security
         end
 
         def prepare_fuzz_request(message_object)
-          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NewRelic::Security::Agent.config[:fuzz_dir_path])
           message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
           prepared_fuzz_request = ::JSON.parse(message_object[:arguments][0])
           prepared_fuzz_request[HEADERS][NR_CSEC_PARENT_ID] = message_object[:id]
           prepared_fuzz_request
-        rescue Exception => exception
+        rescue Exception => exception # rubocop:disable Lint/RescueException
           NewRelic::Security::Agent.logger.error "Exception in preparing fuzz request : #{exception.inspect} #{exception.backtrace}"
         end
-        
       end
     end
   end

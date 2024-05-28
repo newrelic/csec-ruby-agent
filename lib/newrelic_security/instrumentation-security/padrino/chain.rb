@@ -10,9 +10,9 @@ module NewRelic::Security
   
                 alias_method :call_without_security, :call
   
-                def call(env)
+                def call(env, &block)
                   retval = nil
-                  event = call_on_enter(env) { retval = call_without_security(env) }
+                  event = call_on_enter(env) { retval = call_without_security(env, &block) }
                   call_on_exit(event, retval) { return retval }
                 end
   
