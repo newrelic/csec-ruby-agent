@@ -21,7 +21,7 @@ module NewRelic::Security
       class IASTClient
         
         attr_reader :fuzzQ, :iast_dequeue_thread
-        attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :iast_data_transfer_request_processor_thread, :completed_replay, :error_in_replay, :generated_event
+        attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :iast_data_transfer_request_processor_thread, :completed_replay, :error_in_replay, :clear_from_pending, :generated_event
 
         def initialize
           @http = nil
@@ -31,6 +31,7 @@ module NewRelic::Security
           @last_fuzz_cc_timestamp = current_time_millis
           @completed_replay = ::Set.new
           @error_in_replay = ::Set.new
+          @clear_from_pending = ::Set.new
           @generated_event = {}
           create_dequeue_threads
           create_iast_data_transfer_request_processor
@@ -84,6 +85,7 @@ module NewRelic::Security
                 iast_data_transfer_request.batchSize = batch_size * 2
                 iast_data_transfer_request.completedReplay = @completed_replay
                 iast_data_transfer_request.errorInReplay = @error_in_replay
+                iast_data_transfer_request.clearFromPending = @clear_from_pending
                 iast_data_transfer_request.generatedEvent = @generated_event
                 NewRelic::Security::Agent.agent.event_processor.send_iast_data_transfer_request(iast_data_transfer_request)
               end
@@ -111,10 +113,18 @@ module NewRelic::Security
           response = Thread.current[:http].send_request(request[METHOD], ::URI.parse(request[URL]).to_s, request[BODY], request[HEADERS])
           time_after_request = (Time.now.to_f * 1000).to_i
           NewRelic::Security::Agent.logger.debug "IAST fuzz request : time taken : #{time_after_request - time_before_request}ms, #{request.inspect} \nresponse: #{response.inspect}\n"
-          @completed_replay << fuzz_request_id
+          case response
+          when Net::HTTPNotFound
+            @error_in_replay << fuzz_request_id
+          else
+            @completed_replay << fuzz_request_id
+          end
+        rescue URI::InvalidURIError => err
+          NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request Request : #{request.inspect} URI::InvalidURIError : #{err.inspect} #{err.backtrace}"
+          @error_in_replay << fuzz_request_id
         rescue Exception => exception
           NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request Request : #{request.inspect} Exception : #{exception.inspect} #{exception.backtrace}"
-          @error_in_replay << fuzz_request_id
+          @clear_from_pending << fuzz_request_id
         end
 
         def fire_grpc_request(fuzz_request_id, request, reflected_metadata)

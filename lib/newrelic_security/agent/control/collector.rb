@@ -59,7 +59,7 @@ module NewRelic::Security
           # Hence, considering only frame absolute_path & lineno for apiId calculation.
           event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route)}"
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
-          if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
+          if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0].split(COLON)[1]
             uuid = event.httpRequest[:headers][NR_CSEC_TRACING_DATA] ? event.httpRequest[:headers][NR_CSEC_TRACING_DATA].split(';')[0].split('/')[0] : NewRelic::Security::Agent.config[:uuid]
             NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][event.parentId] = [] unless NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][event.parentId]
             NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][event.parentId] << event.id

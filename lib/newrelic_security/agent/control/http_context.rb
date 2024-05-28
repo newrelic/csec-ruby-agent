@@ -47,9 +47,12 @@ module NewRelic::Security
           @cache = Hash.new
           @fuzz_files = ::Set.new
           NewRelic::Security::Agent.agent.http_request_count.increment
-          uuid = @headers[NR_CSEC_TRACING_DATA] ? @headers[NR_CSEC_TRACING_DATA].split(';')[0].split('/')[0] : NewRelic::Security::Agent.config[:uuid]
-          NewRelic::Security::Agent.agent.iast_client.generated_event[uuid] = {} if NewRelic::Security::Agent.agent.iast_client && !NewRelic::Security::Agent.agent.iast_client.generated_event.key?(uuid)
-          # NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID) # TODO: Check with SE, whether empty entries are required or not.
+          if NewRelic::Security::Agent.agent.iast_client
+            uuid = @headers[NR_CSEC_TRACING_DATA] ? @headers[NR_CSEC_TRACING_DATA].split(';')[0].split('/')[0] : NewRelic::Security::Agent.config[:uuid]
+            NewRelic::Security::Agent.agent.iast_client.generated_event[uuid] = {} unless NewRelic::Security::Agent.agent.iast_client.generated_event.key?(uuid)  
+            uuid_apiid = @headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0].split(COLON) if @headers[NR_CSEC_FUZZ_REQUEST_ID]
+            NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][@headers[NR_CSEC_PARENT_ID]] = [] if uuid_apiid && uuid_apiid[0] == NewRelic::Security::Agent.config[:entity_guid_sha256]
+          end
         end
 
         def current_time_millis

@@ -47,6 +47,7 @@ module NewRelic::Security
               NewRelic::Security::Agent.logger.debug "Purging confirmed IAST processed records count : #{message_object[:arguments].size}"
               message_object[:data]["completedReplay"].each { |id| NewRelic::Security::Agent.agent.iast_client.completed_replay.delete(id) }
               message_object[:data]["errorInReplay"].each { |id| NewRelic::Security::Agent.agent.iast_client.error_in_replay.delete(id) }
+              message_object[:data]["clearFromPending"].each { |id| NewRelic::Security::Agent.agent.iast_client.clear_from_pending.delete(id) }
               message_object[:data]["generatedEvent"].each do |uuid, ids| 
                 ids.keys.each { |id| NewRelic::Security::Agent.agent.iast_client.generated_event[uuid].delete(id) }
               end
@@ -94,9 +95,13 @@ module NewRelic::Security
         end
 
         def reconnect_at_will
-          NewRelic::Security::Agent.agent.iast_client.fuzzQ.clear if NewRelic::Security::Agent.agent.iast_client
-          NewRelic::Security::Agent.agent.iast_client.completed_requests.clear if NewRelic::Security::Agent.agent.iast_client
-          NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear if NewRelic::Security::Agent.agent.iast_client
+          if NewRelic::Security::Agent.agent.iast_client
+            NewRelic::Security::Agent.agent.iast_client.fuzzQ.clear
+            NewRelic::Security::Agent.agent.iast_client.completed_replay.clear
+            NewRelic::Security::Agent.agent.iast_client.error_in_replay.clear
+            NewRelic::Security::Agent.agent.iast_client.clear_from_pending.clear
+            NewRelic::Security::Agent.agent.iast_client.generated_event.clear
+          end
           NewRelic::Security::Agent.config.disable_security
           Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
         end

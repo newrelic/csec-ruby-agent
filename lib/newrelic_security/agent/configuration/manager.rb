@@ -83,6 +83,7 @@ module NewRelic::Security
           @cache[:account_id] = server_source[:account_id]
           @cache[:application_id] = server_source[:application_id]
           @cache[:entity_guid] = server_source[:entity_guid]
+          @cache[:entity_guid_sha256] = get_sha256(@cache[:entity_guid])
           @cache[:primary_application_id] = server_source[:primary_application_id]
           @cache[:extraction_key] = generate_key(@cache[:entity_guid])
         rescue Exception => exception
@@ -170,6 +171,10 @@ module NewRelic::Security
 
         def generate_key(entity_guid)
           ::OpenSSL::PKCS5.pbkdf2_hmac(entity_guid, entity_guid[0..15], 1024, 32, SHA1)
+        end
+
+        def get_sha256(data)
+          ::Digest::SHA256.hexdigest(data)
         end
       end
     end
