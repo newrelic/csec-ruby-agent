@@ -20,7 +20,7 @@ module NewRelic::Security
 
       class IASTClient
         
-        attr_reader :fuzzQ, :iast_dequeue_thread
+        attr_reader :fuzzQ, :iast_dequeue_threads
         attr_accessor :cooldown_till_timestamp, :last_fuzz_cc_timestamp, :iast_data_transfer_request_processor_thread, :completed_replay, :error_in_replay, :clear_from_pending, :generated_event
 
         def initialize
