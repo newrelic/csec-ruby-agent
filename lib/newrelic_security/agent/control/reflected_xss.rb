@@ -134,7 +134,7 @@ module NewRelic::Security
               # do while loop in java code here
               old_processed_body = processed_body
               body = ::JSON.parse(processed_body)
-              processed_data.add(body) if old_processed_body != body && body.include?(LESS_THAN)
+              processed_data.add(body) if old_processed_body != body && body.to_s.include?(LESS_THAN)
             when APPLICATION_XML
               # Unescaping of xml data is remaining
               processed_data.add(processed_data)

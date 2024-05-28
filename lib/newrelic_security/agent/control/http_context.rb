@@ -32,6 +32,8 @@ module NewRelic::Security
 						offset = strio.tell
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024) #after read, offset changes
 						strio.seek(offset)
+            # In case of Grape and Roda strio.read giving empty result, added below approach to handle such cases
+            @body = strio.string if @body.nil? && strio.size > 0
 					elsif defined?(::Rack) && defined?(::Rack::Lint::InputWrapper) && strio.instance_of?(::Rack::Lint::InputWrapper)
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
           elsif defined?(::Protocol::Rack::Input) && defined?(::Protocol::Rack::Input) && strio.instance_of?(::Protocol::Rack::Input)
