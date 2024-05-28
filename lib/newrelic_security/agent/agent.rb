@@ -29,7 +29,7 @@ module NewRelic::Security
       def initialize
         NewRelic::Security::Agent.config
         create_agent_home
-        enable_object_space_in_jruby
+        NewRelic::Security::Agent::Utils.enable_object_space_in_jruby
         NewRelic::Security::Agent.config.save_uuid
         @started = false
         @event_subscriber = NewRelic::Security::Agent::Control::EventSubscriber.new
@@ -95,13 +95,6 @@ module NewRelic::Security
         find_or_create_file_path(log_dir)
         tmp_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, TMP_DIR)
         find_or_create_file_path(tmp_dir)
-      end
-
-      def enable_object_space_in_jruby
-        if RUBY_ENGINE == 'jruby' && !JRuby.objectspace
-          JRuby.objectspace = true
-          NewRelic::Security::Agent.config.jruby_objectspace_enabled = true
-        end
       end
 
       def find_or_create_file_path(path)

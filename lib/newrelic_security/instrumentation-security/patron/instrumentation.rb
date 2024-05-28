@@ -13,17 +13,19 @@ module NewRelic::Security
         ob = {}
         ob[:Method] = action
         final_url = self.base_url.nil? ? url : "#{self.base_url}#{url}"
-        uri = URI(final_url)
-        ob[:scheme]  = uri.scheme
-        ob[:host]    = uri.host
-        ob[:port]    = uri.port
-        ob[:URI]     = uri.to_s
-        ob[:path]    = uri.path
-        ob[:query]   = uri.query
-        ob[:Body] = options[:data]
-        ob[:Headers] = headers
-        ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
+        uri = NewRelic::Security::Instrumentation::InstrumentationUtils.parse_uri(final_url)
+        if uri
+          ob[:scheme]  = uri.scheme
+          ob[:host]    = uri.host
+          ob[:port]    = uri.port
+          ob[:URI]     = uri.to_s
+          ob[:path]    = uri.path
+          ob[:query]   = uri.query
+          ob[:Body] = options[:data]
+          ob[:Headers] = headers
+          ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
+          event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
+        end
         NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(headers, event) if event
         event
       rescue => exception

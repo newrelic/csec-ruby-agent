@@ -48,6 +48,8 @@ module NewRelic::Security
   DELETE = 'delete'
   WRITE = 'write'
   BINWRITE = 'binwrite'
+  PROTOCOL = 'protocol'
+  HTTPS = 'https'
   REQUEST_METHOD = 'REQUEST_METHOD'
   PATH_INFO = 'PATH_INFO'
   CONTENT_TYPE = 'CONTENT_TYPE'
