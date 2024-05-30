@@ -32,7 +32,7 @@ module NewRelic::Security
         if is_IAST? && is_IAST_request?(headers)
           fuzz_request = headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)
           if fuzz_request.length() >= 7
-            decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7])
+            decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7]) if fuzz_request[6] && fuzz_request[7] && !fuzz_request[6].empty? && !fuzz_request[7].empty?
             if decrypted_data
               NewRelic::Security::Agent.logger.debug "Encrypted data: #{fuzz_request[6]},  decrypted data: #{decrypted_data}, Sha256: #{fuzz_request[7]}"
               decrypted_data.split(COMMA).each do |filename|
