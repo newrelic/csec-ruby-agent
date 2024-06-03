@@ -131,9 +131,8 @@ module NewRelic::Security
         end
 
         def thread_monotonic_ctr
-          ::Thread.current[:kevent_ctr] = 0 if ::Thread.current[:kevent_ctr].nil?
-          ::Thread.current[:kevent_ctr] = ::Thread.current[:kevent_ctr] + 1
-          ::Thread.current[:kevent_ctr]
+          ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          ctxt.event_counter = ctxt.event_counter + 1 if ctxt
         end
 
         def add_linking_metadata
