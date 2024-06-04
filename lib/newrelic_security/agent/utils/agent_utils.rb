@@ -117,7 +117,7 @@ module NewRelic::Security
         elsif framework == :grape
           ObjectSpace.each_object(::Grape::Endpoint) { |z|
             z.routes.each { |route|
-              NewRelic::Security::Agent.agent.route_map << "#{route.options[:method]}@#{route.options[:namespace]}"
+              NewRelic::Security::Agent.agent.route_map << "#{route.options[:method]}@#{route.pattern.origin}"
             }
           }
         elsif framework == :padrino
