@@ -12,7 +12,7 @@ module NewRelic::Security
         module Instrumentation
             class TestPostgresqlAdapter < Minitest::Test
                 @@before_all_flag = false
-    
+
                 def setup
                     unless @@before_all_flag
                         NewRelic::Security::Test::DatabaseHelper.create_postgresql_container
@@ -30,14 +30,14 @@ module NewRelic::Security
                     # INSERT test
                     if RUBY_VERSION < '2.5.0'
                         NewUser.create(id: 1, email: 'me@john.com', name: 'John', ssn: '11')
-                        # event verify 
+                        # event verify
                         args1 = [{:sql=>"INSERT INTO \"new_users\" (\"id\", \"name\", \"email\", \"ssn\") VALUES ($1, $2, $3, $4) RETURNING \"id\"", :parameters=>["1", "John", "me@john.com", "11"]}]
                         expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
                         assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                         # insert event
                         assert_equal expected_event1.caseType, $event_list[0].caseType
                         assert_equal expected_event1.parameters, $event_list[0].parameters
-                        assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
+                        assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     else
                         NewUser.insert(
                         { id: 1,
@@ -45,7 +45,7 @@ module NewRelic::Security
                         name: 'John',
                         ssn: '11' }
                     )
-                        # insert event 
+                        # insert event
                         args1 = [{:sql=>"INSERT INTO \"new_users\" (\"id\",\"email\",\"name\",\"ssn\") VALUES (1, 'me@john.com', 'John', '11') ON CONFLICT  DO NOTHING RETURNING \"id\"", :parameters=>[]}]
                         expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
                         assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
@@ -54,15 +54,15 @@ module NewRelic::Security
                         assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     end
                     $event_list.clear()
-                    
-                    # SELECT test         
+
+                    # SELECT test
                     output = NewUser.find(1)
-                    # data verify 
+                    # data verify
                     assert_equal 1, output.id
                     assert_equal "John", output.name
                     assert_equal "me@john.com", output.email
                     assert_equal "11", output.ssn
-                    # exec_query event verify 
+                    # exec_query event verify
                     args1 = [{:sql=>"SELECT \"new_users\".* FROM \"new_users\" WHERE \"new_users\".\"id\" = $1 LIMIT $2", :parameters=>["1", "1"]}]
                     args2 = [{:sql=>"select statement from pg_prepared_statements where name = 'a2'", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
@@ -73,22 +73,22 @@ module NewRelic::Security
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_sql_list, sql_fetch_list1
                     assert_equal expected_event1.parameters[0][:parameters], $event_list[0].parameters[0][:parameters]
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
+                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
 
                     assert_equal expected_event2.caseType, $event_list[1].caseType
                     assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory  
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
 
                     sql_fetch_list2 = $event_list[2].parameters[0][:sql].split(" ")
                     assert_equal expected_event1.caseType, $event_list[2].caseType
                     assert_equal expected_sql_list, sql_fetch_list2
                     assert_equal expected_event1.parameters[0][:parameters], $event_list[2].parameters[0][:parameters]
-                    assert_equal expected_event1.eventCategory, $event_list[2].eventCategory  
+                    assert_equal expected_event1.eventCategory, $event_list[2].eventCategory
                     $event_list.clear()
 
-                    # UPDATE test           
+                    # UPDATE test
                     output = NewUser.update(1, name: "Jack")
-                    # data verify 
+                    # data verify
                     assert_equal 1, output.id
                     assert_equal "Jack", output.name
                     assert_equal "me@john.com", output.email
@@ -108,10 +108,10 @@ module NewRelic::Security
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_sql_list, sql_fetch_list1
                     assert_equal expected_event1.parameters[0][:parameters], $event_list[0].parameters[0][:parameters]
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory 
-                    
+                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
+
                     assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory 
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     assert_equal expected_event2.parameters, $event_list[1].parameters
 
                     sql_fetch_list2 = $event_list[2].parameters[0][:sql].split(" ")
@@ -119,16 +119,16 @@ module NewRelic::Security
                     assert_equal expected_event1.eventCategory, $event_list[2].eventCategory
                     assert_equal expected_sql_list, sql_fetch_list2
                     assert_equal expected_event1.parameters[0][:parameters], $event_list[2].parameters[0][:parameters]
-                    
-                    # update event 
+
+                    # update event
                     assert_equal expected_event3.caseType, $event_list[3].caseType
-                    assert_equal expected_event3.eventCategory, $event_list[3].eventCategory 
+                    assert_equal expected_event3.eventCategory, $event_list[3].eventCategory
                     assert_equal expected_event3.parameters, $event_list[3].parameters
                     $event_list.clear()
 
-                    # DELETE test           
+                    # DELETE test
                     output = NewUser.delete(1)
-                    # data verify 
+                    # data verify
                     assert_equal 1, output
                     # event verify
                     args1 = [{:sql=>"DELETE FROM \"new_users\" WHERE \"new_users\".\"id\" = $1", :parameters=>["1"]}]
@@ -136,7 +136,7 @@ module NewRelic::Security
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
+                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     ActiveRecord::Base.remove_connection
                     $event_list.clear()
                 end
@@ -149,34 +149,38 @@ module NewRelic::Security
                     # INSERT test
                     $event_list.clear()
                     ActiveRecord::Base.connection.execute("INSERT INTO new_users (id, email, name, ssn) VALUES (1, 'me@abc.com', 'John', '11')")
-                    # execute event verify 
+                    # execute event verify
                     args1 = [{:sql=>"INSERT INTO new_users (id, email, name, ssn) VALUES (1, 'me@abc.com', 'John', '11')", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
+                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
 
                     # UPDATE test
                     ActiveRecord::Base.connection.execute("UPDATE new_users SET name = 'john', email= 'me@john.com' WHERE name = 'abc'")
-                    # execute event verify 
+                    # execute event verify
                     args1 = [{:sql=>"UPDATE new_users SET name = 'john', email= 'me@john.com' WHERE name = 'abc'", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
+                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
 
-                    # SELECT event test 
-                    # data verification 
+                    # SELECT event test
+                    # data verification
                     results = ActiveRecord::Base.connection.execute("SELECT * FROM new_users")
                     output = []
                     results.each do |row|
                         output = row
                     end
-                    expected_result = {"id"=>1, "name"=>"John", "email"=>"me@abc.com", "ssn"=>"11"}
+                    if ::Rails.version < '5'
+                        expected_result = {"id"=>"1", "name"=>"John", "email"=>"me@abc.com", "ssn"=>"11"}
+                    else
+                        expected_result = {"id"=>1, "name"=>"John", "email"=>"me@abc.com", "ssn"=>"11"}
+                    end
                     assert_equal expected_result, output
                     # event verification
                     args = [{:sql=>"SELECT * FROM new_users", :parameters=>[]}]
@@ -189,13 +193,13 @@ module NewRelic::Security
 
                     # DELETE test
                     ActiveRecord::Base.connection.execute("DELETE FROM new_users WHERE name= 'john'")
-                    # execute event verify 
+                    # execute event verify
                     args1 = [{:sql=>"DELETE FROM new_users WHERE name= 'john'", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, POSTGRES)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory  
+                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     ActiveRecord::Base.remove_connection
                     $event_list.clear()
                 end
@@ -203,7 +207,7 @@ module NewRelic::Security
                 Minitest.after_run do
                     NewRelic::Security::Test::DatabaseHelper.create_postgresql_container
                 end
-                
+
             end
         end
     end
