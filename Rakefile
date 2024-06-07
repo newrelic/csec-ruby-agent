@@ -6,7 +6,12 @@ require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
 
 desc 'Install dependencies needed to run tests'
 task :test_bundle do
-  exec('bundle install --gemfile Gemfile_test')
+  if RUBY_VERSION < '2.6.0'
+    sh 'gem install bundler -v 1.17.2'
+    exec('bundle _1.17.2_ install --gemfile Gemfile_test')
+  else
+    exec('bundle install --gemfile Gemfile_test')
+  end
 end
 
 Rake::TestTask.new(:test) do |t|

@@ -30,7 +30,7 @@ jobs:
         run: bundle install
 
       - name: Bundle test environment
-        run: BUNDLE_GEMFILE=Gemfile_test bundle install
+        run: BUNDLE_GEMFILE=Gemfile_test rake test_bundle
 
       - name: Run Unit Tests
         run: bundle exec rake test
