@@ -17,7 +17,6 @@ module NewRelic::Security
   
         def error(msg)
           @logger.error(msg)
-          NewRelic::Security::Agent.agent.status_logger.add_error_in_last_errors(msg)
         end
   
         def warn(msg)

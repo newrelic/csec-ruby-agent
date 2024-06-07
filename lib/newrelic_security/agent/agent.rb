@@ -18,13 +18,12 @@ require 'newrelic_security/agent/control/event_counter'
 require 'newrelic_security/agent/control/event_stats'
 require 'newrelic_security/agent/control/exit_event'
 require 'newrelic_security/instrumentation-security/instrumentation_loader'
-require 'newrelic_security/agent/logging/status_logger'
 
 module NewRelic::Security
   module Agent
     class Agent
 
-      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :status_logger, :iast_event_stats, :rasp_event_stats, :exit_event_stats
+      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :iast_event_stats, :rasp_event_stats, :exit_event_stats
 
       def initialize
         NewRelic::Security::Agent.config
@@ -47,7 +46,6 @@ module NewRelic::Security
       def init
         NewRelic::Security::Agent.logger.info "Initializing Security Agent with config : #{NewRelic::Security::Agent::Utils.filtered_log(NewRelic::Security::Agent.config.inspect)}\n"
         @ready = false
-        create_status_logger
         start_event_processor
         start_websocket_client
         NewRelic::Security::Instrumentation::InstrumentationLoader.add_instrumentation()
@@ -56,11 +54,6 @@ module NewRelic::Security
         @ready = true
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Exception in security agent init: #{exception.inspect} #{exception.backtrace}\n"
-      end
-
-      def create_status_logger
-        @status_logger = nil
-        @status_logger = NewRelic::Security::Agent::Logging::StatusLogger.new
       end
 
       def start_websocket_client
