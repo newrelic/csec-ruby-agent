@@ -24,7 +24,7 @@ module NewRelic::Security
                 execute_batch_on_exit(event) { return retval }
               end
 
-              if respond_to?(:execute_batch2)
+              if ::SQLite3::VERSION >= '1.4'
                 alias_method :execute_batch2_without_security, :execute_batch2
     
                 def execute_batch2(sql, &block)
