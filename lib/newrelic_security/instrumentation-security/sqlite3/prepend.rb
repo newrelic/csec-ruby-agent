@@ -21,7 +21,7 @@ module NewRelic::Security
             retval = nil
             event = execute_batch2_on_enter(sql) { retval = super }
             execute_batch2_on_exit(event) { return retval }
-          end if respond_to?(:execute_batch2)
+          end
 
         end
       end
