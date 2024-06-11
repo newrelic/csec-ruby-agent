@@ -9,7 +9,7 @@ module NewRelic::Security
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         NewRelic::Security::Agent.config.update_port = NewRelic::Security::Agent::Utils.app_port(env) unless NewRelic::Security::Agent.config[:listen_port]
-        NewRelic::Security::Agent::Utils.get_app_routes(:padrino) if NewRelic::Security::Agent.agent.route_map.empty?
+        NewRelic::Security::Agent::Utils.get_app_routes(:padrino, self) if NewRelic::Security::Agent.agent.route_map.empty?
         extracted_env = env.instance_variable_get(:@env)
         NewRelic::Security::Agent::Control::HTTPContext.set_context(extracted_env)
         ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
