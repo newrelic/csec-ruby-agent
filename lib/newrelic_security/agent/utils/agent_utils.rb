@@ -133,7 +133,7 @@ module NewRelic::Security
         end
         disable_object_space_in_jruby if NewRelic::Security::Agent.config[:jruby_objectspace_enabled]
         NewRelic::Security::Agent.logger.debug "ALL ROUTES : #{NewRelic::Security::Agent.agent.route_map}"
-        NewRelic::Security::Agent.agent.event_processor.send_application_url_mappings
+        NewRelic::Security::Agent.agent.event_processor&.send_application_url_mappings
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Error in get app routes : #{exception.inspect} #{exception.backtrace}"
       end
