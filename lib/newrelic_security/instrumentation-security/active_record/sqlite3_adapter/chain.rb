@@ -25,6 +25,14 @@ module NewRelic::Security
                     event = exec_update_on_enter(*var) { retval = exec_update_without_security(*var) }
                     exec_update_on_exit(event) { return retval }
                   end
+                  
+                  alias_method :exec_delete_without_security, :exec_delete
+                  
+                  def exec_delete(*var)
+                    retval = nil
+                    event = exec_delete_on_enter(*var) { retval = exec_delete_without_security(*var) }
+                    exec_delete_on_exit(event) { return retval }
+                  end
                 end
 
                 alias_method :exec_query_without_security, :exec_query
