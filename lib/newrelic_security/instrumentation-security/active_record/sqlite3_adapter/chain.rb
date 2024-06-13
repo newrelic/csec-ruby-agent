@@ -49,6 +49,14 @@ module NewRelic::Security
                     event = exec_query_on_enter(*var, **key_vars) { retval = exec_query_without_security(*var, **key_vars) }
                     exec_query_on_exit(event) { return retval }
                   end
+                  
+                  alias_method :internal_exec_query_without_security, :internal_exec_query
+
+                  def internal_exec_query(*var, **key_vars)
+                    retval = nil
+                    event = internal_exec_query_on_enter(*var, **key_vars) { retval = internal_exec_query_without_security(*var, **key_vars) }
+                    internal_exec_query_on_exit(event) { return retval }
+                  end
                 end
                 
               end
