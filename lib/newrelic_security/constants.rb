@@ -9,7 +9,6 @@ module NewRelic::Security
   NR_CSEC_VALIDATOR_FILE_SEPARATOR = '{{NR_CSEC_VALIDATOR_FILE_SEPARATOR}}'
   SEC_HOME_PATH = 'nr-security-home'
   LOGS_DIR = 'logs'
-  SNAPSHOTS_DIR = 'snapshots'
   TMP_DIR = 'tmp'
   NR_SECURITY_HOME_TMP = 'nr-security-home/tmp/'
   NR_CSEC_FUZZ_REQUEST_ID = 'nr-csec-fuzz-request-id'

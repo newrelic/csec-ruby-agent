@@ -30,8 +30,11 @@ module NewRelic::Security
         
         def remote_read_on_exit(retval)
           NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
-          NewRelic::Security::Agent::Control::GRPCContext.get_context.body += retval.to_json
-          NewRelic::Security::Agent::Control::GRPCContext.get_context.metadata[:reflectedMetaData][:inputClass] = retval.class.name
+          ctxt = NewRelic::Security::Agent::Control::GRPCContext.get_context
+          if ctxt
+            ctxt.body += retval.to_json
+            ctxt.metadata[:reflectedMetaData][:inputClass] = retval.class.name
+          end
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
         ensure
