@@ -131,7 +131,8 @@ module NewRelic::Security
         end
 
         def thread_monotonic_ctr
-          ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context if NewRelic::Security::Agent::Control::HTTPContext.get_context
+          ctxt = NewRelic::Security::Agent::Control::GRPCContext.get_context if NewRelic::Security::Agent::Control::GRPCContext.get_context
           ctxt.event_counter = ctxt.event_counter + 1 if ctxt
         end
 
