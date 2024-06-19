@@ -8,7 +8,7 @@ module NewRelic::Security
       
       class GRPCContext
         
-        attr_accessor :time_stamp, :method, :headers, :body, :route, :cache, :url, :server_name, :server_port, :client_ip, :client_port, :is_grpc, :metadata
+        attr_accessor :time_stamp, :method, :headers, :body, :route, :cache, :fuzz_files, :url, :server_name, :server_port, :client_ip, :client_port, :is_grpc, :metadata
 
         def initialize(grpc_request)
           @time_stamp = current_time_millis
@@ -28,7 +28,8 @@ module NewRelic::Security
           end
           @is_grpc = true
           @metadata = { :reflectedMetaData => { :isGrpcClientStream => grpc_request[:is_grpc_client_stream], :isGrpcServerStream => grpc_request[:is_grpc_server_stream] } }
-          @cache = {}          
+          @cache = {}
+          @fuzz_files = ::Set.new
           NewRelic::Security::Agent.agent.http_request_count.increment
         end
 
