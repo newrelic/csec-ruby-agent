@@ -40,7 +40,8 @@ module NewRelic::Security
         def prepare_env_from_route_on_enter(route)
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
           ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
-          ctxt.route = "#{route.instance_variable_get(:@request_method)}@#{route.options[:namespace]}" unless ctxt.nil?
+          http_method = route.instance_variable_get(:@request_method) ? route.instance_variable_get(:@request_method) : route.instance_variable_get(:@options)[:method]
+          ctxt.route = "#{http_method}@#{route.options[:namespace]}" unless ctxt.nil?
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
         ensure

@@ -117,7 +117,8 @@ module NewRelic::Security
         elsif framework == :grape
           ObjectSpace.each_object(::Grape::Endpoint) { |z|
             z.instance_variable_get(:@routes)&.each { |route|
-              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@request_method)}@#{route.pattern.origin}"
+              http_method = route.instance_variable_get(:@request_method) ? route.instance_variable_get(:@request_method) : route.instance_variable_get(:@options)[:method]
+              NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
             }
           }
         elsif framework == :padrino
