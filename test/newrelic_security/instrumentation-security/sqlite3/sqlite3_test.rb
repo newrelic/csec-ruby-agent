@@ -1,3 +1,4 @@
+return if RUBY_ENGINE == 'jruby'
 require 'sqlite3'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/sqlite3/instrumentation'

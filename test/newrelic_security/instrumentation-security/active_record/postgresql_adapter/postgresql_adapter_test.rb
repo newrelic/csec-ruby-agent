@@ -14,6 +14,7 @@ module NewRelic::Security
                 @@before_all_flag = false
 
                 def setup
+                    $event_list.clear()
                     unless @@before_all_flag
                         NewRelic::Security::Test::DatabaseHelper.create_postgresql_container
                         @@before_all_flag = true
@@ -205,7 +206,7 @@ module NewRelic::Security
                 end
 
                 Minitest.after_run do
-                    NewRelic::Security::Test::DatabaseHelper.create_postgresql_container
+                    NewRelic::Security::Test::DatabaseHelper.remove_postgresql_container
                 end
 
             end
