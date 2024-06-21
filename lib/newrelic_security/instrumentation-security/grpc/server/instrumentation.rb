@@ -18,6 +18,7 @@ module NewRelic::Security
           grpc_request[:is_grpc_client_stream] = is_grpc_client_stream
           grpc_request[:is_grpc_server_stream] = is_grpc_server_stream
           NewRelic::Security::Agent::Control::GRPCContext.set_context(grpc_request)
+          NewRelic::Security::Agent::Utils.parse_fuzz_header(NewRelic::Security::Agent::Control::GRPCContext.get_context)
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
         ensure
@@ -30,8 +31,11 @@ module NewRelic::Security
         
         def remote_read_on_exit(retval)
           NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
-          NewRelic::Security::Agent::Control::GRPCContext.get_context.body += retval.to_json
-          NewRelic::Security::Agent::Control::GRPCContext.get_context.metadata[:reflectedMetaData][:inputClass] = retval.class.name
+          ctxt = NewRelic::Security::Agent::Control::GRPCContext.get_context
+          if ctxt
+            ctxt.body += retval.to_json
+            ctxt.metadata[:reflectedMetaData][:inputClass] = retval.class.name
+          end
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
         ensure
@@ -40,6 +44,7 @@ module NewRelic::Security
 
         def output_metadata_on_enter
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
+          NewRelic::Security::Agent::Utils.delete_created_files(NewRelic::Security::Agent::Control::GRPCContext.get_context)
           NewRelic::Security::Agent::Control::GRPCContext.reset_context
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
