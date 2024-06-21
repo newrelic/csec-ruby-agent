@@ -11,7 +11,8 @@ module NewRelic::Security
           host = "grpc://#{instance_variable_get(:@host)}#{method}"
           # TODO: Recheck this parameters, this is diff for other LCs
           event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [{:host => host, :path => SLASH}])
-          NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(metadata, event) if event
+          # TODO: tracing data is required only in microservices, currently add_tracing_data data causing issues in gRPC.
+          # NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(metadata, event) if event
           event
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"

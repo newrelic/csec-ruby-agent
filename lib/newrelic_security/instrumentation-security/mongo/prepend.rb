@@ -22,31 +22,6 @@ module NewRelic::Security
             event = insert_many_on_enter(documents, options) { retval = super }
             insert_many_on_exit(event) { return retval }
           end
-
-          def update_one(filter, update, options = {})
-            retval = nil
-            event = update_one_on_enter(filter, update, options) { retval = super }
-            update_one_on_exit(event) { return retval }
-          end
-
-          def update_many(filter, update, options = {})
-            retval = nil
-            event = update_many_on_enter(filter, update, options) { retval = super }
-            update_many_on_exit(event) { return retval }
-          end
-
-          def delete_one(filter = nil, options = {})
-            retval = nil
-            event = delete_one_on_enter(filter, options) { retval = super }
-            delete_one_on_exit(event) { return retval }
-          end
-
-          def delete_many(filter = nil, options = {})
-            retval = nil
-            event = delete_many_on_enter(filter, options) { retval = super }
-            delete_many_on_exit(event) { return retval }
-          end
-  
         end
 
         module View

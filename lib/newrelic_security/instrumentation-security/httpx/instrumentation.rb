@@ -8,20 +8,26 @@ module NewRelic::Security
       def send_requests_on_enter(*args)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-        ob = {}
-        ob[:Method] = args[0].verb
-        uri = args[0].uri
-        ob[:scheme]  = uri.scheme
-        ob[:host]    = uri.host
-        ob[:port]    = uri.port
-        ob[:URI]     = uri.to_s
-        ob[:path]    = uri.path
-        ob[:query]   = uri.query
-        ob[:Body]    = args[0].body.bytesize.positive? ? args[0].body.to_s : ""
-        ob[:Headers] = args[0].headers
-        ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
-        NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(args[0].headers, event) if event
+        ic_args = []
+        args.each do |arg|
+          ob = {}
+          ob[:Method] = arg.verb
+          uri = arg.uri
+          ob[:scheme]  = uri.scheme
+          ob[:host]    = uri.host
+          ob[:port]    = uri.port
+          ob[:URI]     = uri.to_s
+          ob[:path]    = uri.path
+          ob[:query]   = uri.query
+          ob[:Body]    = arg.body.bytesize.positive? ? arg.body.to_s : ""
+          ob[:Headers] = arg.headers
+          ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
+          ic_args << ob
+        end
+        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, ic_args)
+        args.each do |arg|
+          NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(arg.headers, event) if event
+        end
         event
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"

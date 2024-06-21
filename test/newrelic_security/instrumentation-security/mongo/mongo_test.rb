@@ -46,27 +46,21 @@ module NewRelic::Security
                     @output = client[:cars].update_one(JSON.parse(old_value), JSON.parse(new_value_change) )
                     # update count
                     assert_equal 1, @output.modified_count      
-                    args = [{:payload=>{:filter=>{"name"=>"abc"}, :update=>{"$set"=>{"name"=>"pqr"}}, :options=>{}}, :payloadType=>:update}]
                     args2 = [{:payload=>{:filter=>{"name"=>"abc"}, :options=>{}}, :payloadType=>:find}]
                     args3 = [{:payload=>{:filter=>{"name"=>"abc"}, :spec=>{"$set"=>{"name"=>"pqr"}}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args3, MONGO)
                     # event count verify
                     mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
-                    assert_equal 3, mongo_events
-                    # update event verify
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_equal 2, mongo_events
                     # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                    assert_equal expected_event2.caseType, $event_list[0].caseType
+                    assert_equal expected_event2.parameters, $event_list[0].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[0].eventCategory
                     # view update event
-                    assert_equal expected_event3.caseType, $event_list[2].caseType
-                    assert_equal expected_event3.parameters, $event_list[2].parameters
-                    assert_equal expected_event3.eventCategory, $event_list[2].eventCategory
+                    assert_equal expected_event3.caseType, $event_list[1].caseType
+                    assert_equal expected_event3.parameters, $event_list[1].parameters
+                    assert_equal expected_event3.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
 
                     # find test
@@ -89,27 +83,21 @@ module NewRelic::Security
                     result = client[:cars].delete_one( JSON.parse(new_value) )
                     @output = result.deleted_count
                     assert_equal 1, @output
-                    args = [{:payload=>{:filter=>{"name"=>"pqr"}, :options=>{}}, :payloadType=>:delete}]
                     args2 = [{:payload=>{:filter=>{"name"=>"pqr"}, :options=>{}}, :payloadType=>:find}]
                     args3 = [{:payload=>{:filter=>{"name"=>"pqr"}, :opts=>{}}, :payloadType=>:delete}]
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args3, MONGO)
                     # event count verify
                     mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
-                    assert_equal 3, mongo_events
-                    # delete event
-                    assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_equal 2, mongo_events
                     # find event
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                    assert_equal expected_event2.caseType, $event_list[0].caseType
+                    assert_equal expected_event2.parameters, $event_list[0].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[0].eventCategory
                     # view delete event
-                    assert_equal expected_event3.caseType, $event_list[2].caseType
-                    assert_equal expected_event3.parameters, $event_list[2].parameters
-                    assert_equal expected_event3.eventCategory, $event_list[2].eventCategory
+                    assert_equal expected_event3.caseType, $event_list[1].caseType
+                    assert_equal expected_event3.parameters, $event_list[1].parameters
+                    assert_equal expected_event3.eventCategory, $event_list[1].eventCategory
                     # delete operation verify
                     @output = []
                     client[:cars].find.each do |document|
@@ -149,27 +137,21 @@ module NewRelic::Security
                     @output = client[:cars].update_many( {}, { "$set" => { :price =>  "2000" } } )
                     # modify count
                     assert_equal 2, @output.modified_count  
-                    args = [{:payload=>{:filter=>{}, :update=>{"$set"=>{:price=>"2000"}}, :options=>{}}, :payloadType=>:update}]
                     args2 = [{:payload=>{:filter=>{}, :options=>{}}, :payloadType=>:find}]
                     args3 = [{:payload=>{:filter=>{}, :spec=>{"$set"=>{:price=>"2000"}}, :opts=>{}}, :payloadType=>:update}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args3, MONGO)
                     # event count verify
                     mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
-                    assert_equal 3, mongo_events
-                    # update_many event verify
-                    assert_equal expected_event1.caseType, $event_list[0].caseType
-                    assert_equal expected_event1.parameters, $event_list[0].parameters
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
+                    assert_equal 2, mongo_events
                     # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                    assert_equal expected_event2.caseType, $event_list[0].caseType
+                    assert_equal expected_event2.parameters, $event_list[0].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[0].eventCategory
                     # view update event
-                    assert_equal expected_event3.caseType, $event_list[2].caseType
-                    assert_equal expected_event3.parameters, $event_list[2].parameters
-                    assert_equal expected_event3.eventCategory, $event_list[2].eventCategory
+                    assert_equal expected_event3.caseType, $event_list[1].caseType
+                    assert_equal expected_event3.parameters, $event_list[1].parameters
+                    assert_equal expected_event3.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
 
                     # find.each test
@@ -196,27 +178,21 @@ module NewRelic::Security
                     # delete many test
                     @output = client[:cars].delete_many(:price => '2000')
                     assert_equal 2, @output.n
-                    args = [{:payload=>{:filter=>{:price=>"2000"}, :options=>{}}, :payloadType=>:delete}]
                     args2 = [{:payload=>{:filter=>{:price=>"2000"}, :options=>{}}, :payloadType=>:find}]
                     args3 = [{:payload=>{:filter=>{"price"=>"2000"}, :opts=>{}}, :payloadType=>:delete}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args, MONGO)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args2, MONGO)
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(NOSQL_DB_COMMAND, args3, MONGO)
                     # event count verify
                     mongo_events = NewRelic::Security::Agent::Control::Collector.get_event_count(NOSQL_DB_COMMAND)
-                    assert_equal 3, mongo_events
-                    # delete_many event verify
-                    assert_equal expected_event1.caseType, $event_list[0].caseType
-                    assert_equal expected_event1.parameters, $event_list[0].parameters
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
+                    assert_equal 2, mongo_events
                     # find event verify
-                    assert_equal expected_event2.caseType, $event_list[1].caseType
-                    assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                    assert_equal expected_event2.caseType, $event_list[0].caseType
+                    assert_equal expected_event2.parameters, $event_list[0].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[0].eventCategory
                     # view delete event
-                    assert_equal expected_event3.caseType, $event_list[2].caseType
-                    assert_equal expected_event3.parameters, $event_list[2].parameters
-                    assert_equal expected_event3.eventCategory, $event_list[2].eventCategory
+                    assert_equal expected_event3.caseType, $event_list[1].caseType
+                    assert_equal expected_event3.parameters, $event_list[1].parameters
+                    assert_equal expected_event3.eventCategory, $event_list[1].eventCategory
 
                     # delete operation verify
                     @output = []
