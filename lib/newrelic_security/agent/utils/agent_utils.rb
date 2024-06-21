@@ -8,9 +8,7 @@ module NewRelic::Security
     module Utils
       extend self
 
-      VULNERABILITY_SCAN = 'vulnerabilityScan'
       ENABLED = 'enabled'
-      IAST_SCAN = 'iastScan'
       VULNERABLE = 'VULNERABLE'
       AES_256_CBC = 'AES-256-CBC'
       H_ASTERIK = 'H*'
