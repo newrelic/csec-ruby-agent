@@ -27,12 +27,12 @@ module NewRelic::Security
         false
       end
 
-      def parse_fuzz_header
-        headers = NewRelic::Security::Agent::Control::HTTPContext.get_context.headers
+      def parse_fuzz_header(ctxt)
+        headers = ctxt.headers if ctxt
         if is_IAST? && is_IAST_request?(headers)
           fuzz_request = headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)
           if fuzz_request.length() >= 7
-            decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7])
+            decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7]) if fuzz_request[6] && fuzz_request[7] && !fuzz_request[6].empty? && !fuzz_request[7].empty?
             if decrypted_data
               NewRelic::Security::Agent.logger.debug "Encrypted data: #{fuzz_request[6]},  decrypted data: #{decrypted_data}, Sha256: #{fuzz_request[7]}"
               decrypted_data.split(COMMA).each do |filename|
@@ -41,7 +41,7 @@ module NewRelic::Security
                   filename.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
                   dirname = ::File.dirname(filename)
                   ::FileUtils.mkdir_p(dirname, :mode => 0770) unless ::File.directory?(dirname)
-                  NewRelic::Security::Agent::Control::HTTPContext.get_context&.fuzz_files << filename
+                  ctxt&.fuzz_files << filename
                   ::File.open(filename, ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
                       # puts "Ownership acquired by : #{Process.pid}"
                   end unless ::File.exist?(filename)
@@ -66,11 +66,11 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.error "Exception in decrypt_data: #{exception.inspect} #{exception.backtrace}"
       end
 
-      def delete_created_files
-        return unless NewRelic::Security::Agent::Control::HTTPContext.get_context
-        headers = NewRelic::Security::Agent::Control::HTTPContext.get_context.headers
+      def delete_created_files(ctxt)
+        return unless ctxt
+        headers = ctxt.headers
         if is_IAST? && is_IAST_request?(headers)
-          NewRelic::Security::Agent::Control::HTTPContext.get_context.fuzz_files.each do |file|
+          ctxt.fuzz_files.each do |file|
             begin
               ::File.delete(file)
             rescue
@@ -116,8 +116,9 @@ module NewRelic::Security
           end
         elsif framework == :grape
           ObjectSpace.each_object(::Grape::Endpoint) { |z|
-            z.routes.each { |route|
-              NewRelic::Security::Agent.agent.route_map << "#{route.options[:method]}@#{route.pattern.origin}"
+            z.instance_variable_get(:@routes)&.each { |route|
+              http_method = route.instance_variable_get(:@request_method) ? route.instance_variable_get(:@request_method) : route.instance_variable_get(:@options)[:method]
+              NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
             }
           }
         elsif framework == :padrino

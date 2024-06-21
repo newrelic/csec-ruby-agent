@@ -107,7 +107,7 @@ module NewRelic::Security
           http_request[:serverPort] = ctxt.server_port
           http_request[:clientIP] = ctxt.client_ip
           http_request[:clientPort] = ctxt.client_port
-          http_request[:protocol] = "TODO: "
+          http_request[:protocol] = :grpc
           http_request[:headers] = ctxt.headers
           http_request[:contentType] = "TODO: "
           http_request[:isGrpc] = ctxt.is_grpc
@@ -131,7 +131,8 @@ module NewRelic::Security
         end
 
         def thread_monotonic_ctr
-          ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
+          ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context if NewRelic::Security::Agent::Control::HTTPContext.get_context
+          ctxt = NewRelic::Security::Agent::Control::GRPCContext.get_context if NewRelic::Security::Agent::Control::GRPCContext.get_context
           ctxt.event_counter = ctxt.event_counter + 1 if ctxt
         end
 
