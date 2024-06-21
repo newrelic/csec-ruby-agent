@@ -1,3 +1,4 @@
+return if RUBY_ENGINE == 'ruby'
 require 'rails'
 require 'active_record'
 require "active_record/connection_adapters/mysql2_adapter"
