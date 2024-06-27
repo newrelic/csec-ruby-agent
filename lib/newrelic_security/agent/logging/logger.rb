@@ -5,7 +5,7 @@ module NewRelic::Security
   module Agent
     module Logging
       LOG_FILE_SIZE = 50 * 1024 * 1024
-      MAX_LOG_FILES = 2
+      MAX_LOG_FILES = 3
 
       class AgentLogger
         def initialize
