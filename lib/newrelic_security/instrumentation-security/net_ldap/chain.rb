@@ -8,9 +8,9 @@ module NewRelic::Security
 
             alias_method :search_without_security, :search
   
-            def search(args = {})
+            def search(args = {}, &block)
               retval = nil
-              event = search_on_enter(args) { retval = search_without_security(args) }
+              event = search_on_enter(args) { retval = search_without_security(args, &block) }
               search_on_exit(event) { return retval }
             end
           end

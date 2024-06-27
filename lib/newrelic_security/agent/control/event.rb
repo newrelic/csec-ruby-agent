@@ -11,7 +11,7 @@ module NewRelic::Security
 
       class Event
 
-        attr_accessor :sourceMethod, :userMethodName, :userFileName, :lineNumber,  :id, :apiId, :isIASTEnable, :isIASTRequest, :httpRequest, :stacktrace, :metaData
+        attr_accessor :sourceMethod, :userMethodName, :userFileName, :lineNumber,  :id, :apiId, :isIASTEnable, :isIASTRequest, :httpRequest, :httpResponse, :stacktrace, :metaData, :parentId
         attr_reader :jsonName, :caseType, :eventCategory, :parameters
         
         def initialize(case_type, args, event_category)
@@ -27,6 +27,7 @@ module NewRelic::Security
           @jsonVersion = NewRelic::Security::Agent.config[:json_version]
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @httpRequest = Hash.new
+          @httpResponse = Hash.new
           @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s } }
           @linkingMetadata = add_linking_metadata
           @pid = pid
@@ -45,6 +46,7 @@ module NewRelic::Security
           @isAPIBlocked = nil
           @isIASTEnable = false
           @isIASTRequest = false
+          @parentId = nil
         end
 
         def as_json
@@ -78,6 +80,7 @@ module NewRelic::Security
           http_request[:generationTime] = ctxt.time_stamp
           http_request[:dataTruncated] = false
           http_request[:method] = ctxt.method
+          http_request[:route] = ctxt.route.split(AT_THE_RATE)[1] if ctxt.route
           http_request[:url] = URI(ctxt.req[REQUEST_URI]).respond_to?(:request_uri) ? URI(ctxt.req[REQUEST_URI]).request_uri : ctxt.req[REQUEST_URI]
           http_request[:clientIP] = ctxt.headers.has_key?(X_FORWARDED_FOR) ? ctxt.headers[X_FORWARDED_FOR].split(COMMA)[0].to_s : ctxt.req[REMOTE_ADDR].to_s
           http_request[:serverPort] = ctxt.req[SERVER_PORT].to_i
@@ -86,8 +89,30 @@ module NewRelic::Security
           http_request[:headers] = ctxt.headers
           http_request[:contentType] = ctxt.req[CONTENT_TYPE] if ctxt.req.has_key?(CONTENT_TYPE)
           http_request[:headers][CONTENT_TYPE1] = ctxt.req[CONTENT_TYPE] if ctxt.req.has_key?(CONTENT_TYPE)
+          http_request[:dataTruncated] = ctxt.data_truncated
           @httpRequest = http_request
           @metaData[:isClientDetectedFromXFF] = ctxt.headers.has_key?(X_FORWARDED_FOR) ? true : false
+        end
+
+        def copy_grpc_info(ctxt)
+          # TODO: optimise this method and combine copy_http_info and copy_grpc_info
+          return if ctxt.nil?
+          http_request = {}
+          http_request[:body] = ctxt.body
+          http_request[:generationTime] = ctxt.time_stamp
+          http_request[:dataTruncated] = false
+          http_request[:method] = ctxt.method
+          http_request[:url] = ctxt.url
+          http_request[:serverName] = ctxt.server_name
+          http_request[:serverPort] = ctxt.server_port
+          http_request[:clientIP] = ctxt.client_ip
+          http_request[:clientPort] = ctxt.client_port
+          http_request[:protocol] = :grpc
+          http_request[:headers] = ctxt.headers
+          http_request[:contentType] = "TODO: "
+          http_request[:isGrpc] = ctxt.is_grpc
+          @httpRequest = http_request
+          @metaData = ctxt.metadata
         end
 
         private
@@ -106,9 +131,9 @@ module NewRelic::Security
         end
 
         def thread_monotonic_ctr
-          ::Thread.current[:kevent_ctr] = 0 if ::Thread.current[:kevent_ctr].nil?
-          ::Thread.current[:kevent_ctr] = ::Thread.current[:kevent_ctr] + 1
-          ::Thread.current[:kevent_ctr]
+          ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context if NewRelic::Security::Agent::Control::HTTPContext.get_context
+          ctxt = NewRelic::Security::Agent::Control::GRPCContext.get_context if NewRelic::Security::Agent::Control::GRPCContext.get_context
+          ctxt.event_counter = ctxt.event_counter + 1 if ctxt
         end
 
         def add_linking_metadata

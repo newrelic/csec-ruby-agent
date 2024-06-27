@@ -6,22 +6,24 @@ module NewRelic::Security
     module Test
         module Instrumentation
             class TestPatron < Minitest::Test
-                def test_patron_session_get
+
+                def setup
                     $event_list.clear()
+                end
+
+                def test_patron_session_get
                     url = "https://www.google.com"
                     sess = Patron::Session.new({ :timeout => 10,
                                             :base_url => url,
                                             :headers => {'User-Agent' => 'myapp/1.0'} } )
                     @output = sess.get("/").body
                     #puts @output
-                    case_type = "HTTP_REQUEST"
                     args = [{:Method=>:get, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com/", :path=>"/", :query=>nil, :Body=>nil, :Headers=>{"Expect"=>""}}]
-                    event_category = nil
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(case_type, args, event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
             end
         end
