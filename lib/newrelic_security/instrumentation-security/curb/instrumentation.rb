@@ -11,19 +11,21 @@ module NewRelic::Security
         ic_args = []
         self.requests.each {
           |key, req|
-          uri = URI(req.url)
+          uri = NewRelic::Security::Instrumentation::InstrumentationUtils.parse_uri(req.url)
           ob = {}
-          ob[:Method]  = nil
-          ob[:scheme]  = uri.scheme
-          ob[:host]    = uri.host
-          ob[:port]    = uri.port
-          ob[:URI]     = uri.to_s
-          ob[:path]    = uri.path
-          ob[:query]   = uri.query
-          ob[:Body]    = req.post_body
-          ob[:Headers] = req.headers
-          ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-          ic_args.push(ob)
+          if uri
+            ob[:Method]  = nil
+            ob[:scheme]  = uri.scheme
+            ob[:host]    = uri.host
+            ob[:port]    = uri.port
+            ob[:URI]     = uri.to_s
+            ob[:path]    = uri.path
+            ob[:query]   = uri.query
+            ob[:Body]    = req.post_body
+            ob[:Headers] = req.headers
+            ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
+            ic_args.push(ob)
+          end
         }
         event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, ic_args)
         self.requests.each { |key, req| NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(req.headers, event) } if event

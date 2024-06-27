@@ -30,6 +30,9 @@ module NewRelic::Security
           @linkingMetadata = add_linking_metadata
           @stats = {}
           @serviceStatus = {} # TODO: Fill this
+          @iastEventStats = {}
+          @raspEventStats = {}
+          @exitEventStats = {}
         end
 
         def as_json
@@ -60,9 +63,11 @@ module NewRelic::Security
           @serviceStatus[:websocket] = NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open? ? 'OK' : 'Error'
           @serviceStatus[:logWriter] = NewRelic::Security::Agent.logger ? 'OK' : 'Error'
           @serviceStatus[:initLogWriter] = NewRelic::Security::Agent.init_logger ? 'OK' : 'Error'
-          @serviceStatus[:statusLogWriter] = NewRelic::Security::Agent.agent.status_logger ? 'OK' : 'Error'
           @serviceStatus[:agentActiveStat] = NewRelic::Security::Agent.config[:enabled] ? 'OK' : 'Error'
           @serviceStatus[:iastRestClient] = NewRelic::Security::Agent::Utils.is_IAST? && !NewRelic::Security::Agent.agent.iast_client ? 'Error' : 'OK'
+          @iastEventStats = NewRelic::Security::Agent.agent.iast_event_stats.prepare_for_health_check
+          @raspEventStats = NewRelic::Security::Agent.agent.rasp_event_stats.prepare_for_health_check
+          @exitEventStats = NewRelic::Security::Agent.agent.exit_event_stats.prepare_for_health_check
         rescue Exception => exception
           NewRelic::Security::Agent::logger.error "Exception in finding update_health_check : #{exception.inspect} #{exception.backtrace}"
         end

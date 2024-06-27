@@ -34,13 +34,19 @@ module NewRelic::Security
 
         TAG_NAME_REGEX = ::Regexp.new("<([a-zA-Z_\\-]+[0-9]*|!--)", ::Regexp::MULTILINE | ::Regexp::IGNORECASE )
         ATTRIBUTE_REGEX = ::Regexp.new("([^(\\/\\s<'\">)]+?)(?:\\s*)=\\s*(('|\")([\\s\\S]*?)(?:(?=(\\\\?))\\5.)*?\\3|.+?(?=\\/>|>|\\?>|\\s|<\\/|$))", Regexp::MULTILINE | Regexp::IGNORECASE)
+        UNSUPPORTED_MEDIA_TYPES = %w[video/ image/ font/ audio/].freeze
+        UNSUPPORTED_CONTENT_TYPES = %w[application/zip application/epub+zip application/gzip application/java-archive application/msword application/octet-stream application/ogg application/pdf application/rtf application/vnd.amazon.ebook application/vnd.apple.installer+xml application/vnd.ms-excel application/vnd.ms-fontobject 
+                                       application/vnd.ms-powerpoint application/vnd.oasis.opendocument.presentation application/vnd.oasis.opendocument.spreadsheet application/vnd.oasis.opendocument.text application/vnd.openxmlformats-officedocument.presentationml.presentation 
+                                       application/vnd.openxmlformats-officedocument.spreadsheetml.sheet application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.rar application/vnd.visio application/x-7z-compressed application/x-abiword application/x-bzip application/x-bzip2 application/x-cdf 
+                                       application/x-freearc application/x-tar application/zip text/calendar ].freeze
+  
 
         extend self
 
         def check_xss(http_req, retval)
           # TODO: Check if enableHTTPRequestPrinting is required.
-          return unless http_req
-          if retval[1].key?(Content_Type) && (retval[1][Content_Type].start_with?('image/') || retval[1][Content_Type].start_with?('audio/') || retval[1][Content_Type].start_with?('video/'))
+          return if http_req.nil? || retval.empty?
+          if retval[1].key?(Content_Type) && (retval[1][Content_Type].start_with?(*UNSUPPORTED_MEDIA_TYPES) || retval[1][Content_Type].start_with?(*UNSUPPORTED_CONTENT_TYPES))
             return
           end
           response_body = ::String.new
@@ -51,7 +57,7 @@ module NewRelic::Security
             parameters = Array.new
             parameters << construct
             parameters << response_body.force_encoding(ISO_8859_1).encode(UTF_8)
-            NewRelic::Security::Agent::Control::Collector.collect(REFLECTED_XSS, parameters)
+            NewRelic::Security::Agent::Control::Collector.collect(REFLECTED_XSS, parameters, nil, :response_header => retval[1][Content_Type])
           end
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in Reflected XSS detection : #{exception.inspect} #{exception.backtrace}"
@@ -128,7 +134,7 @@ module NewRelic::Security
               # do while loop in java code here
               old_processed_body = processed_body
               body = ::JSON.parse(processed_body)
-              processed_data.add(body) if old_processed_body != body && body.include?(LESS_THAN)
+              processed_data.add(body) if old_processed_body != body && body.to_s.include?(LESS_THAN)
             when APPLICATION_XML
               # Unescaping of xml data is remaining
               processed_data.add(processed_data)
