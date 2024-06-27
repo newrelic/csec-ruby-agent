@@ -95,7 +95,7 @@ module NewRelic::Security
         NewRelic::Security::Agent.agent.exit_event_stats.error_count.increment
       end
 
-      def get_app_routes(framework)
+      def get_app_routes(framework, router = nil)
         enable_object_space_in_jruby
         if framework == :rails
           ::Rails.application.routes.routes.each do |route|
@@ -122,11 +122,11 @@ module NewRelic::Security
             }
           }
         elsif framework == :padrino
-          ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
-            z.instance_variable_get(:@routes).each { |route|
+          if router.instance_of?(::Padrino::PathRouter::Router)
+            router.instance_variable_get(:@routes).each do |route|
               NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.matcher.instance_variable_get(:@path)}"
-            }
-          }
+            end
+          end
         elsif framework == :roda
           NewRelic::Security::Agent.logger.warn "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
         else
@@ -134,6 +134,7 @@ module NewRelic::Security
         end
         disable_object_space_in_jruby if NewRelic::Security::Agent.config[:jruby_objectspace_enabled]
         NewRelic::Security::Agent.logger.debug "ALL ROUTES : #{NewRelic::Security::Agent.agent.route_map}"
+        NewRelic::Security::Agent.agent.event_processor&.send_application_url_mappings
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Error in get app routes : #{exception.inspect} #{exception.backtrace}"
       end
