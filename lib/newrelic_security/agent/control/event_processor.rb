@@ -54,8 +54,6 @@ module NewRelic::Security
         def send_health
           health = NewRelic::Security::Agent::Control::Health.new
           health.update_health_check
-          NewRelic::Security::Agent.agent.status_logger.add_healthcheck_in_last_healthchecks(health)
-          NewRelic::Security::Agent.agent.status_logger.create_snapshot
           NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
           health = nil
         end
@@ -76,11 +74,6 @@ module NewRelic::Security
           NewRelic::Security::Agent.agent.exit_event_stats.processed.increment
           enqueue(exit_event)
           exit_event = nil
-        end
-
-        def send_fuzz_fail_event(fuzz_fail_event)
-          enqueue(fuzz_fail_event)
-          fuzz_fail_event = nil
         end
 
         def send_iast_data_transfer_request(iast_data_transfer_request)

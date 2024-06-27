@@ -7,6 +7,7 @@ require 'newrelic_security/agent/control/control_command'
 require 'newrelic_security/agent/control/fuzz_request'
 require 'newrelic_security/agent/control/reflected_xss'
 require 'newrelic_security/agent/control/http_context'
+require 'newrelic_security/agent/control/grpc_context'
 require 'newrelic_security/agent/control/collector'
 require 'newrelic_security/agent/control/app_info'
 require 'newrelic_security/agent/control/application_url_mappings'
@@ -16,20 +17,18 @@ require 'newrelic_security/agent/control/critical_message'
 require 'newrelic_security/agent/control/event_counter'
 require 'newrelic_security/agent/control/event_stats'
 require 'newrelic_security/agent/control/exit_event'
-require 'newrelic_security/agent/control/fuzz_fail_event'
 require 'newrelic_security/instrumentation-security/instrumentation_loader'
-require 'newrelic_security/agent/logging/status_logger'
 
 module NewRelic::Security
   module Agent
     class Agent
 
-      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :status_logger, :iast_event_stats, :rasp_event_stats, :exit_event_stats
+      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :iast_event_stats, :rasp_event_stats, :exit_event_stats
 
       def initialize
         NewRelic::Security::Agent.config
         create_agent_home
-        enable_object_space_in_jruby
+        NewRelic::Security::Agent::Utils.enable_object_space_in_jruby
         NewRelic::Security::Agent.config.save_uuid
         @started = false
         @event_subscriber = NewRelic::Security::Agent::Control::EventSubscriber.new
@@ -47,7 +46,6 @@ module NewRelic::Security
       def init
         NewRelic::Security::Agent.logger.info "Initializing Security Agent with config : #{NewRelic::Security::Agent::Utils.filtered_log(NewRelic::Security::Agent.config.inspect)}\n"
         @ready = false
-        create_status_logger
         start_event_processor
         start_websocket_client
         NewRelic::Security::Instrumentation::InstrumentationLoader.add_instrumentation()
@@ -56,11 +54,6 @@ module NewRelic::Security
         @ready = true
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Exception in security agent init: #{exception.inspect} #{exception.backtrace}\n"
-      end
-
-      def create_status_logger
-        @status_logger = nil
-        @status_logger = NewRelic::Security::Agent::Logging::StatusLogger.new
       end
 
       def start_websocket_client
@@ -95,13 +88,6 @@ module NewRelic::Security
         find_or_create_file_path(log_dir)
         tmp_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, TMP_DIR)
         find_or_create_file_path(tmp_dir)
-      end
-
-      def enable_object_space_in_jruby
-        if RUBY_ENGINE == 'jruby' && !JRuby.objectspace
-          JRuby.objectspace = true
-          NewRelic::Security::Agent.config.jruby_objectspace_enabled = true
-        end
       end
 
       def find_or_create_file_path(path)

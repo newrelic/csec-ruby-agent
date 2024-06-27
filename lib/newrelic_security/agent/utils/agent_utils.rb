@@ -23,23 +23,25 @@ module NewRelic::Security
       end
 
       def is_IAST_request?(headers)
-        headers.key?(NR_CSEC_FUZZ_REQUEST_ID)
+        return true if headers&.key?(NR_CSEC_FUZZ_REQUEST_ID)
+        false
       end
 
-      def parse_fuzz_header
-        headers = NewRelic::Security::Agent::Control::HTTPContext.get_context.headers
+      def parse_fuzz_header(ctxt)
+        headers = ctxt.headers if ctxt
         if is_IAST? && is_IAST_request?(headers)
           fuzz_request = headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)
           if fuzz_request.length() >= 7
-            decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7])
+            decrypted_data = decrypt_data(fuzz_request[6], fuzz_request[7]) if fuzz_request[6] && fuzz_request[7] && !fuzz_request[6].empty? && !fuzz_request[7].empty?
             if decrypted_data
               NewRelic::Security::Agent.logger.debug "Encrypted data: #{fuzz_request[6]},  decrypted data: #{decrypted_data}, Sha256: #{fuzz_request[7]}"
               decrypted_data.split(COMMA).each do |filename|
                 begin
-                  filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+                  filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NewRelic::Security::Agent.config[:fuzz_dir_path])
                   filename.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
                   dirname = ::File.dirname(filename)
-                  ::FileUtils.mkdir_p(dirname, :mode => 0666) unless ::File.directory?(dirname)
+                  ::FileUtils.mkdir_p(dirname, :mode => 0770) unless ::File.directory?(dirname)
+                  ctxt&.fuzz_files << filename
                   ::File.open(filename, ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
                       # puts "Ownership acquired by : #{Process.pid}"
                   end unless ::File.exist?(filename)
@@ -64,19 +66,14 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.error "Exception in decrypt_data: #{exception.inspect} #{exception.backtrace}"
       end
 
-      def delete_created_files
-        return unless NewRelic::Security::Agent::Control::HTTPContext.get_context
-        headers = NewRelic::Security::Agent::Control::HTTPContext.get_context.headers
+      def delete_created_files(ctxt)
+        return unless ctxt
+        headers = ctxt.headers
         if is_IAST? && is_IAST_request?(headers)
-          fuzz_request = headers[NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)
-          if fuzz_request.length() >= 7
-            i = 6
-            while i < fuzz_request.length()
-                begin
-                    ::File.delete(fuzz_request[i])
-                rescue
-                end
-                i = i + 1
+          ctxt.fuzz_files.each do |file|
+            begin
+              ::File.delete(file)
+            rescue
             end
           end
         end
@@ -98,13 +95,8 @@ module NewRelic::Security
         NewRelic::Security::Agent.agent.exit_event_stats.error_count.increment
       end
 
-      def create_fuzz_fail_event(fuzz_request_id)
-        fuzz_fail_event = NewRelic::Security::Agent::Control::FuzzFailEvent.new
-        fuzz_fail_event.fuzzHeader = fuzz_request_id
-        NewRelic::Security::Agent.agent.event_processor.send_fuzz_fail_event(fuzz_fail_event)
-      end
-
-      def get_app_routes(framework)
+      def get_app_routes(framework, router = nil)
+        enable_object_space_in_jruby
         if framework == :rails
           ::Rails.application.routes.routes.each do |route|
             if route.verb.is_a?(::Regexp)
@@ -124,22 +116,25 @@ module NewRelic::Security
           end
         elsif framework == :grape
           ObjectSpace.each_object(::Grape::Endpoint) { |z|
-            z.routes.each { |route|
-              NewRelic::Security::Agent.agent.route_map << "#{route.options[:method]}@#{route.options[:namespace]}"
+            z.instance_variable_get(:@routes)&.each { |route|
+              http_method = route.instance_variable_get(:@request_method) ? route.instance_variable_get(:@request_method) : route.instance_variable_get(:@options)[:method]
+              NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
             }
           }
         elsif framework == :padrino
-          ObjectSpace.each_object(::Padrino::PathRouter::Router) { |z|
-            z.instance_variable_get(:@routes).each { |route|
-              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.instance_variable_get(:@path)}"
-            }
-          }
+          if router.instance_of?(::Padrino::PathRouter::Router)
+            router.instance_variable_get(:@routes).each do |route|
+              NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.matcher.instance_variable_get(:@path)}"
+            end
+          end
         elsif framework == :roda
           NewRelic::Security::Agent.logger.warn "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end
+        disable_object_space_in_jruby if NewRelic::Security::Agent.config[:jruby_objectspace_enabled]
         NewRelic::Security::Agent.logger.debug "ALL ROUTES : #{NewRelic::Security::Agent.agent.route_map}"
+        NewRelic::Security::Agent.agent.event_processor&.send_application_url_mappings
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Error in get app routes : #{exception.inspect} #{exception.backtrace}"
       end
@@ -198,6 +193,13 @@ module NewRelic::Security
         root = nil
         root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack
         root
+      end
+
+      def enable_object_space_in_jruby
+        if RUBY_ENGINE == 'jruby' && !JRuby.objectspace
+          JRuby.objectspace = true
+          NewRelic::Security::Agent.config.jruby_objectspace_enabled = true
+        end
       end
 
       def disable_object_space_in_jruby

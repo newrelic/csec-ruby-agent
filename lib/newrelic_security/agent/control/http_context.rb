@@ -16,7 +16,7 @@ module NewRelic::Security
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter
 
         def initialize(env)
           @time_stamp = current_time_millis
@@ -32,6 +32,8 @@ module NewRelic::Security
 						offset = strio.tell
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024) #after read, offset changes
 						strio.seek(offset)
+            # In case of Grape and Roda strio.read giving empty result, added below approach to handle such cases
+            @body = strio.string if @body.nil? && strio.size > 0
 					elsif defined?(::Rack) && defined?(::Rack::Lint::InputWrapper) && strio.instance_of?(::Rack::Lint::InputWrapper)
 						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
           elsif defined?(::Protocol::Rack::Input) && defined?(::Protocol::Rack::Input) && strio.instance_of?(::Protocol::Rack::Input)
@@ -43,6 +45,8 @@ module NewRelic::Security
 					strio&.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
+          @fuzz_files = ::Set.new
+          @event_counter = 0
           NewRelic::Security::Agent.agent.http_request_count.increment
           NewRelic::Security::Agent.agent.iast_client.completed_requests[@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID)
         end

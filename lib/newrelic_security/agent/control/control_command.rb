@@ -32,6 +32,7 @@ module NewRelic::Security
               fuzz_request = NewRelic::Security::Agent::Control::FuzzRequest.new(message_object[:id])
               fuzz_request.request = prepare_fuzz_request(message_object)
               fuzz_request.case_type = message_object[:arguments][1]
+              fuzz_request.reflected_metadata =  message_object[:reflectedMetaData]
               NewRelic::Security::Agent.agent.iast_client.pending_request_ids << message_object[:id]
               NewRelic::Security::Agent.agent.iast_client.enqueue(fuzz_request)
               fuzz_request = nil
@@ -90,9 +91,9 @@ module NewRelic::Security
         end
 
         def reconnect_at_will
-          NewRelic::Security::Agent.agent.iast_client.fuzzQ.clear
-          NewRelic::Security::Agent.agent.iast_client.completed_requests.clear
-          NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear
+          NewRelic::Security::Agent.agent.iast_client.fuzzQ.clear if NewRelic::Security::Agent.agent.iast_client
+          NewRelic::Security::Agent.agent.iast_client.completed_requests.clear if NewRelic::Security::Agent.agent.iast_client
+          NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear if NewRelic::Security::Agent.agent.iast_client
           NewRelic::Security::Agent.config.disable_security
           Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
         end
@@ -102,15 +103,14 @@ module NewRelic::Security
         end
 
         def prepare_fuzz_request(message_object)
-          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NR_SECURITY_HOME_TMP)
+          message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NewRelic::Security::Agent.config[:fuzz_dir_path])
           message_object[:arguments][0].gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
           prepared_fuzz_request = ::JSON.parse(message_object[:arguments][0])
           prepared_fuzz_request[HEADERS][NR_CSEC_PARENT_ID] = message_object[:id]
           prepared_fuzz_request
-        rescue Exception => exception
+        rescue Exception => exception # rubocop:disable Lint/RescueException
           NewRelic::Security::Agent.logger.error "Exception in preparing fuzz request : #{exception.inspect} #{exception.backtrace}"
         end
-        
       end
     end
   end

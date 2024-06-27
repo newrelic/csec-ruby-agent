@@ -6,7 +6,6 @@ module NewRelic::Security
     module NetHTTP
 
       HTTP = 'http'
-      HTTPS = 'https'
       HTTP_COLON_SLASH_SLAH = 'http://'
       HTTPS_COLON_SLASH_SLAH = 'https://'
 
