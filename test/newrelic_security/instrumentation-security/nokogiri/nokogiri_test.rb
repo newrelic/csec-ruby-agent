@@ -13,18 +13,17 @@ module NewRelic::Security
                     $event_list.clear()
                     doc = Nokogiri::XML(f)
                     output = doc.xpath(".//employee[firstName[text()=#{input.to_s}]")
+                    f.close
                     # data verify 
                     assert_equal "1", output[0].attr('id')
                     assert_equal "2", output[1].attr('id')
                     # event verify
-                    case_type = "XPATH"
                     args = [{:paths=>[".//employee[firstName[text()='xyx'] or 1]"], :variables=>nil}]
-                    event_category = nil
-                    expected_event = NewRelic::Security::Agent::Control::Event.new(case_type, args, event_category)
-                    assert_equal 1, $event_list.length
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(XPATH, args, nil)
+                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(XPATH)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_nil expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_nil $event_list[0].eventCategory
                 end
                 
             end
