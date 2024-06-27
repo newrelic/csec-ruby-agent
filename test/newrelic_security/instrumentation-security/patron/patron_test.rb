@@ -1,3 +1,4 @@
+return if RUBY_ENGINE == 'jruby'
 require 'patron'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/patron/instrumentation'
@@ -29,4 +30,3 @@ module NewRelic::Security
         end
     end
 end
-  

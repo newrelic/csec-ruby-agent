@@ -8,6 +8,7 @@ class MyApp < Rails::Application
   config.active_support.deprecation = :log
   config.eager_load = false
   config.filter_parameters += [:secret]
+  config.secret_key_base = '414fd9af0cc192729b2b6bffe9e7077c9ac8eed5cbb74c8c4cd628906b716770598a2b7e1f328052753a4df72e559969dc05b408de73ce040c93cac7c51a348e'
   if Rails::VERSION::STRING >= '7.0.0'
     config.action_controller.default_protect_from_forgery = true
   end
@@ -27,7 +28,7 @@ MyApp.routes.draw do
   delete '/myapi5', :to => 'myapi#data_delete'
 end
 
-class MyapiController #< ApplicationController
+class MyapiController < ActionController::Base
   def fetch
     "fetch user"
   end
@@ -51,7 +52,7 @@ class MyApiTest < ActionDispatch::IntegrationTest
   end
 
   def get_test
-      get('/myapi')
+    get('/myapi')
   end
 
   def post_test(data)
@@ -76,18 +77,17 @@ module NewRelic::Security
     module Instrumentation
       class TestRails < Minitest::Test
         include Rack::Test::Methods
-        
+
         def app
           MyApp
         end
 
-        def test_call
+        def test_call_get
           NewRelic::Security::Agent::Utils.get_app_routes(:rails)
           @api_instance = MyApiTest.new('get')
           @api_instance.get_test
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
           NewRelic::Security::Agent::Control::HTTPContext.clear_context
-          #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
           body = http_context.body
@@ -106,7 +106,6 @@ module NewRelic::Security
           assert(all_routes.include?("PATCH@/myapi3"))
           assert(all_routes.include?("PUT@/myapi4"))
           assert(all_routes.include?("DELETE@/myapi5"))
-          # puts http_context.route
           assert_equal  "GET@/myapi", http_context.route
           assert_equal Integer, time_stamp.class
           assert_equal "GET", method
@@ -118,7 +117,7 @@ module NewRelic::Security
           assert_equal "www.example.com", server_name
           assert_equal "http", protocol
           assert_equal "www.example.com", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_call_post
@@ -126,7 +125,6 @@ module NewRelic::Security
           @api_instance.post_test('abc')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
           NewRelic::Security::Agent::Control::HTTPContext.clear_context
-          #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
           body = http_context.body
@@ -138,19 +136,22 @@ module NewRelic::Security
           server_name = http_context.req["SERVER_NAME"]
           protocol = http_context.req["rack.url_scheme"]
           # data verify
-          #puts http_context.route
           assert_equal  "POST@/myapi2", http_context.route
           assert_equal Integer, time_stamp.class
           assert_equal "POST", method
           assert_equal "/myapi2", url
           assert_equal "", query_string
-          assert_equal "name=abc", body
+          if Rails.version < '5'
+            assert_equal "params[name]=abc", body
+          else
+            assert_equal "name=abc", body
+          end
           assert_equal "127.0.0.1", clientIP
           assert_equal "80", server_port
           assert_equal "www.example.com", server_name
           assert_equal "http", protocol
           assert_equal "www.example.com", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_call_patch
@@ -158,7 +159,6 @@ module NewRelic::Security
           @api_instance.patch_test('abc')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
           NewRelic::Security::Agent::Control::HTTPContext.clear_context
-          #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
           body = http_context.body
@@ -170,19 +170,22 @@ module NewRelic::Security
           server_name = http_context.req["SERVER_NAME"]
           protocol = http_context.req["rack.url_scheme"]
           # data verify
-          #puts http_context.route
           assert_equal  "PATCH@/myapi3", http_context.route
           assert_equal Integer, time_stamp.class
           assert_equal "PATCH", method
           assert_equal "/myapi3", url
           assert_equal "", query_string
-          assert_equal "name=abc", body
+          if Rails.version < '5'
+            assert_equal "params[name]=abc", body
+          else
+            assert_equal "name=abc", body
+          end
           assert_equal "127.0.0.1", clientIP
           assert_equal "80", server_port
           assert_equal "www.example.com", server_name
           assert_equal "http", protocol
           assert_equal "www.example.com", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_call_put
@@ -190,7 +193,6 @@ module NewRelic::Security
           @api_instance.put_test('abc')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
           NewRelic::Security::Agent::Control::HTTPContext.clear_context
-          #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
           body = http_context.body
@@ -202,19 +204,22 @@ module NewRelic::Security
           server_name = http_context.req["SERVER_NAME"]
           protocol = http_context.req["rack.url_scheme"]
           # data verify
-          #puts http_context.route
           assert_equal  "PUT@/myapi4", http_context.route
           assert_equal Integer, time_stamp.class
           assert_equal "PUT", method
           assert_equal "/myapi4", url
           assert_equal "", query_string
-          assert_equal "name=abc", body
+          if Rails.version < '5'
+            assert_equal "params[name]=abc", body
+          else
+            assert_equal "name=abc", body
+          end
           assert_equal "127.0.0.1", clientIP
           assert_equal "80", server_port
           assert_equal "www.example.com", server_name
           assert_equal "http", protocol
           assert_equal "www.example.com", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_call_delete
@@ -222,7 +227,6 @@ module NewRelic::Security
           @api_instance.delete_test('abc')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
           NewRelic::Security::Agent::Control::HTTPContext.clear_context
-          #puts http_context.inspect
           method = http_context.method
           time_stamp = http_context.time_stamp
           body = http_context.body
@@ -234,23 +238,25 @@ module NewRelic::Security
           server_name = http_context.req["SERVER_NAME"]
           protocol = http_context.req["rack.url_scheme"]
           # data verify
-          #puts http_context.route
           assert_equal  "DELETE@/myapi5", http_context.route
           assert_equal Integer, time_stamp.class
           assert_equal "DELETE", method
           assert_equal "/myapi5", url
           assert_equal "", query_string
-          assert_equal "name=abc", body
+          if Rails.version < '5'
+            assert_equal "params[name]=abc", body
+          else
+            assert_equal "name=abc", body
+          end
           assert_equal "127.0.0.1", clientIP
           assert_equal "80", server_port
           assert_equal "www.example.com", server_name
           assert_equal "http", protocol
           assert_equal "www.example.com", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
       end
     end
   end
 end
-  

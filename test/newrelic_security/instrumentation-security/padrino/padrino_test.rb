@@ -41,7 +41,7 @@ module NewRelic::Security
         def app
           PadrinoTestApp
         end
-        
+
         def test_get
           response = get('/user/login')
           http_context = NewRelic::Security::Agent::Control::HTTPContext.get_context
@@ -57,7 +57,7 @@ module NewRelic::Security
           assert_equal "example.org", http_context.req["SERVER_NAME"]
           assert_equal "http", http_context.req["rack.url_scheme"]
           assert_equal "example.org", http_context.headers["host"]
-          assert_equal "HTTP/1.0", http_context.headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_get_with_path_param
@@ -77,7 +77,7 @@ module NewRelic::Security
           assert_equal "example.org", http_context.req["SERVER_NAME"]
           assert_equal "http", http_context.req["rack.url_scheme"]
           assert_equal "example.org", http_context.headers["host"]
-          assert_equal "HTTP/1.0", http_context.headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_get_with_query_param
@@ -97,7 +97,7 @@ module NewRelic::Security
           assert_equal "example.org", http_context.req["SERVER_NAME"]
           assert_equal "http", http_context.req["rack.url_scheme"]
           assert_equal "example.org", http_context.headers["host"]
-          assert_equal "HTTP/1.0", http_context.headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_get_url_not_found
@@ -117,7 +117,7 @@ module NewRelic::Security
           assert_equal "example.org", http_context.req["SERVER_NAME"]
           assert_equal "http", http_context.req["rack.url_scheme"]
           assert_equal "example.org", http_context.headers["host"]
-          assert_equal "HTTP/1.0", http_context.headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_post_some_data
@@ -137,7 +137,7 @@ module NewRelic::Security
           assert_equal "example.org", http_context.req["SERVER_NAME"]
           assert_equal "http", http_context.req["rack.url_scheme"]
           assert_equal "example.org", http_context.headers["host"]
-          assert_equal "HTTP/1.0", http_context.headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
       end

@@ -1,3 +1,4 @@
+return if RUBY_ENGINE == 'jruby'
 require 'pg'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/pg/instrumentation'
@@ -7,7 +8,7 @@ module NewRelic::Security
         module Instrumentation
             class TestPG < Minitest::Test
                 @@before_all_flag = false
-    
+
                 def setup
                     unless @@before_all_flag
                         NewRelic::Security::Test::DatabaseHelper.create_postgresql_container
@@ -21,7 +22,7 @@ module NewRelic::Security
                     client.exec("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
 
-                    # CREATE event test 
+                    # CREATE event test
                     client.exec("create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))")
                     args = [{:sql=>"create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))", :parameters=>[]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, POSTGRES)
@@ -31,7 +32,7 @@ module NewRelic::Security
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
 
-                    # INSERT event test 
+                    # INSERT event test
                     client.exec("INSERT INTO fake_users (name, email, grade, blog) VALUES ('abc', 'me@abc.com', 'A', 'http://blog.abc.com')")
                     args = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES ('abc', 'me@abc.com', 'A', 'http://blog.abc.com')", :parameters=>[]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, POSTGRES)
@@ -41,7 +42,7 @@ module NewRelic::Security
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
 
-                    # UPDATE event test 
+                    # UPDATE event test
                     client.exec("UPDATE fake_users SET name = 'john', email= 'me@john.com' WHERE name = 'abc'")
                     args = [{:sql=>"UPDATE fake_users SET name = 'john', email= 'me@john.com' WHERE name = 'abc'", :parameters=>[]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, POSTGRES)
@@ -51,8 +52,8 @@ module NewRelic::Security
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
 
-                    # SELECT event test 
-                    # data verification 
+                    # SELECT event test
+                    # data verification
                     results = client.exec("SELECT * FROM fake_users WHERE name= 'john'")
                     results.each do |row|
                         @output = row
@@ -68,8 +69,8 @@ module NewRelic::Security
                     assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
 
-                    # DELETE event test 
-                    client.exec("DELETE FROM fake_users WHERE name= 'john'") 
+                    # DELETE event test
+                    client.exec("DELETE FROM fake_users WHERE name= 'john'")
                     args = [{:sql=>"DELETE FROM fake_users WHERE name= 'john'", :parameters=>[]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, POSTGRES)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
@@ -83,10 +84,10 @@ module NewRelic::Security
                         @output.push(row)
                     end
                     assert_equal 0, @output.length
-                    $event_list.clear() 
+                    $event_list.clear()
 
-                    # DROP event test 
-                    client.exec("DROP TABLE fake_users") 
+                    # DROP event test
+                    client.exec("DROP TABLE fake_users")
                     args = [{:sql=>"DROP TABLE fake_users", :parameters=>[]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, POSTGRES)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
@@ -103,7 +104,7 @@ module NewRelic::Security
                     client.exec("DROP TABLE IF EXISTS fake_users")
                     client.exec("create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50))")
                     $event_list.clear()
-                    
+
                     # INSERT event test
                     client.prepare('insert_statement', 'INSERT INTO fake_users (name, email, grade, blog) VALUES ($1, $2, $3, $4)')
                     results = client.exec_prepared('insert_statement', ['abc', 'me@abc.com', 'A', 'http://blog.abc.com'])
@@ -148,8 +149,8 @@ module NewRelic::Security
                     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
 
-                     # SELECT event test 
-                    # data verification 
+                     # SELECT event test
+                    # data verification
                     client.prepare('select_statement', 'SELECT * FROM fake_users WHERE name = $1')
                     results = client.exec_prepared('select_statement', ['john'])
                     results.each do |row|
@@ -171,7 +172,7 @@ module NewRelic::Security
                     assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     $event_list.clear()
 
-                    # DELETE event test 
+                    # DELETE event test
                     client.prepare('delete_statement', 'DELETE FROM fake_users WHERE name= $1')
                     results = client.exec_prepared('delete_statement', ['john'])
                     results.each do |row|
@@ -187,10 +188,10 @@ module NewRelic::Security
                     assert_equal 2, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event.caseType, $event_list[0].caseType
                     assert_equal expected_event.parameters, $event_list[0].parameters
-                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory        
+                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
                     assert_equal expected_event2.caseType, $event_list[1].caseType
                     assert_equal expected_event2.parameters, $event_list[1].parameters
-                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory        
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
                     # delete operation verify
                     @output = []
                     results = client.exec("SELECT * FROM fake_users")
@@ -198,10 +199,10 @@ module NewRelic::Security
                         @output.push(row)
                     end
                     assert_equal 0, @output.length
-                    $event_list.clear() 
-                    
-                    # DROP event test 
-                    client.exec("DROP TABLE fake_users") 
+                    $event_list.clear()
+
+                    # DROP event test
+                    client.exec("DROP TABLE fake_users")
                     args = [{:sql=>"DROP TABLE fake_users", :parameters=>[]}]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, POSTGRES)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
@@ -219,4 +220,3 @@ module NewRelic::Security
         end
     end
 end
-  
