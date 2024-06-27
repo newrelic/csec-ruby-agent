@@ -25,6 +25,14 @@ module NewRelic::Security
                     event = exec_update_on_enter(*var) { retval = exec_update_without_security(*var) }
                     exec_update_on_exit(event) { return retval }
                   end
+                  
+                  alias_method :exec_delete_without_security, :exec_delete
+                  
+                  def exec_delete(*var)
+                    retval = nil
+                    event = exec_delete_on_enter(*var) { retval = exec_delete_without_security(*var) }
+                    exec_delete_on_exit(event) { return retval }
+                  end
                 end
 
                 alias_method :exec_query_without_security, :exec_query
@@ -40,6 +48,16 @@ module NewRelic::Security
                     retval = nil
                     event = exec_query_on_enter(*var, **key_vars) { retval = exec_query_without_security(*var, **key_vars) }
                     exec_query_on_exit(event) { return retval }
+                  end
+                  
+                  if self.instance_methods.include?(:internal_exec_query)
+                    alias_method :internal_exec_query_without_security, :internal_exec_query
+
+                    def internal_exec_query(*var, **key_vars)
+                      retval = nil
+                      event = internal_exec_query_on_enter(*var, **key_vars) { retval = internal_exec_query_without_security(*var, **key_vars) }
+                      internal_exec_query_on_exit(event) { return retval }
+                    end
                   end
                 end
                 

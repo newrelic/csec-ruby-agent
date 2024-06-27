@@ -40,7 +40,6 @@ module NewRelic::Security
 
         def update_application_url_mappings
           maps = ::Set.new
-          NewRelic::Security::Agent::Utils.get_app_routes(NewRelic::Security::Agent.config[:framework])
           NewRelic::Security::Agent.agent.route_map.each do |mapping| 
             method, path = mapping.split('@')
             maps << { :method => method, :path => path }
