@@ -35,4 +35,5 @@ module NewRelic::Security
   end
 end
 
-NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:elasticsearch, ::Elastic::Transport::Client, ::NewRelic::Security::Instrumentation::Elasticsearch)
+elastic_module_name = RUBY_VERSION >= '2.5' ? ::Elastic::Transport::Client : ::Elasticsearch::Transport::Client
+NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:elasticsearch, elastic_module_name, ::NewRelic::Security::Instrumentation::Elasticsearch)

@@ -4,7 +4,8 @@ module NewRelic::Security
       module Chain
 
         def self.instrument!
-          ::Elastic::Transport::Client.class_eval do
+          elastic_module_name = RUBY_VERSION >= '2.5' ? ::Elastic::Transport::Client : ::Elasticsearch::Transport::Client
+          elastic_module_name.class_eval do
             include NewRelic::Security::Instrumentation::Elasticsearch
 
             alias_method :perform_request_without_security, :perform_request
