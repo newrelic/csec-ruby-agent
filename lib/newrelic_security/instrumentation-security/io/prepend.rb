@@ -5,12 +5,14 @@ module NewRelic::Security
         include NewRelic::Security::Instrumentation::IO
         if RUBY_VERSION < '2.7.0'
           def open(var1, var2 = "r", *var3, &var4)
+            return super if var1.to_s.include?(LOG_FILE_NAME)
             retval = nil
             event = open_on_enter(var1, var2) { retval = super }
             open_on_exit(event) { return retval }
           end
         else
           def open(*args, **kwargs, &block)
+            return super if args[0].to_s.include?(LOG_FILE_NAME)
             retval = nil
             event = open_on_enter(*args) { retval = super }
             open_on_exit(event) { return retval }

@@ -17,6 +17,8 @@ module NewRelic::Security
       IS_GRPC = 'isGrpc'
       INPUT_CLASS = 'inputClass'
       SERVER_PORT_1 = 'serverPort'
+      PROBING = 'probing'
+      INTERVAL = 'interval'
 
       class IASTClient
         
@@ -68,7 +70,7 @@ module NewRelic::Security
           @iast_data_transfer_request_processor_thread = Thread.new do
             Thread.current.name = "newrelic_security_iast_data_transfer_request_processor"
             loop do
-              sleep 1
+              sleep NewRelic::Security::Agent.config[:policy][VULNERABILITY_SCAN][IAST_SCAN][PROBING][INTERVAL]
               current_timestamp = current_time_millis
               cooldown_sleep_time = @cooldown_till_timestamp - current_timestamp
               sleep cooldown_sleep_time/1000 if cooldown_sleep_time > 0
