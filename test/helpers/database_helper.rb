@@ -134,7 +134,7 @@ module NewRelic::Security
         end
         container = Docker::Container.create(ELASTICSEARCH_CONFIG)
         container.start
-        sleep 10
+        sleep 20
       end
 
       def remove_elasticsearch_container
