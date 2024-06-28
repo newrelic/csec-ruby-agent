@@ -4,7 +4,7 @@ module NewRelic::Security
       module Chain
 
         def self.instrument!
-          ::Elastic::Transport.Client.class_eval do
+          ::Elastic::Transport::Client.class_eval do
             include NewRelic::Security::Instrumentation::Elasticsearch
 
             alias_method :perform_request_without_security, :perform_request
