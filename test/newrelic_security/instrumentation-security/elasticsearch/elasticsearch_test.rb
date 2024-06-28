@@ -20,6 +20,8 @@ module NewRelic::Security
                 def test_index
                     client = Elasticsearch::Client.new(url: "http://#{ELASTICSEARCH_HOST}:#{ELASTICSEARCH_PORT}", request_timeout: 30)
 
+                    client.index(index: 'blind', body: {:key => :value})
+                    $event_list.clear()
                     document = { title: 'Sample Document', content: 'This is a sample document' }
                     index_response = client.index(index: 'my_index', body: document)
                     doc_id = index_response['_id']
