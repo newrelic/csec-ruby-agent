@@ -18,6 +18,9 @@ module NewRelic::Security
     POSTGRESQL_USER = 'postgres'
     POSTGRESQL_DATABASE = 'postgres'
 
+    MEMCACHED_HOST = 'localhost'
+    MEMCACHED_PORT = '11212'
+
     module DatabaseHelper
       extend self
 
@@ -106,6 +109,35 @@ module NewRelic::Security
       def remove_postgresql_container
         begin
           Docker::Container.get('pg_test').remove(force: true)
+        rescue
+        end
+      end
+
+      MEMCACHED_CONFIG = {
+        'Image' => 'memcached:latest',
+        'name' => 'memcached_test',
+        'HostConfig' => {
+            'PortBindings' => {
+            '11211/tcp' => [{ 'HostPort' => MEMCACHED_PORT }]
+            }
+        }
+      }
+
+      def create_memcached_container
+        image = Docker::Image.create('fromImage' => 'memcached:latest')
+        image.refresh!
+        begin
+            Docker::Container.get('memcached_test').remove(force: true)
+        rescue
+        end
+        container = Docker::Container.create(MEMCACHED_CONFIG)
+        container.start
+        sleep 10
+      end
+
+      def remove_memcached_container
+        begin
+          Docker::Container.get('memcached_test').remove(force: true)
         rescue
         end
       end
