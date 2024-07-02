@@ -21,7 +21,7 @@ module NewRelic::Security
 
                 def call(command, &block)
                   retval = nil
-                  event = call_v_on_enter(command) { retval = call_v_without_security(command, &block) }
+                  event = call_v_on_enter(command) { retval = call_without_security(command, &block) }
                   call_v_on_exit(event) { return retval }
                 end
               end
