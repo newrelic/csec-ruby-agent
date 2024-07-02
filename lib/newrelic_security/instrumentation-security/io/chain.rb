@@ -11,12 +11,14 @@ module NewRelic::Security
 
               if RUBY_VERSION < '2.7.0'
                 def open(var1, var2 = "r", *var3, &var4)
+                  return open_without_security(var1, var2, *var3, &var4) if var1.to_s.include?(LOG_FILE_NAME)
                   retval = nil
                   event = open_on_enter(var1, var2) { retval = open_without_security(var1, var2, *var3, &var4) }
                   open_on_exit(event) { return retval }
                 end
               else
                 def open(*args, **kwargs, &block)
+                  return open_without_security(*args, **kwargs, &block) if args[0].to_s.include?(LOG_FILE_NAME)
                   retval = nil
                   event = open_on_enter(*args) { retval = open_without_security(*args, **kwargs, &block) }
                   open_on_exit(event) { return retval }
