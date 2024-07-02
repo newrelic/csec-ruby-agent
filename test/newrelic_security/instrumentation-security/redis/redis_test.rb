@@ -18,7 +18,7 @@ module NewRelic::Security
                 end
 
                 def test_set_get_fetch_delete
-                  cache = Redis.new(host: REDIS_HOST)
+                  cache = Redis.new(host: REDIS_HOST, port: REDIS_PORT)
                   $event_list.clear()
                   res = cache.set 'greet', 'hello'
                   args = [{:type=>:set, :arguments=>["greet", "hello"], :mode=>:write}]
@@ -52,7 +52,7 @@ module NewRelic::Security
                 end
 
                 def test_set_incr_get_flush
-                  cache = Redis.new(host: REDIS_HOST)
+                  cache = Redis.new(host: REDIS_HOST, port: REDIS_PORT)
                   $event_list.clear()
                   res = cache.set 'counter', 0
                   args = [{:type=>:set, :arguments=>["counter", "0"], :mode=>:write}]
