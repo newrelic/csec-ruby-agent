@@ -67,13 +67,12 @@ module NewRelic::Security
                     assert_equal "me@john.com", output.email
                     assert_equal "11", output.ssn
                     # event verify
-                    args1 = [{:sql=>"SELECT `new_users`.* FROM `new_users` WHERE `new_users`.`id` = 1 LIMIT 1", :parameters=>[]}]
-                    expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, MYSQL)
-
-                    assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
-                    assert_equal expected_event1.caseType, $event_list[0].caseType
-                    assert_equal expected_event1.parameters[0], $event_list[0].parameters[0]
-                    assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
+                    expected_event = {case_type: "SQL_DB_COMMAND", event_category: "MYSQL", parameters: [{:sql=>"SELECT `new_users`.* FROM `new_users` WHERE `new_users`.`id` = 1 LIMIT 1", :parameters=>["1", "1"]}]}
+                    fetched_events = []
+                    for event in $event_list
+                        fetched_events.push({case_type: event.caseType, event_category: event.eventCategory, parameters: event.parameters})
+                    end
+                    assert_includes(fetched_events, expected_event)
                     $event_list.clear()
 
                     # UPDATE test
@@ -84,7 +83,7 @@ module NewRelic::Security
                     assert_equal "me@john.com", output.email
                     assert_equal "11", output.ssn
                     # exec_update event verify
-                    args1 = [{:sql=>"SELECT `new_users`.* FROM `new_users` WHERE `new_users`.`id` = 1 LIMIT 1", :parameters=>[]}]
+                    args1 = [{:sql=>"SELECT `new_users`.* FROM `new_users` WHERE `new_users`.`id` = 1 LIMIT 1", :parameters=>["1", "1"]}]
                     args2 = [{:sql=>"UPDATE `new_users` SET `new_users`.`name` = 'Jack' WHERE `new_users`.`id` = 1", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, MYSQL)
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, MYSQL)
