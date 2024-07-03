@@ -18,6 +18,8 @@ module NewRelic::Security
           @framework = NewRelic::Security::Agent.config[:framework]
           @protectedServer = nil
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
+          @accountId = NewRelic::Security::Agent.config[:account_id]
+          @entityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @collectorVersion = NewRelic::Security::VERSION
           @buildNumber = nil
           @jsonVersion = NewRelic::Security::Agent.config[:json_version]

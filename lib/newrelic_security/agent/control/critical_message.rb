@@ -21,6 +21,8 @@ module NewRelic::Security
           @buildNumber = nil
           @jsonVersion = NewRelic::Security::Agent.config[:json_version]
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
+          @accountId = NewRelic::Security::Agent.config[:account_id]
+          @entityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @linkingMetadata = add_linking_metadata
           @timestamp = current_time_millis
           @message = message

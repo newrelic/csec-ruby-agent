@@ -11,6 +11,8 @@ module NewRelic::Security
         def initialize
           @jsonName = :'iast-data-request'
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
+          @accountId = NewRelic::Security::Agent.config[:account_id]
+          @entityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @batchSize = 10
           @pendingRequestIds = []
           @completedRequests = Hash.new

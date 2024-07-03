@@ -21,6 +21,8 @@ module NewRelic::Security
           @jsonVersion = NewRelic::Security::Agent.config[:json_version]
           @timestamp = current_time_millis
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
+          @accountId = NewRelic::Security::Agent.config[:account_id]
+          @entityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @framework = NewRelic::Security::Agent.config[:framework]
           @groupName = NewRelic::Security::Agent.config[:mode]
           @policyVersion = nil

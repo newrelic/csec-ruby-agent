@@ -26,6 +26,8 @@ module NewRelic::Security
           @buildNumber = nil
           @jsonVersion = NewRelic::Security::Agent.config[:json_version]
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
+          @accountId = NewRelic::Security::Agent.config[:account_id]
+          @entityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @httpRequest = Hash.new
           @httpResponse = Hash.new
           @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s } }
