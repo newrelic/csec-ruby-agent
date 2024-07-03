@@ -42,6 +42,7 @@ if RUBY_ENGINE == 'jruby'
   gem 'activerecord-jdbcpostgresql-adapter'
   gem 'mongo', '2.19'
   gem 'nio4r', '<= 2.5.4'
+  gem 'async', '1.32.1'
 else
   if RUBY_VERSION < '2.5.0'
     gem 'sqlite3', '~> 1.3.0'
