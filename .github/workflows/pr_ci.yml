@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0, jruby-9.4.0.0]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0, jruby-9.4.7.0]
         instrumentation-method: ['prepend', 'chain']
     steps:
       - name: Configure git
@@ -22,7 +22,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libxslt1-dev libc6-dev openjdk-11-jdk
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1
+        uses: ruby/setup-ruby@cacc9f1c0b3f4eb8a16a6bb0ed10897b43b9de49 # tag v1.176.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
