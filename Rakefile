@@ -18,6 +18,7 @@ Rake::TestTask.new(:test) do |t|
   # ENV['BUNDLE_GEMFILE'] = 'Gemfile_test'
   t.libs << 'test'
   t.libs << 'lib'
+  ENV['TESTOPTS'] = '--verbose'
   t.test_files = FileList['test/**/*_test.rb']
 end
 
