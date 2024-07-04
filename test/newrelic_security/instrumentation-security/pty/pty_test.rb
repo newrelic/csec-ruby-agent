@@ -25,12 +25,10 @@ module NewRelic::Security
           puts "Running #test_getpty test ...."
           cmd = "date"
           PTY::getpty("#{cmd}") do |reader, writer, pid|
-            while true
-              begin
-                reader.readline
-              rescue
-                break
-              end
+            begin
+              reader.readline
+            rescue
+              break
             end
           end
           expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
