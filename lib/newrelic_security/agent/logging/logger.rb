@@ -4,7 +4,8 @@ require 'logger'
 module NewRelic::Security
   module Agent
     module Logging
-      LOG_FILE_NAME = 'ruby-security-collector.log'
+      LOG_FILE_SIZE = 50 * 1024 * 1024
+      MAX_LOG_FILES = 3
 
       class AgentLogger
         def initialize
@@ -34,7 +35,7 @@ module NewRelic::Security
         private
 
         def prepped_logger(target)
-          @logger = ::Logger.new(target)
+          @logger = ::Logger.new(target, MAX_LOG_FILES, LOG_FILE_SIZE)
           @logger.level = AgentLogger.log_level_for(NewRelic::Security::Agent.config[:log_level])
           @logger.instance_variable_set(:@skip_instrumenting, true)
           @logger.freeze
