@@ -1,0 +1,9 @@
+#   Ensure the jdbcmysql gem is defined in your Gemfile
+#   gem 'activerecord-jdbcmysql-adapter'
+#
+default: &default
+  adapter: jdbcmysql
+  encoding: unicode
+  host: 127.0.0.1
+  pool: 5
+  timeout: 5000
