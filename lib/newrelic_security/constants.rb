@@ -10,6 +10,7 @@ module NewRelic::Security
   SEC_HOME_PATH = 'nr-security-home'
   LOGS_DIR = 'logs'
   TMP_DIR = 'tmp'
+  LOG_FILE_NAME = 'ruby-security-collector.log'
   NR_SECURITY_HOME_TMP = 'nr-security-home/tmp/'
   NR_CSEC_FUZZ_REQUEST_ID = 'nr-csec-fuzz-request-id'
   NR_CSEC_TRACING_DATA = 'nr-csec-tracing-data'
@@ -60,4 +61,6 @@ module NewRelic::Security
   CONTENT_TYPE1 = 'content-Type'
   PULL = 'PULL'
   SHA1 = 'sha1'
+  VULNERABILITY_SCAN = 'vulnerabilityScan'
+  IAST_SCAN = 'iastScan'
 end
