@@ -11,6 +11,7 @@ module NewRelic::Security
         end
 
         def test_spawn
+          puts "Running #test_spawn test ...."
           cmd = "date"
           PTY.spawn("#{cmd}")
           expected_event = NewRelic::Security::Agent::Control::Event.new(SYSTEM_COMMAND, [cmd], nil)
@@ -21,6 +22,7 @@ module NewRelic::Security
         end
 
         def test_getpty
+          puts "Running #test_getpty test ...."
           cmd = "date"
           PTY::getpty("#{cmd}") do |reader, writer, pid|
             while true
