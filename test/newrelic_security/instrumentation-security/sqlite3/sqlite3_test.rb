@@ -255,7 +255,7 @@ module NewRelic::Security
                 end
 
                 def test_execute_batch2
-                    skip("execute_batch2 method is not present in Sqlite3 older version") if Gem.loaded_specs["sqlite3"].version < Gem::Version.new('1.4')
+                    skip("execute_batch2 method is not present in Sqlite3 older version") if ::SQLite3::VERSION < '1.4'
                     db = SQLite3::Database.new DATABASE_NAME
                     db.execute_batch2("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
