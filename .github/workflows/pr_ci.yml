@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0, jruby-9.4.5.0]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.5, 3.2.4, 3.3.1, jruby-9.4.5.0]
         instrumentation-method: ['prepend', 'chain']
     steps:
       - name: Configure git
@@ -72,6 +72,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           resultPath: lib/coverage_results/.last_run.json
-          failedThreshold: 44
+          failedThreshold: 70
           failedThresholdBranch: 33
 
