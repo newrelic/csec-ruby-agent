@@ -102,6 +102,7 @@ module NewRelic::Security
           http_request[:generationTime] = ctxt.time_stamp
           http_request[:dataTruncated] = false
           http_request[:method] = ctxt.method
+          http_request[:route] = ctxt.route
           http_request[:url] = ctxt.url
           http_request[:serverName] = ctxt.server_name
           http_request[:serverPort] = ctxt.server_port

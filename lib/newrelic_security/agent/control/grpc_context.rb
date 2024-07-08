@@ -13,6 +13,7 @@ module NewRelic::Security
         def initialize(grpc_request)
           @time_stamp = current_time_millis
           @method = grpc_request[:method]
+          @route = "/#{@method}"
           @headers = grpc_request[:headers]
           @body = ::String.new
           if defined?(::GRPC::RpcServer)
@@ -23,7 +24,7 @@ module NewRelic::Security
               @server_port = grpc_port
               @client_ip = grpc_request[:peer].rpartition(COLON)[0] if grpc_request[:peer]
               @client_port = grpc_request[:peer].rpartition(COLON)[-1] if grpc_request[:peer]
-              @url = "grpc://#{grpc_host}:#{grpc_port}/#{@method}"
+              @url = "/#{@method}"
             end
           end
           @is_grpc = true
