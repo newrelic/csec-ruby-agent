@@ -100,7 +100,6 @@ module NewRelic::Security
                     $event_list.clear()
 
                     # DELETE test
-                    skip("Issue in delete case in jruby") if RUBY_ENGINE == 'jruby'
                     output = NewUser.delete(1)
                     # data verify
                     assert_equal 1, output
