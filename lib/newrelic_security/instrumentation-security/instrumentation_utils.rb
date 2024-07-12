@@ -139,7 +139,7 @@ module NewRelic::Security
 
       def parse_uri(uri_string)
         ::URI.parse(uri_string)
-      rescue Exception => e
+      rescue
         return nil
       end
 

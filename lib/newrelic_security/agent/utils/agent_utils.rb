@@ -101,8 +101,8 @@ module NewRelic::Security
               method = route.verb.inspect.match(/[a-zA-Z]+/)
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}" if method
             else
-              route.verb.split("|").each { |method|
-                NewRelic::Security::Agent.agent.route_map << "#{method}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}"
+              route.verb.split("|").each { |m|
+                NewRelic::Security::Agent.agent.route_map << "#{m}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}"
               }
             end
           end
