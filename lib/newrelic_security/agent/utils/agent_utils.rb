@@ -189,7 +189,7 @@ module NewRelic::Security
         #TBD, determing the frame work then use appropriate APIs
         #val = Rails.root
         root = nil
-        root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack
+        root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack::Directory
         root
       end
 
