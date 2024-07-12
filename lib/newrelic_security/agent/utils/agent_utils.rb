@@ -101,8 +101,8 @@ module NewRelic::Security
               method = route.verb.inspect.match(/[a-zA-Z]+/)
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}" if method
             else
-              route.verb.split("|").each { |method|
-                NewRelic::Security::Agent.agent.route_map << "#{method}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}"
+              route.verb.split("|").each { |m|
+                NewRelic::Security::Agent.agent.route_map << "#{m}@#{route.path.spec.to_s.gsub(/\(\.:format\)/, "")}"
               }
             end
           end
@@ -189,7 +189,7 @@ module NewRelic::Security
         #TBD, determing the frame work then use appropriate APIs
         #val = Rails.root
         root = nil
-        root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack
+        root = ::Rack::Directory.new(EMPTY_STRING).root.to_s if defined? ::Rack::Directory
         root
       end
 

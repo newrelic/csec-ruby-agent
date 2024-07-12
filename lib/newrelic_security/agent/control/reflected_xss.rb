@@ -111,10 +111,10 @@ module NewRelic::Security
               # Unescaping of xml data is remaining
               processed_data.add(body)
             when APPLICATION_X_WWW_FORM_URLENCODED
-              body = ::CGI.unescape(body, encoding = UTF_8)
+              body = ::CGI.unescape(body, UTF_8)
               processed_data.add(body)
               oldBody = body
-              body = ::CGI.unescape(body, encoding = UTF_8)
+              body = ::CGI.unescape(body, UTF_8)
               processed_data.add(body) if oldBody != body && body.include?(LESS_THAN)
             end
           end
@@ -154,7 +154,7 @@ module NewRelic::Security
 
         def process_url_encoded_data_for_xss(processed_data, data)
           processed_data.add(data) if data && data.include?(LESS_THAN)
-          decoded_uri = ::CGI.unescape(data, encoding = UTF_8) if data
+          decoded_uri = ::CGI.unescape(data, UTF_8) if data
           processed_data.add(decoded_uri) if decoded_uri && decoded_uri.include?(LESS_THAN)
         end
 
