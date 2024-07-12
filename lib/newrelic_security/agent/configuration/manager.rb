@@ -6,7 +6,6 @@ require 'newrelic_security/agent/configuration/environment_source'
 require 'newrelic_security/agent/configuration/manual_source'
 require 'newrelic_security/agent/configuration/server_source'
 require 'newrelic_security/agent/configuration/yaml_source'
-require 'newrelic_rpm'
 
 module NewRelic::Security
   module Agent
