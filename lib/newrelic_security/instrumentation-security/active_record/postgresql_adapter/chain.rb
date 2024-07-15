@@ -9,14 +9,6 @@ module NewRelic::Security
               ::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
                 include NewRelic::Security::Instrumentation::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
 
-                alias_method :execute_without_security, :execute
-                
-                def execute(sql, name = nil)
-                  retval = nil
-                  event = execute_on_enter(sql, name) { retval = execute_without_security(sql, name) }
-                  execute_on_exit(event) { return retval }
-                end
-
                 alias_method :exec_query_without_security, :exec_query
 
                 if ::Rails.version < '5'
