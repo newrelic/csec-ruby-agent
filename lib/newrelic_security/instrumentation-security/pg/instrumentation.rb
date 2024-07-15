@@ -28,6 +28,29 @@ module NewRelic::Security
         yield
       end
 
+      def async_exec_on_enter(sql)
+        event = nil
+        NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
+        hash = {}
+        hash[:sql] = sql
+        hash[:parameters] = []
+        event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, [hash], POSTGRES) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(hash[:sql])
+      rescue => exception
+        NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
+      ensure
+        yield
+        return event
+      end
+
+      def async_exec_on_exit(event)
+        NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
+        NewRelic::Security::Agent::Utils.create_exit_event(event)
+      rescue => exception
+        NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
+      ensure
+        yield
+      end
+
       def prepare_on_enter(*args)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
