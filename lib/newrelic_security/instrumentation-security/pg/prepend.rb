@@ -11,9 +11,9 @@ module NewRelic::Security
             exec_on_exit(event) { return retval }
           end
 
-          def async_exec(sql, **key_vars)
+          def async_exec(*args)
             retval = nil
-            event = async_exec_on_enter(sql) { retval = super }
+            event = async_exec_on_enter(*args) { retval = super }
             async_exec_on_exit(event) { return retval }
           end
 
