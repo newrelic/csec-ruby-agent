@@ -49,7 +49,7 @@ module NewRelic::Security
     end
     
     @agent = NewRelic::Security::Agent::Agent.new unless @agent
-    NewRelic::Agent.instance.events.notify(:server_source_configuration_added) if ::Gem.win_platform? && NewRelic::Agent.agent.connected?
+    NewRelic::Agent.instance.events.notify(:server_source_configuration_added) if NewRelic::Agent.agent.connected?
     NewRelic::Security::Agent.logger.debug "Creating security agent instance initially : #{@agent.inspect}"
     NewRelic::Security::Agent.init_logger.info "[STEP-1] => Security agent is starting : #{@agent.inspect}"
     NewRelic::Security::Agent.init_logger.info "[STEP-2] => Generating unique identifier : #{@config[:uuid]}"
