@@ -100,12 +100,11 @@ module NewRelic::Security
                     $event_list.clear()
 
                     # DELETE test
-                    skip("Issue in delete case in jruby") if RUBY_ENGINE == 'jruby'
                     output = NewUser.delete(1)
                     # data verify
                     assert_equal 1, output
                     # event verify
-                    args1 = [{:sql=>"DELETE FROM \"new_users\" WHERE \"new_users\".\"id\" = $1", :parameters=>["1"]}]
+                    args1 = [{:sql=>"DELETE FROM `new_users` WHERE `new_users`.`id` = 1", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, MYSQL)
 
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
