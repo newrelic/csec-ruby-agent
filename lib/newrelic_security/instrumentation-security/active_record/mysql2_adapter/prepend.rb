@@ -38,6 +38,12 @@ module NewRelic::Security
                   exec_query_on_exit(event) { return retval }
                 end
               end
+
+              def exec_delete(*var)
+                retval = nil
+                event = exec_delete_on_enter(*var) { retval = super }
+                exec_delete_on_exit(event) { return retval }
+              end
             end
     
           end
