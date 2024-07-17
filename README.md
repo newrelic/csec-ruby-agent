@@ -54,6 +54,7 @@ The newrelic_security must be explicitly enabled in order to perform IAST analys
 - Webrick: Supported for all agent-supported versions of Ruby
 ### Databases
 - Active Record: 4.0 or higher
+- Sequel: 4.45 or higher
 - MongoDB: 2.4 or higher
 - Sqlite3 
 - Mysql2
