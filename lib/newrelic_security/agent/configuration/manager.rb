@@ -22,7 +22,7 @@ module NewRelic::Security
           @cache[:account_id] = nil
           @cache[:application_id] = nil
           @cache[:primary_application_id] = nil
-          @cache[:log_file_path] = ::File.absolute_path(::NewRelic::Agent.config[:log_file_path])
+          @cache[:log_file_path] = ::NewRelic::Agent.config[:log_file_path]
           @cache[:fuzz_dir_path] = ::File.join(::File.absolute_path(::NewRelic::Agent.config[:log_file_path]), SEC_HOME_PATH, TMP_DIR)
           @cache[:log_level] = ::NewRelic::Agent.config[:log_level]
           @cache[:high_security] = ::NewRelic::Agent.config[:high_security]
@@ -47,7 +47,8 @@ module NewRelic::Security
           @yaml_source = NewRelic::Security::Agent::Configuration::YamlSource.new
           @default_source = NewRelic::Security::Agent::Configuration::DefaultSource.new
         rescue Exception => exception
-          NewRelic::Security::Agent.logger.error "Exception in Configuration::Manager.initialize : #{exception.inspect} #{exception.backtrace}"
+          # TODO: remove this puts once agent stablizes
+          puts "Exception in Configuration::Manager.initialize : #{exception.inspect} #{exception.backtrace}"
         end
   
         def [](key)

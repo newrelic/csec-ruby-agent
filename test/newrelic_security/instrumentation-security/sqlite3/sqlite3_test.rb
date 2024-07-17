@@ -1,3 +1,4 @@
+return if RUBY_ENGINE == 'jruby'
 require 'sqlite3'
 require_relative '../../../test_helper'
 require 'newrelic_security/instrumentation-security/sqlite3/instrumentation'
@@ -17,17 +18,15 @@ module NewRelic::Security
                     db.execute("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
                     # Create a table test
-                    db.execute <<-SQL
-                    create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50)); 
-                    SQL
-                    args1 = [{:sql=>"                    create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50)); \n", :parameters=>[]}]
+                    db.execute "create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50));"
+                    args1 = [{:sql=>"create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50));", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, SQLITE)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
-                    
+
                     # INSERT event test
                     db.execute("INSERT INTO fake_users (name, email, grade, blog) VALUES (?, ?, ?, ?)", ["abc", "me@abc.com", "A", "http://blog.abc.com"])
                     # puts @output.inspect
@@ -48,11 +47,11 @@ module NewRelic::Security
                     assert_equal expected_event3.parameters, $event_list[0].parameters
                     assert_equal expected_event3.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
-                    
+
                     # SELECT event test
                     @output = db.execute("SELECT * FROM fake_users WHERE name= 'john'")
                     expected_result = [["john", "me@john.com", "A", "http://blog.abc.com"]]
-                    assert_equal expected_result, @output 
+                    assert_equal expected_result, @output
                     args4 = [{:sql=>"SELECT * FROM fake_users WHERE name= 'john'", :parameters=>[]}]
                     expected_event4 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args4, SQLITE)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
@@ -72,7 +71,7 @@ module NewRelic::Security
                     # verify delete operation
                     @output = db.execute("SELECT * FROM fake_users WHERE name= 'john'")
                     expected_result = []
-                    assert_equal expected_result, @output 
+                    assert_equal expected_result, @output
                     # delete operation verify
                     @output = []
                     results = db.execute("SELECT * FROM fake_users")
@@ -80,7 +79,7 @@ module NewRelic::Security
                         @output.push(row)
                     end
                     assert_equal 0, @output.length
-                    $event_list.clear() 
+                    $event_list.clear()
 
                     # DROP table test
                     db.execute("DROP TABLE fake_users")
@@ -106,7 +105,7 @@ module NewRelic::Security
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
-                    
+
                     # INSERT event test
                     db.execute2("INSERT INTO fake_users (name, email, grade, blog) VALUES (?, ?, ?, ?)", ["abc", "me@abc.com", "A", "http://blog.abc.com"])
                     args2 = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES (?, ?, ?, ?)", :parameters=>["[\"abc\", \"me@abc.com\", \"A\", \"http://blog.abc.com\"]"]}]
@@ -126,11 +125,11 @@ module NewRelic::Security
                     assert_equal expected_event4.parameters, $event_list[0].parameters
                     assert_equal expected_event4.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
- 
+
                     # SELECT event test
                     @output = db.execute2("SELECT * FROM fake_users WHERE name= 'john'")
                     expected_result = [["name", "email", "grade", "blog"], ["john", "me@john.com", "A", "http://blog.abc.com"]]
-                    assert_equal expected_result, @output 
+                    assert_equal expected_result, @output
                     args3 = [{:sql=>"SELECT * FROM fake_users WHERE name= 'john'"}]
                     expected_event3 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args3, SQLITE)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
@@ -150,7 +149,7 @@ module NewRelic::Security
                     # delete operation verify
                     @output = db.execute2("SELECT * FROM fake_users WHERE name= 'john'")
                     expected_result = [["name", "email", "grade", "blog"]]
-                    assert_equal expected_result, @output 
+                    assert_equal expected_result, @output
                     $event_list.clear()
 
                     # DROP table test
@@ -161,27 +160,25 @@ module NewRelic::Security
                     assert_equal expected_event6.caseType, $event_list[0].caseType
                     assert_equal expected_event6.parameters, $event_list[0].parameters
                     assert_equal expected_event6.eventCategory, $event_list[0].eventCategory
-                    $event_list.clear() 
+                    $event_list.clear()
                 end
 
                 def test_execute_batch
                     db = SQLite3::Database.new DATABASE_NAME
                     db.execute_batch("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
-                    
+
                     # Create a table test
-                    db.execute_batch <<-SQL
-                    create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50)); 
-                    SQL
-                    args1 = [{:sql=>"                    create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50)); \n", :parameters=>[]}]
+                    db.execute_batch "create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50));"
+                    args1 = [{:sql=>"create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50));", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, SQLITE)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
-                    
-                    # INSERT event test : 2 users entry 
+
+                    # INSERT event test : 2 users entry
                     db.execute_batch("INSERT INTO fake_users (name, email, grade, blog) VALUES ('abc', 'me@abc.com', 'A', 'http://blog.abc.com'); INSERT INTO fake_users (name, email, grade, blog) VALUES ('pqr', 'me@pqr.com', 'B', 'http://blog.pqr.com')")
                     args2 = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES ('abc', 'me@abc.com', 'A', 'http://blog.abc.com'); INSERT INTO fake_users (name, email, grade, blog) VALUES ('pqr', 'me@pqr.com', 'B', 'http://blog.pqr.com')", :parameters=>[]}]
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, SQLITE)
@@ -244,7 +241,7 @@ module NewRelic::Security
                         @output.push(row)
                     end
                     assert_equal 0, @output.length
-                    $event_list.clear() 
+                    $event_list.clear()
 
                     # DROP table test
                     db.execute_batch("DROP TABLE fake_users")
@@ -254,27 +251,26 @@ module NewRelic::Security
                     assert_equal expected_event6.caseType, $event_list[0].caseType
                     assert_equal expected_event6.parameters, $event_list[0].parameters
                     assert_equal expected_event6.eventCategory, $event_list[0].eventCategory
-                    $event_list.clear() 
+                    $event_list.clear()
                 end
 
                 def test_execute_batch2
+                    skip("execute_batch2 method is not present in Sqlite3 older version") if ::SQLite3::VERSION < '1.4'
                     db = SQLite3::Database.new DATABASE_NAME
                     db.execute_batch2("DROP TABLE IF EXISTS fake_users")
                     $event_list.clear()
-                    
+
                     # Create a table test
-                    db.execute_batch2 <<-SQL
-                    create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50)); 
-                    SQL
-                    args1 = [{:sql=>"                    create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50)); \n", :parameters=>[]}]
+                    db.execute_batch2 "create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50));"
+                    args1 = [{:sql=>"create table fake_users ( name varchar(50), email varchar(50), grade varchar(5), blog varchar(50));", :parameters=>[]}]
                     expected_event1 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args1, SQLITE)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event1.caseType, $event_list[0].caseType
                     assert_equal expected_event1.parameters, $event_list[0].parameters
                     assert_equal expected_event1.eventCategory, $event_list[0].eventCategory
                     $event_list.clear()
-                    
-                    # INSERT event test : 2 users entry 
+
+                    # INSERT event test : 2 users entry
                     db.execute_batch2("INSERT INTO fake_users (name, email, grade, blog) VALUES ('abc', 'me@abc.com', 'A', 'http://blog.abc.com'); INSERT INTO fake_users (name, email, grade, blog) VALUES ('pqr', 'me@pqr.com', 'B', 'http://blog.pqr.com')")
                     args2 = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES ('abc', 'me@abc.com', 'A', 'http://blog.abc.com'); INSERT INTO fake_users (name, email, grade, blog) VALUES ('pqr', 'me@pqr.com', 'B', 'http://blog.pqr.com')", :parameters=>[]}]
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, SQLITE)
@@ -323,7 +319,7 @@ module NewRelic::Security
                         @output.push(row)
                     end
                     assert_equal 0, @output.length
-                    $event_list.clear() 
+                    $event_list.clear()
 
                     # DROP table test
                     db.execute_batch2("DROP TABLE fake_users")

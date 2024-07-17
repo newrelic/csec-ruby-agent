@@ -10,7 +10,7 @@ module NewRelic::Security
           spawn_on_exit(event) { return retval }
         end
 
-        def getpty(*var)
+        def getpty(*var, &block)
           retval = nil
           event = getpty_on_enter(*var) { retval = super }
           getpty_on_exit(event) { return retval }

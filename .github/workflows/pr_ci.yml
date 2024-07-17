@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.5, 3.2.4, 3.3.1, jruby-9.4.5.0]
         instrumentation-method: ['prepend', 'chain']
     steps:
       - name: Configure git
@@ -19,18 +19,15 @@ jobs:
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
       - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libxslt1-dev
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libxslt1-dev libc6-dev openjdk-11-jdk
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1
+        uses: ruby/setup-ruby@cacc9f1c0b3f4eb8a16a6bb0ed10897b43b9de49 # tag v1.176.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Setup bundler
-        run: bundle install
-
       - name: Bundle test environment
-        run: BUNDLE_GEMFILE=Gemfile_test bundle install
+        run: BUNDLE_GEMFILE=Gemfile_test rake test_bundle
 
       - name: Run Unit Tests
         run: bundle exec rake test
@@ -56,7 +53,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
-      - uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1
+      - uses: ruby/setup-ruby@cacc9f1c0b3f4eb8a16a6bb0ed10897b43b9de49 # tag v1.176.0
         with:
           ruby-version: '3.1'
       - run: bundle
@@ -75,6 +72,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           resultPath: lib/coverage_results/.last_run.json
-          failedThreshold: 44
+          failedThreshold: 70
           failedThresholdBranch: 33
 

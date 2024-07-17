@@ -37,6 +37,7 @@ module NewRelic::Security
         def prepped_logger(target)
           @logger = ::Logger.new(target, MAX_LOG_FILES, LOG_FILE_SIZE)
           @logger.level = AgentLogger.log_level_for(NewRelic::Security::Agent.config[:log_level])
+          set_log_format! if target == STDOUT
           @logger.instance_variable_set(:@skip_instrumenting, true)
           @logger.freeze
           @logger
@@ -57,7 +58,10 @@ module NewRelic::Security
         def create_log_to_file
           log_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR)
           path = ::File.directory?(log_dir)
-          if path
+          if wants_stdout?
+            @logger = prepped_logger(STDOUT)
+            warn("Using standard out for logging due to config `log_file_path` or serverless_mode")
+          elsif path
             file_path = "#{log_dir}/#{LOG_FILE_NAME}"
             begin
               @logger = prepped_logger(file_path)
@@ -68,6 +72,17 @@ module NewRelic::Security
           else
             @logger = prepped_logger(STDOUT)
             warn("Error creating log directory #{::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR)}, using standard out for logging.")  
+          end
+        end
+
+        def wants_stdout?
+          NewRelic::Security::Agent.config[:log_file_path].casecmp(STANDARD_OUT) == 0 ||
+            ::NewRelic::Agent.config[:'serverless_mode.enabled']
+        end
+
+        def set_log_format!
+          @logger.formatter = proc do |severity, datetime, progname, msg|
+            "** [NewRelic][Security]#{msg}\n"
           end
         end
 

@@ -48,7 +48,7 @@ module NewRelic::Security
         def app
           SinatraTestApp
         end
-        
+
         # Test call hook
         def test_call_get
           # GET method test
@@ -78,7 +78,7 @@ module NewRelic::Security
           assert_equal "example.org", server_name
           assert_equal "http", protocol
           assert_equal "example.org", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_call_post
@@ -110,9 +110,9 @@ module NewRelic::Security
           assert_equal "example.org", server_name
           assert_equal "http", protocol
           assert_equal "example.org", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
-        
+
         def test_call_put
           # PUT method test
           put('/user/user1', "Nor")
@@ -142,7 +142,7 @@ module NewRelic::Security
           assert_equal "example.org", server_name
           assert_equal "http", protocol
           assert_equal "example.org", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_call_patch
@@ -174,7 +174,7 @@ module NewRelic::Security
           assert_equal "example.org", server_name
           assert_equal "http", protocol
           assert_equal "example.org", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
         def test_call_delete
@@ -206,11 +206,10 @@ module NewRelic::Security
           assert_equal "example.org", server_name
           assert_equal "http", protocol
           assert_equal "example.org", headers["host"]
-          assert_equal "HTTP/1.0", headers["version"]
+          assert_equal "HTTP/1.0", http_context.headers["version"] if Rack::Test::VERSION > '0.6.3'
         end
 
       end
     end
   end
 end
-  

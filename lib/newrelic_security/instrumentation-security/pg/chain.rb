@@ -15,6 +15,14 @@ module NewRelic::Security
                 event = exec_on_enter(sql) { retval = exec_without_security(sql) }
                 exec_on_exit(event) { return retval }
               end
+
+              alias_method :async_exec_without_security, :async_exec
+
+              def async_exec(*args)
+                retval = nil
+                event = async_exec_on_enter(*args) { retval = async_exec_without_security(*args) }
+                async_exec_on_exit(event) { return retval }
+              end
               
               alias_method :prepare_without_security, :prepare
 
