@@ -58,7 +58,7 @@ module NewRelic::Security
           log_dir = ::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR)
           path = ::File.directory?(log_dir)
           if wants_stdout?
-            @logger = prepped_logger(STDOUT)
+            @init_logger = prepped_logger(STDOUT)
             warn("Using standard out for logging due to config `log_file_path` or serverless_mode")
           elsif path
             file_path = "#{log_dir}/#{INIT_LOG_FILE_NAME}"
