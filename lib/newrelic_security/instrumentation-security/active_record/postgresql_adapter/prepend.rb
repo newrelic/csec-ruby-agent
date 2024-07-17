@@ -6,10 +6,12 @@ module NewRelic::Security
           module Prepend
             include NewRelic::Security::Instrumentation::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     
-            def execute(sql, name = nil)
-              retval = nil
-              event = execute_on_enter(sql, name) { retval = super }
-              execute_on_exit(event) { return retval }
+            if RUBY_ENGINE == 'jruby'
+              def execute(sql, name = nil)
+                retval = nil
+                event = execute_on_enter(sql, name) { retval = super }
+                execute_on_exit(event) { return retval }
+              end
             end
 
             if ::Rails.version < '5'
