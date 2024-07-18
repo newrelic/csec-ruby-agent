@@ -1,6 +1,6 @@
 # New Relic Ruby security agent
 
-The New Relic security agent for Ruby is in limited preview and is not generally available.This module enables instrumentation of Ruby applications for interactive application security analysis (IAST) and exposes exploitable vulnerabilities. 
+The New Relic security agent for Ruby is in public preview and is not generally available. This module enables instrumentation of Ruby applications for interactive application security analysis (IAST) and exposes exploitable vulnerabilities.
 
 **Note:** The IAST capability should only be used in pre-production environments and never in production. 
 
@@ -32,28 +32,63 @@ The newrelic_security must be explicitly enabled in order to perform IAST analys
    agent:
      enabled: true
    enabled: true
-   mode: IAST
-   validator_service_url: wss://csec.nr-data.net
 ```
 
 ## Support Matrix
 ### Ruby Versions
-- CRuby: 2.4 & above
-- JRuby: 9.2 & above
+- CRuby: 2.4 or higher
+- JRuby: 9.0 or higher
 ### Web frameworks
-- Rails: 4 & above
-- Sinatra: 2 & above
+- Rails: 4.0 or higher
+- Sinatra: 2.0 or higher
+- Padrino: 0.15 or higher
+- Grape: 1.2 or higher
+- Roda: 3.19 or higher
+- gRPC: 1 or higher
 ### Web servers
-- Puma: 3 & above
-- Unicorn: 5 & above
-- Webrick: 1.6 & above
-- Thin: 1.8 & above
-- Passenger: 6 & above
+- Puma: 3 or higher
+- Unicorn: 4 or higher
+- Thin: 1 or higher
+- Passenger: 5 or higher
+- Falcon: 0.29 or higher
+- Webrick: Supported for all agent-supported versions of Ruby
 ### Databases
-- Sqlite3
+- Active Record: 4.0 or higher
+- Sequel: 4.45 or higher
+- MongoDB: 2.4 or higher
+- Sqlite3 
 - Mysql2
 - PostgreSql
-- MongoDB
+
+### HTTP / network clients
+- Async::HTTP: 0.59.0 or higher
+- Curb: 0.8.1 or higher
+- Ethon: 0.12.0 or higher
+- Excon: 0.19.0 or higher
+- gRPC: 1.0.0 or higher
+- HttpClient: 2.2.0 or higher
+- HttpRb: 0.9.9 or higher
+- HTTPX: 1.0.0 or higher
+- Net::HTTP: Supported for all agent-supported versions of Ruby.
+- Typhoeus: 0.5.3 or higher
+- Patron: 0.10 or higher
+
+### Other
+- nokogiri
+- net-ldap
+
+### Supported Vulnerabilities
+- Remote Code Execution
+- SQL Injection
+- NoSQL Injection
+- Stored XSS
+- Reflected XSS
+- Reverse Shell attack
+- File Access
+- SSRF
+- Application Integrity Violation
+- LDAP Injection
+- XPath Injection
 
 ## Testing
 We use Minitest for the Ruby Security agent.
@@ -64,12 +99,12 @@ rake test_bundle
 #### Running All Unit tests
 The following command runs all the unit tests:
 ```
-rake test
+BUNDLE_GEMFILE=Gemfile_test bundle exec rake test
 ```
 #### Running Specific Tests
 To run a single unit test file use the command like:
 ```
-ruby test/newrelic_security/instrumentation-security/kernel/kernel_test.rb
+BUNDLE_GEMFILE=Gemfile_test bundle exec ruby test/newrelic_security/instrumentation-security/kernel/kernel_test.rb
 ```
 
 ## Feedback or Contribute
