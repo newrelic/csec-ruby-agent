@@ -4,6 +4,8 @@ The New Relic security agent for Ruby is in public preview and is not generally 
 
 **Note:** The IAST capability should only be used in pre-production environments and never in production. 
 
+[![Gem Version](https://badge.fury.io/rb/newrelic_security.svg)](https://badge.fury.io/rb/newrelic_security)
+
 ## Installation
 
 The software is meant to be used along with the [New Relic Ruby Agent](https://github.com/newrelic/newrelic-ruby-agent). You can see New Relic ruby agent install instructions [here](https://github.com/newrelic/newrelic-ruby-agent#installing-and-using).
