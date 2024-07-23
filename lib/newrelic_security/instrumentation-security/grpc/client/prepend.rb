@@ -6,7 +6,6 @@ module NewRelic::Security
           include NewRelic::Security::Instrumentation::GRPC::ClientStub
 
           def request_response(method, req, marshal, unmarshal, deadline: nil, return_op: false, parent: nil, credentials: nil, metadata: {}) # rubocop:disable Metrics/ParameterLists
-            puts "In csec request_response"
             retval = nil
             event = grpc_client_on_enter(method, metadata) { retval = super }
             grpc_client_on_exit(event) { return retval }

@@ -17,6 +17,7 @@ module NewRelic::Security
           grpc_request[:method] = "#{mth.owner}/#{mth.original_name}"
           grpc_request[:is_grpc_client_stream] = is_grpc_client_stream
           grpc_request[:is_grpc_server_stream] = is_grpc_server_stream
+          is_grpc_client_stream ? grpc_request[:body] = [] : grpc_request[:body] = ::String.new
           NewRelic::Security::Agent::Control::GRPCContext.set_context(grpc_request)
           NewRelic::Security::Agent::Utils.parse_fuzz_header(NewRelic::Security::Agent::Control::GRPCContext.get_context)
         rescue => exception
@@ -33,7 +34,11 @@ module NewRelic::Security
           NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
           ctxt = NewRelic::Security::Agent::Control::GRPCContext.get_context
           if ctxt
-            ctxt.body += retval.to_json
+            if ctxt.metadata[:reflectedMetaData][:isGrpcClientStream]
+              ctxt.body << retval.to_json
+            else
+              ctxt.body += retval.to_json
+            end
             ctxt.metadata[:reflectedMetaData][:inputClass] = retval.class.name
           end
         rescue => exception
