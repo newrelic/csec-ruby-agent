@@ -19,6 +19,7 @@ module NewRelic::Security
       SERVER_PORT_1 = 'serverPort'
       PROBING = 'probing'
       INTERVAL = 'interval'
+      IS_GRPC_CLIENT_STREAM = 'isGrpcClientStream'
 
       class IASTClient
         
@@ -122,7 +123,18 @@ module NewRelic::Security
           service = Object.const_get(request[METHOD].split(SLASH)[0]).superclass
           method = request[METHOD].split(SLASH)[1]
           @stub = service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure) unless @stub
-          response = @stub.public_send(method, Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY]), metadata: request[HEADERS])
+
+          parsed_body =  request[BODY][1..-2].split(',')
+          if reflected_metadata[IS_GRPC_CLIENT_STREAM]
+            chunks_enum = Enumerator.new do |y|
+              parsed_body.each do |b|
+                y << Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(b)
+              end
+            end
+          else
+            chunks_enum = Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY])
+          end
+          response = @stub.public_send(method, chunks_enum, metadata: request[HEADERS])
           # response = @stub.send(method, JSON.parse(request['body'], object_class: OpenStruct))
           # request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
           NewRelic::Security::Agent.logger.debug "IAST gRPC client response : #{request.inspect} \n#{response.inspect}\n\n\n\n"
