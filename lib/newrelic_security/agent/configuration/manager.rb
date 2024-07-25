@@ -127,10 +127,10 @@ module NewRelic::Security
 
         def generate_uuid
           if defined?(::Puma::Cluster)
-            ObjectSpace.each_object(::Puma::Cluster) { |z| return fetch_or_create_uuid if !z.preload? && z.instance_variable_get(:@options)[:workers] > 1 }
+            ObjectSpace.each_object(::Puma::Cluster) { |z| return fetch_or_create_uuid if !z.preload? && z.instance_variable_get(:@options)[:workers] >= 1 }
           end
           if defined?(::Unicorn::HttpServer)
-            ObjectSpace.each_object(::Unicorn::HttpServer) { |z| return fetch_or_create_uuid if !z.preload_app && z.worker_processes > 1 }
+            ObjectSpace.each_object(::Unicorn::HttpServer) { |z| return fetch_or_create_uuid if !z.preload_app && z.worker_processes >= 1 }
           end
           if defined?(::PhusionPassenger::App) && ::PhusionPassenger::App.options[SPAWN_METHOD].match?(/#{DIRECT}/i)
             return create_uuid
