@@ -39,6 +39,8 @@ Gem::Specification.new do |spec|
   ]
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'newrelic_rpm', '>= 9.12.0'
+
   spec.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '~> 5.18' : '4.7.5'}"
 
   spec.add_development_dependency 'rubocop', "#{RUBY_VERSION < '2.6.0' ? '< 1.49.0' : '~> 1.49.0'}"

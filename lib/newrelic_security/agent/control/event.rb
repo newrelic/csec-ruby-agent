@@ -98,7 +98,7 @@ module NewRelic::Security
           # TODO: optimise this method and combine copy_http_info and copy_grpc_info
           return if ctxt.nil?
           http_request = {}
-          http_request[:body] = ctxt.body
+          http_request[:body] = ctxt.body.is_a?(Array) ? "[#{ctxt.body.join(',')}]" : ctxt.body
           http_request[:generationTime] = ctxt.time_stamp
           http_request[:dataTruncated] = false
           http_request[:method] = ctxt.method
