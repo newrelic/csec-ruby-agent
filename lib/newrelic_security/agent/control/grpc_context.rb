@@ -15,7 +15,7 @@ module NewRelic::Security
           @method = grpc_request[:method]
           @route = "/#{@method}"
           @headers = grpc_request[:headers]
-          @body = ::String.new
+          @body =  grpc_request[:body]
           if defined?(::GRPC::RpcServer)
             ObjectSpace.each_object(::GRPC::RpcServer) do |z|
               grpc_host = z.instance_variable_get(:@host_nr)
