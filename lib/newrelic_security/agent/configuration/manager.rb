@@ -22,7 +22,7 @@ module NewRelic::Security
           @cache[:account_id] = nil
           @cache[:application_id] = nil
           @cache[:primary_application_id] = nil
-          @cache[:log_file_path] = ::File.absolute_path(::NewRelic::Agent.config[:log_file_path])
+          @cache[:log_file_path] = ::NewRelic::Agent.config[:log_file_path]
           @cache[:fuzz_dir_path] = ::File.join(::File.absolute_path(::NewRelic::Agent.config[:log_file_path]), SEC_HOME_PATH, TMP_DIR)
           @cache[:log_level] = ::NewRelic::Agent.config[:log_level]
           @cache[:high_security] = ::NewRelic::Agent.config[:high_security]
@@ -47,7 +47,8 @@ module NewRelic::Security
           @yaml_source = NewRelic::Security::Agent::Configuration::YamlSource.new
           @default_source = NewRelic::Security::Agent::Configuration::DefaultSource.new
         rescue Exception => exception
-          NewRelic::Security::Agent.logger.error "Exception in Configuration::Manager.initialize : #{exception.inspect} #{exception.backtrace}"
+          # TODO: remove this puts once agent stablizes
+          puts "Exception in Configuration::Manager.initialize : #{exception.inspect} #{exception.backtrace}"
         end
   
         def [](key)
@@ -126,10 +127,10 @@ module NewRelic::Security
 
         def generate_uuid
           if defined?(::Puma::Cluster)
-            ObjectSpace.each_object(::Puma::Cluster) { |z| return fetch_or_create_uuid if !z.preload? && z.instance_variable_get(:@options)[:workers] > 1 }
+            ObjectSpace.each_object(::Puma::Cluster) { |z| return fetch_or_create_uuid if !z.preload? && z.instance_variable_get(:@options)[:workers] >= 1 }
           end
           if defined?(::Unicorn::HttpServer)
-            ObjectSpace.each_object(::Unicorn::HttpServer) { |z| return fetch_or_create_uuid if !z.preload_app && z.worker_processes > 1 }
+            ObjectSpace.each_object(::Unicorn::HttpServer) { |z| return fetch_or_create_uuid if !z.preload_app && z.worker_processes >= 1 }
           end
           if defined?(::PhusionPassenger::App) && ::PhusionPassenger::App.options[SPAWN_METHOD].match?(/#{DIRECT}/i)
             return create_uuid
