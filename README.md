@@ -4,6 +4,8 @@ The New Relic security agent for Ruby is in public preview and is not generally 
 
 **Note:** The IAST capability should only be used in pre-production environments and never in production. 
 
+[![Gem Version](https://badge.fury.io/rb/newrelic_security.svg)](https://badge.fury.io/rb/newrelic_security)
+
 ## Installation
 
 The software is meant to be used along with the [New Relic Ruby Agent](https://github.com/newrelic/newrelic-ruby-agent). You can see New Relic ruby agent install instructions [here](https://github.com/newrelic/newrelic-ruby-agent#installing-and-using).
@@ -54,6 +56,7 @@ The newrelic_security must be explicitly enabled in order to perform IAST analys
 - Webrick: Supported for all agent-supported versions of Ruby
 ### Databases
 - Active Record: 4.0 or higher
+- Sequel: 4.45 or higher
 - MongoDB: 2.4 or higher
 - Sqlite3 
 - Mysql2
