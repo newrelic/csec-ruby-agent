@@ -21,6 +21,28 @@ module NewRelic::Security
     end
 
     module ActionDispatch
+      module Journey
+        module Router
+          module Chain
+            def self.instrument!
+              ::ActionDispatch::Journey::Router.class_eval do
+                include NewRelic::Security::Instrumentation::ActionDispatch::Journey::Router
+
+                alias_method :find_routes_without_security, :find_routes
+
+                def find_routes(req)
+                  retval = nil
+                  event = find_routes_on_enter(req) { retval = find_routes_without_security(req) }
+                  find_routes_on_exit(event, retval) { return retval }
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    module ActionDispatch
       module Routing
         module RouteSet
           module Dispatcher
