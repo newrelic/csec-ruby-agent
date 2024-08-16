@@ -67,7 +67,7 @@ module NewRelic::Security
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
-        ctxt.route = "#{ctxt.method}@#{req.route_uri_pattern.to_s.gsub(/\(\.:format\)/, EMPTY_STRING)}" unless ctxt.nil?
+        ctxt.route = "#{ctxt.method}@#{req.route_uri_pattern.to_s.gsub(/\(\.:format\)/, EMPTY_STRING)}" if ctxt && req.respond_to?(:route_uri_pattern)
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure
