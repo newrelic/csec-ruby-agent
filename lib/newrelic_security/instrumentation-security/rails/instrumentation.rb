@@ -31,29 +31,24 @@ module NewRelic::Security
       ensure
         yield
       end
-      
     end
 
-    module ActionDispatch::Journey::Router
-      
-      def find_routes_on_enter(req)
+    module ActionDispatch::Routing::RouteSet::Dispatcher
+
+      def serve_on_enter(req)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
+        ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
+        ctxt.route = "#{ctxt.method}@#{req.route_uri_pattern.to_s.gsub(/\(\.:format\)/, EMPTY_STRING)}" unless ctxt.nil?
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure
         yield
         return event
       end
-      
-      def find_routes_on_exit(event, retval)
-        NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
 
-        unless retval[0].nil?
-          route = retval[0][2].path.spec.to_s.gsub(/\(\.:format\)/, EMPTY_STRING)
-          ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
-          ctxt.route = "#{ctxt.method}@#{route}" unless ctxt.nil?
-        end
+      def serve_on_exit(event, retval)
+        NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure
@@ -64,4 +59,4 @@ module NewRelic::Security
 end
 
 NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:rails, ::Rails::Engine, ::NewRelic::Security::Instrumentation::Rails::Engine)
-NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:rails, ::ActionDispatch::Journey::Router, ::NewRelic::Security::Instrumentation::ActionDispatch::Journey::Router)
+NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:rails, ::ActionDispatch::Routing::RouteSet::Dispatcher, ::NewRelic::Security::Instrumentation::ActionDispatch::Routing::RouteSet::Dispatcher)

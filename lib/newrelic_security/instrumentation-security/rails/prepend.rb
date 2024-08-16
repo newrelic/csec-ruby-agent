@@ -15,15 +15,17 @@ module NewRelic::Security
     end
 
     module ActionDispatch
-      module Journey
-        module Router
-          module Prepend
-            include NewRelic::Security::Instrumentation::ActionDispatch::Journey::Router
+      module Routing
+        module RouteSet
+          module Dispatcher
+            module Prepend
+              include NewRelic::Security::Instrumentation::ActionDispatch::Routing::RouteSet::Dispatcher
 
-            def find_routes(req)
-              retval = nil
-              event = find_routes_on_enter(req) { retval = super }
-              find_routes_on_exit(event, retval) { return retval }
+              def serve(req)
+                retval = nil
+                event = serve_on_enter(req) { retval = super }
+                serve_on_exit(event, retval) { return retval }
+              end
             end
           end
         end
