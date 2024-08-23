@@ -39,7 +39,21 @@ module NewRelic::Security
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
-          @cache[:json_version] = :'1.2.4'
+          @cache[:json_version] = :'1.2.6'
+          @cache[:'security.skip_iast_scan.api'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.api']
+          @cache[:'security.skip_iast_scan.parameters.header'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.parameters.header']
+          @cache[:'security.skip_iast_scan.parameters.query'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.parameters.query']
+          @cache[:'security.skip_iast_scan.parameters.body'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.parameters.body']
+          @cache[:'security.skip_iast_scan.iast_detection_category.insecure_settings'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.insecure_settings']
+          @cache[:'security.skip_iast_scan.iast_detection_category.invalid_file_access'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.invalid_file_access']
+          @cache[:'security.skip_iast_scan.iast_detection_category.sql_injection'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.sql_injection']
+          @cache[:'security.skip_iast_scan.iast_detection_category.nosql_injection'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.nosql_injection']
+          @cache[:'security.skip_iast_scan.iast_detection_category.ldap_injection'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.ldap_injection']
+          @cache[:'security.skip_iast_scan.iast_detection_category.javascript_injection'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.javascript_injection']
+          @cache[:'security.skip_iast_scan.iast_detection_category.command_injection'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.command_injection']
+          @cache[:'security.skip_iast_scan.iast_detection_category.xpath_injection'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.xpath_injection']
+          @cache[:'security.skip_iast_scan.iast_detection_category.ssrf'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.ssrf']
+          @cache[:'security.skip_iast_scan.iast_detection_category.rxss'] = ::NewRelic::Agent.config[:'security.skip_iast_scan.iast_detection_category.rxss']
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new
