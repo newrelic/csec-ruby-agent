@@ -19,6 +19,7 @@ module NewRelic::Security
         def collect(case_type, args, event_category = nil, **keyword_args)
           return unless NewRelic::Security::Agent.config[:enabled]
           return if NewRelic::Security::Agent::Control::HTTPContext.get_context.nil? && NewRelic::Security::Agent::Control::GRPCContext.get_context.nil?
+          return if check_and_skip_iast_scan_for_api
           return if check_and_skip_iast_scan_for_detection_category(case_type)
           args.map! { |file| Pathname.new(file).relative? ? File.join(Dir.pwd, file) : file } if [FILE_OPERATION, FILE_INTEGRITY].include?(case_type)
 
@@ -110,6 +111,14 @@ module NewRelic::Security
               return
             end
           }
+        end
+
+        def check_and_skip_iast_scan_for_api
+          NewRelic::Security::Agent.config[:'security.skip_iast_scan.api'].each do |api|
+            # TODO: remove below split with @ everywhere and store only route in context
+            return true if api.match?(NewRelic::Security::Agent::Control::HTTPContext.get_context.route&.split('@')&.[](1))
+          end
+          return false
         end
 
         def check_and_skip_iast_scan_for_detection_category(case_type)
