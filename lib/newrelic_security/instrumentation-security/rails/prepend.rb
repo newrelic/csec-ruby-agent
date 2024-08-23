@@ -29,5 +29,23 @@ module NewRelic::Security
         end
       end
     end
+
+    module ActionDispatch
+      module Routing
+        module RouteSet
+          module Dispatcher
+            module Prepend
+              include NewRelic::Security::Instrumentation::ActionDispatch::Routing::RouteSet::Dispatcher
+
+              def serve(req)
+                retval = nil
+                event = serve_on_enter(req) { retval = super }
+                serve_on_exit(event, retval) { return retval }
+              end
+            end
+          end
+        end
+      end
+    end
   end
 end
