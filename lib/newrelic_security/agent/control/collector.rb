@@ -19,8 +19,8 @@ module NewRelic::Security
         def collect(case_type, args, event_category = nil, **keyword_args)
           return unless NewRelic::Security::Agent.config[:enabled]
           return if NewRelic::Security::Agent::Control::HTTPContext.get_context.nil? && NewRelic::Security::Agent::Control::GRPCContext.get_context.nil?
-          return if check_and_skip_iast_scan_for_api
-          return if check_and_skip_iast_scan_for_detection_category(case_type)
+          return if check_and_exclude_from_iast_scan_for_api
+          return if check_and_exclude_from_iast_scan_for_detection_category(case_type)
           args.map! { |file| Pathname.new(file).relative? ? File.join(Dir.pwd, file) : file } if [FILE_OPERATION, FILE_INTEGRITY].include?(case_type)
 
           event = NewRelic::Security::Agent::Control::Event.new(case_type, args, event_category)
@@ -113,32 +113,32 @@ module NewRelic::Security
           }
         end
 
-        def check_and_skip_iast_scan_for_api
-          NewRelic::Security::Agent.config[:'security.skip_iast_scan.api'].each do |api|
+        def check_and_exclude_from_iast_scan_for_api
+          NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.api'].each do |api|
             # TODO: remove below split with @ everywhere and store only route in context
             return true if api.match?(NewRelic::Security::Agent::Control::HTTPContext.get_context.route&.split('@')&.[](1))
           end
           return false
         end
 
-        def check_and_skip_iast_scan_for_detection_category(case_type)
+        def check_and_exclude_from_iast_scan_for_detection_category(case_type)
           case case_type
           when FILE_OPERATION || FILE_INTEGRITY
-            NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.invalid_file_access']
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access']
           when SQL_DB_COMMAND
-            NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.sql_injection']
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.sql_injection']
           when NOSQL_DB_COMMAND
-            NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.nosql_injection']
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.nosql_injection']
           when LDAP
-            NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.ldap_injection']
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ldap_injection']
           when SYSTEM_COMMAND
-            NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.command_injection']
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.command_injection']
           when XPATH
-            NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.xpath_injection']
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection']
           when HTTP_REQUEST
-            NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.ssrf']
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ssrf']
           when REFLECTED_XSS
-            NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.rxss']
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.rxss']
           else
             false
           end

@@ -35,9 +35,9 @@ module NewRelic::Security
               :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s
             },
             :skipScanParameters => {
-              :header => NewRelic::Security::Agent.config[:'security.skip_iast_scan.parameters.header'],
-              :query => NewRelic::Security::Agent.config[:'security.skip_iast_scan.parameters.query'],
-              :body => NewRelic::Security::Agent.config[:'security.skip_iast_scan.parameters.body']
+              :header => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.header'],
+              :query => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.query'],
+              :body => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.body']
             }
           }
           @linkingMetadata = add_linking_metadata

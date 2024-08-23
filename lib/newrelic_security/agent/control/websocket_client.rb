@@ -131,14 +131,15 @@ module NewRelic::Security
 
         def ingnored_vul_categories
           list = []
-          list << FILE_OPERATION << FILE_INTEGRITY if NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.invalid_file_access']
-          list << SQL_DB_COMMAND if NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.sql_injection']
-          list << NOSQL_DB_COMMAND if NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.nosql_injection']
-          list << LDAP if NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.ldap_injection']
-          list << SYSTEM_COMMAND if NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.command_injection']
-          list << XPATH if NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.xpath_injection']
-          list << HTTP_REQUEST if NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.ssrf']
-          list << REFLECTED_XSS if NewRelic::Security::Agent.config[:'security.skip_iast_scan.iast_detection_category.rxss']
+          list << FILE_OPERATION << FILE_INTEGRITY if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access']
+          list << SQL_DB_COMMAND if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.sql_injection']
+          list << NOSQL_DB_COMMAND if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.nosql_injection']
+          list << LDAP if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ldap_injection']
+          list << SYSTEM_COMMAND if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.command_injection']
+          list << XPATH if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection']
+          list << HTTP_REQUEST if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ssrf']
+          list << REFLECTED_XSS if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.rxss']
+          list
         end
       end
     end
