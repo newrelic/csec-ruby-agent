@@ -123,7 +123,7 @@ module NewRelic::Security
 
         def check_and_exclude_from_iast_scan_for_detection_category(case_type)
           case case_type
-          when FILE_OPERATION || FILE_INTEGRITY
+          when FILE_OPERATION, FILE_INTEGRITY
             NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access']
           when SQL_DB_COMMAND
             NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.sql_injection']
