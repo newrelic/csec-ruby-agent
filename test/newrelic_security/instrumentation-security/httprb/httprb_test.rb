@@ -14,7 +14,7 @@ module NewRelic::Security
                 def test_get
                     url = "http://www.google.com"
                     args = ["http://www.google.com"]
-                    response = HTTP.headers(args[0][:Headers]).get(url, :params => {:foo => "bar"})
+                    response = HTTP.headers({"Accept-Encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "Accept"=>"*/*", "User-Agent"=>"Ruby", "Connection"=>"close"}).get(url, :params => {:foo => "bar"})
                     assert_equal 200, response.code
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
@@ -26,7 +26,7 @@ module NewRelic::Security
                 def test_get_ssl
                     url = "https://www.google.com"
                     args = ["http://www.google.com"]
-                    response = HTTP.headers(args[0][:Headers]).get(url, :params => {:foo => "bar"})
+                    response = HTTP.headers({"Accept-Encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "Accept"=>"*/*", "User-Agent"=>"Ruby", "Connection"=>"close"}).get(url, :params => {:foo => "bar"})
                     assert_equal 200, response.code
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
@@ -38,7 +38,7 @@ module NewRelic::Security
                 def test_post_json
                     url = "http://localhost:9291/books"
                     args = ["http://localhost:9291/books"]
-                    response = HTTP.headers(args[0][:Headers]).post(url, :json => {:title => "New", :author => "New Author"})
+                    response = HTTP.headers({"Content-Type"=>"application/json"}).post(url, :json => {:title => "New", :author => "New Author"})
                     assert_equal 201, response.code
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
@@ -50,7 +50,7 @@ module NewRelic::Security
                 def test_put_json
                     url = "http://localhost:9291/books/1"
                     args = ["http://localhost:9291/books/1"]
-                    response = HTTP.headers(args[0][:Headers]).put(url, :json => {:title => "Update Book", :author => "Update Author"})
+                    response = HTTP.headers({"Content-Type"=>"application/json"}).put(url, :json => {:title => "Update Book", :author => "Update Author"})
                     assert_equal 200, response.code
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
