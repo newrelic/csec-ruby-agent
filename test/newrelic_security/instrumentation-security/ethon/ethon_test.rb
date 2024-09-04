@@ -14,7 +14,7 @@ module NewRelic::Security
 
                 def test_get
                     url = "http://www.google.com"
-                    args = ["https://www.google.com"]
+                    args = ["http://www.google.com"]
                     easy = Ethon::Easy.new(url: url)
                     response = easy.perform
                     @output = response
