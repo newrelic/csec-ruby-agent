@@ -20,11 +20,7 @@ module NewRelic::Security
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
-                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
-                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
-                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
-                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
+                    assert_equal expected_event.parameters[0], $event_list[0].parameters[0]
                     assert_nil $event_list[0].eventCategory
                 end
 
@@ -37,11 +33,7 @@ module NewRelic::Security
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
-                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
-                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
-                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
-                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
+                    assert_equal expected_event.parameters[0], $event_list[0].parameters[0]
                     assert_nil $event_list[0].eventCategory
                 end
 
@@ -54,11 +46,7 @@ module NewRelic::Security
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
-                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
-                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
-                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
-                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
+                    assert_equal expected_event.parameters[0], $event_list[0].parameters[0]
                     assert_nil $event_list[0].eventCategory
                 end
 
@@ -71,11 +59,7 @@ module NewRelic::Security
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
-                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
-                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
-                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
-                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
+                    assert_equal expected_event.parameters[0], $event_list[0].parameters[0]
                     assert_nil $event_list[0].eventCategory
                 end
 
@@ -88,11 +72,7 @@ module NewRelic::Security
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
-                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
-                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
-                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
-                    assert_equal expected_event.parameters[0][:Body], $event_list[0].parameters[0][:Body]
+                    assert_equal expected_event.parameters[0], $event_list[0].parameters[0]
                     assert_nil $event_list[0].eventCategory
                 end
 

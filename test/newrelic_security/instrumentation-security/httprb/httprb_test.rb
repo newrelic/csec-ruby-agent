@@ -13,7 +13,7 @@ module NewRelic::Security
 
                 def test_get
                     url = "http://www.google.com"
-                    args = ["http://www.google.com"]
+                    args = ["http://www.google.com/?foo=bar"]
                     response = HTTP.headers({"Accept-Encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "Accept"=>"*/*", "User-Agent"=>"Ruby", "Connection"=>"close"}).get(url, :params => {:foo => "bar"})
                     assert_equal 200, response.code
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
@@ -25,7 +25,7 @@ module NewRelic::Security
 
                 def test_get_ssl
                     url = "https://www.google.com"
-                    args = ["http://www.google.com"]
+                    args = ["https://www.google.com/?foo=bar"]
                     response = HTTP.headers({"Accept-Encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "Accept"=>"*/*", "User-Agent"=>"Ruby", "Connection"=>"close"}).get(url, :params => {:foo => "bar"})
                     assert_equal 200, response.code
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
