@@ -33,6 +33,7 @@ module NewRelic::Security
           @cache[:'security.detection.rci.enabled'] = ::NewRelic::Agent.config[:'security.detection.rci.enabled']
           @cache[:'security.detection.rxss.enabled'] = ::NewRelic::Agent.config[:'security.detection.rxss.enabled']
           @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
+          @cache[:'security.scan_controllers.iast_scan_request_rate_limit'] = ::NewRelic::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'].to_i
           @cache[:framework] = detect_framework
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
           @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
