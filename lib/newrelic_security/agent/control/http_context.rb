@@ -66,6 +66,10 @@ module NewRelic::Security
         def self.reset_context
           ::NewRelic::Agent::Tracer.current_transaction.remove_instance_variable(:@security_context_data) if ::NewRelic::Agent::Tracer.current_transaction.instance_variable_defined?(:@security_context_data)
         end
+
+        def self.get_current_transaction
+          ::NewRelic::Agent::Tracer.current_transaction
+        end
       end
 
     end

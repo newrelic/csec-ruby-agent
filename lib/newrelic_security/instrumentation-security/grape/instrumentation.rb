@@ -24,6 +24,7 @@ module NewRelic::Security
         # NewRelic::Security::Agent.logger.debug "\n\nHTTP Context : #{::NewRelic::Agent::Tracer.current_transaction.instance_variable_get(:@security_context_data).inspect}\n\n"
         NewRelic::Security::Agent::Control::ReflectedXSS.check_xss(NewRelic::Security::Agent::Control::HTTPContext.get_context, retval) if NewRelic::Security::Agent.config[:'security.detection.rxss.enabled']
         NewRelic::Security::Agent::Utils.delete_created_files(NewRelic::Security::Agent::Control::HTTPContext.get_context)
+        NewRelic::Security::Agent.agent.error_reporting.extract_noticed_error(NewRelic::Security::Agent::Control::HTTPContext.get_current_transaction, NewRelic::Security::Agent::Control::HTTPContext.get_context)
         NewRelic::Security::Agent::Control::HTTPContext.reset_context
         NewRelic::Security::Agent.logger.debug "Exit event : #{event}"
       rescue => exception
@@ -40,7 +41,7 @@ module NewRelic::Security
         def prepare_env_from_route_on_enter(route)
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
           ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
-          http_method = route.instance_variable_get(:@request_method) ? route.instance_variable_get(:@request_method) : route.instance_variable_get(:@options)[:method]
+          http_method = route.instance_variable_get(:@request_method) || route.instance_variable_get(:@options)[:method]
           ctxt.route = "#{http_method}@#{route.options[:namespace]}" unless ctxt.nil?
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
