@@ -134,7 +134,7 @@ module NewRelic::Security
         end
 
         def current_transaction
-          ::NewRelic::Agent::Tracer.current_transaction
+          ::NewRelic::Agent::Tracer.current_transaction if defined?(::NewRelic::Agent::Tracer)
         end
 
         def thread_monotonic_ctr
