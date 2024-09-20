@@ -40,7 +40,7 @@ module NewRelic::Security
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
           @cache[:json_version] = :'1.2.6'
-          @cache[:'security.exclude_from_iast_scan.api'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.api']
+          @cache[:'security.exclude_from_iast_scan.api'] = convert_to_regexp_list(::NewRelic::Agent.config[:'security.exclude_from_iast_scan.api'])
           @cache[:'security.exclude_from_iast_scan.http_request_parameters.header'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.header']
           @cache[:'security.exclude_from_iast_scan.http_request_parameters.query'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.query']
           @cache[:'security.exclude_from_iast_scan.http_request_parameters.body'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.body']
@@ -185,6 +185,15 @@ module NewRelic::Security
 
         def generate_key(entity_guid)
           ::OpenSSL::PKCS5.pbkdf2_hmac(entity_guid, entity_guid[0..15], 1024, 32, SHA1)
+        end
+
+        def convert_to_regexp_list(value_list)
+          value_list.map do |value|
+            next unless value && !value.empty?
+            value = "^#{value}" if value[0] != '^'
+            value = "#{value}$" if value[-1] != '$'
+            /#{value}/
+          end
         end
       end
     end
