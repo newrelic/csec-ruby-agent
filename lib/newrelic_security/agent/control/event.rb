@@ -130,7 +130,7 @@ module NewRelic::Security
         end
 
         def event_id
-          "#{Process.pid}:#{current_transaction.guid}:#{thread_monotonic_ctr}"
+          "#{Process.pid}:#{current_transaction&.guid}:#{thread_monotonic_ctr}"
         end
 
         def current_transaction
