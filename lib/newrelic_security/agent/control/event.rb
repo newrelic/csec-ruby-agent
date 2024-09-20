@@ -130,13 +130,20 @@ module NewRelic::Security
         end
 
         def event_id
-          "#{Process.pid}:#{::Thread.current.object_id}:#{thread_monotonic_ctr}"
+          "#{Process.pid}:#{current_transaction.guid}:#{thread_monotonic_ctr}"
+        end
+
+        def current_transaction
+          ::NewRelic::Agent::Tracer.current_transaction
         end
 
         def thread_monotonic_ctr
           ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context if NewRelic::Security::Agent::Control::HTTPContext.get_context
           ctxt = NewRelic::Security::Agent::Control::GRPCContext.get_context if NewRelic::Security::Agent::Control::GRPCContext.get_context
-          ctxt.event_counter = ctxt.event_counter + 1 if ctxt
+          return unless ctxt
+          ctxt.mutex.synchronize do
+            ctxt.event_counter = ctxt.event_counter + 1
+          end
         end
 
         def add_linking_metadata
