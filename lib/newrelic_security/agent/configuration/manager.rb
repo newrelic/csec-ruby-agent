@@ -37,6 +37,11 @@ module NewRelic::Security
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
           @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
           @cache[:listen_port] = nil
+          @cache[:process_start_time] = current_time_millis # TODO: Ruby doesn't provide process start time in pure ruby implementation using agent loading time for now.
+          @cache[:traffic_start_time] = nil
+          @cache[:scan_start_time] = nil
+          @cache[:'security.scan_controllers.scan_instance_count'] = ::NewRelic::Agent.config[:'security.scan_controllers.scan_instance_count']
+          @cache[:'security.iast_test_identifier'] = ::NewRelic::Agent.config[:'security.iast_test_identifier']
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
           @cache[:json_version] = :'1.2.4'
@@ -92,6 +97,14 @@ module NewRelic::Security
 
         def update_port=(listen_port)
           @cache[:listen_port] = listen_port
+        end
+
+        def traffic_start_time=(traffic_start_time)
+          @cache[:traffic_start_time] = traffic_start_time
+        end
+
+        def scan_start_time=(scan_start_time)
+          @cache[:scan_start_time] = scan_start_time
         end
 
         def app_server=(app_server)
@@ -172,6 +185,11 @@ module NewRelic::Security
         def generate_key(entity_guid)
           ::OpenSSL::PKCS5.pbkdf2_hmac(entity_guid, entity_guid[0..15], 1024, 32, SHA1)
         end
+
+        def current_time_millis
+          (Time.now.to_f * 1000).to_i
+        end
+
       end
     end
   end
