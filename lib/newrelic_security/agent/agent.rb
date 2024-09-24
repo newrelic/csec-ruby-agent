@@ -93,7 +93,8 @@ module NewRelic::Security
       def find_or_create_file_path(path)
         ::FileUtils.mkdir_p(path) unless ::File.directory?(path)
         ::File.directory?(path)
-      rescue
+      rescue => e
+        ::NewRelic::Agent.notice_error(e)
         return false
       end
 
