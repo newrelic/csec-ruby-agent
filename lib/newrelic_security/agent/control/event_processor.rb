@@ -113,7 +113,6 @@ module NewRelic::Security
             end
           end
           NewRelic::Security::Agent.agent.exit_event_stats.rejected.increment if message.jsonName == :'exit-event'
-          NewRelic::Security::Agent.agent.iast_client.completed_requests.delete(message.parentId)
         end
 
         def create_keep_alive_thread

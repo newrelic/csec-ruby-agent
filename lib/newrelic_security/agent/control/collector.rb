@@ -59,8 +59,10 @@ module NewRelic::Security
           end
           event.stacktrace = stk[0..user_frame_index].map(&:to_s)
           NewRelic::Security::Agent.agent.event_processor.send_event(event)
-          if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
-            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id if NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId]
+          if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0].split(COLON)[1]
+            uuid = event.httpRequest[:headers][NR_CSEC_TRACING_DATA] ? event.httpRequest[:headers][NR_CSEC_TRACING_DATA].split(';')[0].split('/')[0] : NewRelic::Security::Agent.config[:uuid]
+            NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][event.parentId] = [] unless NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][event.parentId]
+            NewRelic::Security::Agent.agent.iast_client.generated_event[uuid][event.parentId] << event.id
           end
           event
         rescue Exception => exception

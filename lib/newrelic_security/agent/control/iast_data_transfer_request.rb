@@ -6,7 +6,7 @@ module NewRelic::Security
     module Control
       class IASTDataTransferRequest
         attr_reader :jsonName
-        attr_accessor :batchSize, :pendingRequestIds, :completedRequests
+        attr_accessor :batchSize, :completedReplay, :errorInReplay, :clearFromPending, :generatedEvent
 
         def initialize
           @jsonName = :'iast-data-request'
@@ -14,8 +14,10 @@ module NewRelic::Security
           @appAccountId = NewRelic::Security::Agent.config[:account_id]
           @appEntityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @batchSize = 10
-          @pendingRequestIds = []
-          @completedRequests = Hash.new
+          @completedReplay = ::Set.new
+          @errorInReplay = ::Set.new
+          @clearFromPending = ::Set.new
+          @generatedEvent = {}
         end
         
         def as_json
