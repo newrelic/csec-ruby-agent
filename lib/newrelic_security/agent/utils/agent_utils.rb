@@ -36,10 +36,11 @@ module NewRelic::Security
               decrypted_data.split(COMMA).each do |filename|
                 begin
                   filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP, NewRelic::Security::Agent.config[:fuzz_dir_path])
+                  filename.gsub!(NR_CSEC_VALIDATOR_HOME_TMP_URL_ENCODED, NewRelic::Security::Agent.config[:fuzz_dir_path])
                   filename.gsub!(NR_CSEC_VALIDATOR_FILE_SEPARATOR, ::File::SEPARATOR)
                   dirname = ::File.dirname(filename)
                   ::FileUtils.mkdir_p(dirname, :mode => 0770) unless ::File.directory?(dirname)
-                  ctxt&.fuzz_files << filename
+                  ctxt&.fuzz_files&.<< filename
                   ::File.open(filename, ::File::WRONLY | ::File::CREAT | ::File::EXCL) do |fd|
                       # puts "Ownership acquired by : #{Process.pid}"
                   end unless ::File.exist?(filename)
@@ -115,7 +116,7 @@ module NewRelic::Security
         elsif framework == :grape
           ObjectSpace.each_object(::Grape::Endpoint) { |z|
             z.instance_variable_get(:@routes)&.each { |route|
-              http_method = route.instance_variable_get(:@request_method) ? route.instance_variable_get(:@request_method) : route.instance_variable_get(:@options)[:method]
+              http_method = route.instance_variable_get(:@request_method) || route.instance_variable_get(:@options)[:method]
               NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
             }
           }
