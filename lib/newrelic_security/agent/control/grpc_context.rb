@@ -8,7 +8,7 @@ module NewRelic::Security
       
       class GRPCContext
         
-        attr_accessor :time_stamp, :method, :headers, :body, :route, :cache, :fuzz_files, :url, :server_name, :server_port, :client_ip, :client_port, :is_grpc, :metadata, :event_counter
+        attr_accessor :time_stamp, :method, :headers, :body, :route, :cache, :fuzz_files, :url, :server_name, :server_port, :client_ip, :client_port, :is_grpc, :metadata, :event_counter, :mutex
 
         def initialize(grpc_request)
           @time_stamp = current_time_millis
@@ -32,6 +32,7 @@ module NewRelic::Security
           @cache = {}
           @fuzz_files = ::Set.new
           @event_counter = 0
+          @mutex = Mutex.new
           NewRelic::Security::Agent.agent.http_request_count.increment
         end
 

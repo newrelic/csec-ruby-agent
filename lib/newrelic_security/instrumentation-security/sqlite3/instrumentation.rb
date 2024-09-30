@@ -10,7 +10,7 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         hash = {}
         hash[:sql] = sql
-        hash[:parameters] = bind_vars.is_a?(String) ? [bind_vars] : bind_vars.map(&:to_s)
+        hash[:parameters] = bind_vars.is_a?(String) ? [bind_vars] : bind_vars.flatten
         hash[:parameters] = hash[:parameters] + args.map(&:to_s) unless args.empty?
         event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, [hash], SQLITE) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(hash[:sql])
       rescue => exception
@@ -34,7 +34,7 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         hash = {}
         hash[:sql] = sql
-        hash[:parameters] = bind_vars.is_a?(String) ? [bind_vars] : bind_vars.map(&:to_s)
+        hash[:parameters] = bind_vars.is_a?(String) ? [bind_vars] : bind_vars.flatten
         hash[:parameters] = hash[:parameters] + args unless args.empty?
         event = NewRelic::Security::Agent::Control::Collector.collect(SQL_DB_COMMAND, [hash], SQLITE) unless NewRelic::Security::Instrumentation::InstrumentationUtils.sql_filter_events?(hash[:sql])
       rescue => exception
@@ -102,7 +102,7 @@ module NewRelic::Security
       def bind_params_on_enter(*bind_vars)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-        NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id][:parameters] = bind_vars.map(&:to_s) if NewRelic::Security::Agent::Control::HTTPContext.get_context && NewRelic::Security::Agent::Control::HTTPContext.get_context.cache.key?(self.object_id)
+        NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id][:parameters] = bind_vars.flatten if NewRelic::Security::Agent::Control::HTTPContext.get_context && NewRelic::Security::Agent::Control::HTTPContext.get_context.cache.key?(self.object_id)
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure
@@ -129,7 +129,7 @@ module NewRelic::Security
           else
             hash = {}
             hash[:sql] = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[key][:sql]
-            hash[:parameters] = bind_vars.map(&:to_s)
+            hash[:parameters] = bind_vars.flatten
             ic_args.push(hash)
           end
         end

@@ -16,7 +16,7 @@ module NewRelic::Security
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :mutex
 
         def initialize(env)
           @time_stamp = current_time_millis
@@ -47,6 +47,7 @@ module NewRelic::Security
           @cache = Hash.new
           @fuzz_files = ::Set.new
           @event_counter = 0
+          @mutex = Mutex.new
           NewRelic::Security::Agent.agent.http_request_count.increment
           NewRelic::Security::Agent.agent.iast_client.completed_requests[@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID)
         end
