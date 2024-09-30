@@ -37,11 +37,12 @@ module NewRelic::Security
           category = STATUS_CODES_5XX[response_code] if response_code
           application_runtime_error = NewRelic::Security::Agent::Control::ApplicationRuntimeError.new(unhandled_exception, ctxt, response_code, category)
           key = if response_code
-            ctxt.route&.split(AT_THE_RATE)&.[](1)&.+ response_code.to_s
+            # TODO: when do refactoring of ctxt.route, use both route and method to generate key
+            ctxt.route&.+ response_code.to_s
                 else
             application_runtime_error.exception[:type] + application_runtime_error.exception[:stackTrace][0]
                 end
-          application_runtime_error.counter += 1 if @exceptions_map.key?(key)
+          application_runtime_error.counter = @exceptions_map[key].counter + 1 if @exceptions_map.key?(key)
           @exceptions_map[key] = application_runtime_error
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in generating unhandled exception: #{exception.inspect} #{exception.backtrace}\n"
