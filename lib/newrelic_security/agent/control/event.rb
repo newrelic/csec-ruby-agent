@@ -115,7 +115,7 @@ module NewRelic::Security
           http_request[:contentType] = "TODO: "
           http_request[:isGrpc] = ctxt.is_grpc
           @httpRequest = http_request
-          @metaData = ctxt.metadata
+          @metaData.merge!(ctxt.metadata)
         end
 
         private
