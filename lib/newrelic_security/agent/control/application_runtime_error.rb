@@ -67,6 +67,7 @@ module NewRelic::Security
           http_request[:method] = ctxt.method
           http_request[:route] = ctxt.route.split(AT_THE_RATE)[1] if ctxt.route
           http_request[:url] = URI(ctxt.req[REQUEST_URI]).respond_to?(:request_uri) ? URI(ctxt.req[REQUEST_URI]).request_uri : ctxt.req[REQUEST_URI]
+          http_request[:requestURI] = "#{ctxt.req[RACK_URL_SCHEME]}://#{ctxt.req[HTTP_HOST]}#{ctxt.req[PATH_INFO]}"
           http_request[:clientIP] = ctxt.headers.key?(X_FORWARDED_FOR) ? ctxt.headers[X_FORWARDED_FOR].split(COMMA)[0].to_s : ctxt.req[REMOTE_ADDR].to_s
           http_request[:serverPort] = ctxt.req[SERVER_PORT].to_i
           http_request[:protocol] = ctxt.req[RACK_URL_SCHEME]
