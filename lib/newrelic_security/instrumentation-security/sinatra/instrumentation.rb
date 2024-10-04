@@ -42,6 +42,13 @@ module NewRelic::Security
       ensure
         yield
       end
+
+      def dispatch_on_enter
+        NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
+        yield
+      ensure
+        NewRelic::Security::Agent.agent.error_reporting.report_unhandled_or_5xx_exceptions(NewRelic::Security::Agent::Control::HTTPContext.get_current_transaction, NewRelic::Security::Agent::Control::HTTPContext.get_context)
+      end
             
     end
   end
