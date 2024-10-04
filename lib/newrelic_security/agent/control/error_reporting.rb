@@ -60,7 +60,8 @@ module NewRelic::Security
         end
 
         def report_unhandled_or_5xx_exceptions(current_transaction, ctxt, response_code = nil)
-          if current_transaction.exceptions.empty? && response_code&.between?(500, 599)
+          http_response_code = response_code || current_transaction&.http_response_code
+          if current_transaction.exceptions.empty? && http_response_code&.between?(500, 599)
             generate_unhandled_exception(nil, ctxt, response_code)
           else
             extract_noticed_error(current_transaction, ctxt, response_code) unless current_transaction.exceptions.empty?
