@@ -35,9 +35,20 @@ module NewRelic::Security
       ensure
         yield
       end
-            
+    end
+
+    module Padrino::Router
+      def call_on_exit(retval)
+        NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
+        NewRelic::Security::Agent.agent.error_reporting.report_unhandled_or_5xx_exceptions(NewRelic::Security::Agent::Control::HTTPContext.get_current_transaction, NewRelic::Security::Agent::Control::HTTPContext.get_context, retval[0])
+      rescue => exception
+        NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
+      ensure
+        yield
+      end
     end
   end
 end
 
 NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:padrino, ::Padrino::PathRouter::Router, ::NewRelic::Security::Instrumentation::Padrino::PathRouter::Router)
+NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:padrino, ::Padrino::Router, ::NewRelic::Security::Instrumentation::Padrino::Router)
