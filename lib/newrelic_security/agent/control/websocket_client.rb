@@ -21,6 +21,9 @@ module NewRelic::Security
       NR_CSEC_ENTITY_NAME = 'NR-CSEC-ENTITY-NAME'
       NR_CSEC_ENTITY_GUID = 'NR-CSEC-ENTITY-GUID'
       NR_CSEC_IAST_DATA_TRANSFER_MODE = 'NR-CSEC-IAST-DATA-TRANSFER-MODE'
+      NR_CSEC_PROCESS_START_TIME = 'NR-CSEC-PROCESS-START-TIME'
+      NR_CSEC_IAST_SCAN_INSTANCE_COUNT = 'NR-CSEC-IAST-SCAN-INSTANCE-COUNT'
+      NR_CSEC_IAST_TEST_IDENTIFIER = 'NR-CSEC-IAST-TEST-IDENTIFIER'
 
       class WebsocketClient
         include Singleton
@@ -43,6 +46,12 @@ module NewRelic::Security
           headers[NR_CSEC_ENTITY_NAME] = NewRelic::Security::Agent.config[:app_name]
           headers[NR_CSEC_ENTITY_GUID] = NewRelic::Security::Agent.config[:entity_guid]
           headers[NR_CSEC_IAST_DATA_TRANSFER_MODE] = PULL
+          headers[NR_CSEC_PROCESS_START_TIME] = NewRelic::Security::Agent.config[:process_start_time]
+          headers[NR_CSEC_IAST_SCAN_INSTANCE_COUNT] = NewRelic::Security::Agent.config[:'security.scan_controllers.scan_instance_count']
+          if NewRelic::Security::Agent.config[:'security.iast_test_identifier'] && !NewRelic::Security::Agent.config[:'security.iast_test_identifier'].empty?
+            headers[NR_CSEC_IAST_TEST_IDENTIFIER] = NewRelic::Security::Agent.config[:'security.iast_test_identifier']
+            headers[NR_CSEC_IAST_SCAN_INSTANCE_COUNT] = 1
+          end
 
           begin
             cert_store = ::OpenSSL::X509::Store.new

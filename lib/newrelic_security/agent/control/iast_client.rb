@@ -54,6 +54,7 @@ module NewRelic::Security
               Thread.current.name = "newrelic_security_iast_thread-#{t}"
               loop do
                 fuzz_request = @fuzzQ.deq #thread blocks when the queue is empty
+                NewRelic::Security::Agent.config.scan_start_time = current_time_millis unless NewRelic::Security::Agent.config[:scan_start_time]
                 if fuzz_request.request[IS_GRPC]
                   fire_grpc_request(fuzz_request.id, fuzz_request.request, fuzz_request.reflected_metadata)
                 else
@@ -122,18 +123,18 @@ module NewRelic::Security
         def fire_grpc_request(fuzz_request_id, request, reflected_metadata)
           service = Object.const_get(request[METHOD].split(SLASH)[0]).superclass
           method = request[METHOD].split(SLASH)[1]
-          @stub = service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure) unless @stub
+          @stub ||= service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure)
 
-          parsed_body =  request[BODY][1..-2].split(',')
-          if reflected_metadata[IS_GRPC_CLIENT_STREAM]
-            chunks_enum = Enumerator.new do |y|
+          parsed_body = request[BODY][1..-2].split(',')
+          chunks_enum = if reflected_metadata[IS_GRPC_CLIENT_STREAM]
+            Enumerator.new do |y|
               parsed_body.each do |b|
                 y << Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(b)
               end
             end
-          else
-            chunks_enum = Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY])
-          end
+                        else
+            Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY])
+                        end
           response = @stub.public_send(method, chunks_enum, metadata: request[HEADERS])
           # response = @stub.send(method, JSON.parse(request['body'], object_class: OpenStruct))
           # request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
