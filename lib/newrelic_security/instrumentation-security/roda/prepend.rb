@@ -10,7 +10,7 @@ module NewRelic::Security
             begin
               retval = super
             ensure
-              NewRelic::Security::Agent.agent.error_reporting.report_unhandled_or_5xx_exceptions(NewRelic::Security::Agent::Control::HTTPContext.get_current_transaction, NewRelic::Security::Agent::Control::HTTPContext.get_context, nil)
+              NewRelic::Security::Agent.agent.error_reporting&.report_unhandled_or_5xx_exceptions(NewRelic::Security::Agent::Control::HTTPContext.get_current_transaction, NewRelic::Security::Agent::Control::HTTPContext.get_context, nil)
             end
           end
           _roda_handle_main_route_on_exit(event, retval) { return retval }

@@ -143,10 +143,10 @@ module NewRelic::Security
         end
 
         def send_error_reporting_event
-          NewRelic::Security::Agent.agent.error_reporting.exceptions_map.each_value do |exception|
+          NewRelic::Security::Agent.agent.error_reporting&.exceptions_map&.each_value do |exception|
             NewRelic::Security::Agent::Control::WebsocketClient.instance.send(exception)
           end
-          NewRelic::Security::Agent.agent.error_reporting.exceptions_map.clear
+          NewRelic::Security::Agent.agent.error_reporting&.exceptions_map&.clear
         end
 
       end
