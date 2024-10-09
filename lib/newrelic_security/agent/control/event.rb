@@ -34,6 +34,10 @@ module NewRelic::Security
             :reflectedMetaData => {
               :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s
             },
+            :appServerInfo => { 
+              :applicationDirectory => NewRelic::Security::Agent.config[:app_root], 
+              :serverBaseDirectory => NewRelic::Security::Agent.config[:app_root] 
+            },
             :skipScanParameters => {
               :header => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.header'],
               :query => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.query'],
@@ -124,7 +128,7 @@ module NewRelic::Security
           http_request[:contentType] = "TODO: "
           http_request[:isGrpc] = ctxt.is_grpc
           @httpRequest = http_request
-          @metaData = ctxt.metadata
+          @metaData.merge!(ctxt.metadata)
         end
 
         private
@@ -139,13 +143,20 @@ module NewRelic::Security
         end
 
         def event_id
-          "#{Process.pid}:#{::Thread.current.object_id}:#{thread_monotonic_ctr}"
+          "#{Process.pid}:#{current_transaction&.guid}:#{thread_monotonic_ctr}"
+        end
+
+        def current_transaction
+          ::NewRelic::Agent::Tracer.current_transaction if defined?(::NewRelic::Agent::Tracer)
         end
 
         def thread_monotonic_ctr
           ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context if NewRelic::Security::Agent::Control::HTTPContext.get_context
           ctxt = NewRelic::Security::Agent::Control::GRPCContext.get_context if NewRelic::Security::Agent::Control::GRPCContext.get_context
-          ctxt.event_counter = ctxt.event_counter + 1 if ctxt
+          return unless ctxt
+          ctxt.mutex.synchronize do
+            ctxt.event_counter = ctxt.event_counter + 1
+          end
         end
 
         def add_linking_metadata
