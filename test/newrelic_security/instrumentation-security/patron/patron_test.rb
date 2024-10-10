@@ -19,7 +19,7 @@ module NewRelic::Security
                                             :headers => {'User-Agent' => 'myapp/1.0'} } )
                     @output = sess.get("/").body
                     #puts @output
-                    args = [{:Method=>:get, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com/", :path=>"/", :query=>nil, :Body=>nil, :Headers=>{"Expect"=>""}}]
+                    args = ["https://www.google.com/"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType

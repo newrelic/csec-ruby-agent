@@ -39,7 +39,7 @@ module NewRelic::Security
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
-          @cache[:json_version] = :'1.2.4'
+          @cache[:json_version] = :'1.2.8'
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new

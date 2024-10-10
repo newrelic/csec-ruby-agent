@@ -16,17 +16,10 @@ module NewRelic::Security
                     skip("Skipping for ruby 2.4.10 && instrumentation method chain") if RUBY_VERSION == '2.4.10' && ENV['NR_CSEC_INSTRUMENTATION_METHOD'] == 'chain'
                     url = "http://google.com"
                     @output = Excon.get(url).body
-                    args = [{:Method=>:get, :scheme=>"http", :host=>"google.com", :port=>80, :URI=>"google.com", :path=>"", :query=>nil, :Body=>nil}]
+                    args = ["http://google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal expected_event.caseType, $event_list[0].caseType
-                    assert_equal expected_event.parameters[0][:Method], $event_list[0].parameters[0][:Method]
-                    assert_equal expected_event.parameters[0][:scheme], $event_list[0].parameters[0][:scheme]
-                    assert_equal expected_event.parameters[0][:host], $event_list[0].parameters[0][:host]
-                    assert_equal expected_event.parameters[0][:port], $event_list[0].parameters[0][:port]
-                    assert_equal expected_event.parameters[0][:URI], $event_list[0].parameters[0][:URI]
-                    assert_equal expected_event.parameters[0][:path], $event_list[0].parameters[0][:path]
-                    assert_nil $event_list[0].parameters[0][:query]
-                    assert_nil $event_list[0].parameters[0][:Body]
+                    assert_equal expected_event.parameters[0], $event_list[0].parameters[0]
                     assert_nil $event_list[0].eventCategory
                 end
                 

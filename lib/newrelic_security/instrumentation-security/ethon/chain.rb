@@ -7,12 +7,6 @@ module NewRelic::Security
             ::Ethon::Easy.class_eval do
               include NewRelic::Security::Instrumentation::Ethon::Easy
 
-              alias_method :fabricate_without_security, :fabricate
-    
-              def fabricate(url, action_name, options)
-                fabricate_on_enter(url, action_name, options) { return fabricate_without_security(url, action_name, options) }
-              end
-
               alias_method(:headers_equals_without_security, :headers=)
     
               def headers=(headers)

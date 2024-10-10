@@ -8,20 +8,8 @@ module NewRelic::Security
       def do_request_on_enter(method, uri, query, body, header)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-        ob = {}
-        ob[:Method] = method
-        unless uri.nil?
-          ob[:scheme]  = uri.scheme
-          ob[:host]    = uri.host
-          ob[:port]    = uri.port
-          ob[:URI]     = uri.to_s
-          ob[:path]    = uri.path
-          ob[:query]   = uri.query
-        end
-        ob[:Body] = body
-        ob[:Headers] = header
-        ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
+        uri_s = uri.to_s unless uri.nil?
+        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [uri_s])
         NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(header, event) if event
         event
       rescue => exception
@@ -43,20 +31,8 @@ module NewRelic::Security
       def do_request_async_on_enter(method, uri, query, body, header)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-        ob = {}
-        ob[:Method] = method
-        unless uri.nil?
-          ob[:scheme]  = uri.scheme
-          ob[:host]    = uri.host
-          ob[:port]    = uri.port
-          ob[:URI]     = uri.to_s
-          ob[:path]    = uri.path
-          ob[:query]   = uri.query
-        end
-        ob[:Body] = body
-        ob[:Headers] = header
-        ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
+        uri_s = uri.to_s unless uri.nil?
+        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [uri_s])
         NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(header, event) if event
         event
       rescue => exception

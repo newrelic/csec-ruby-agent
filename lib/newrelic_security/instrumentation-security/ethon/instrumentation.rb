@@ -7,46 +7,25 @@ module NewRelic::Security
     module Ethon
       module Easy
 
-        def fabricate_on_enter(url, action_name, options)
-          NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-          NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id] = { :method => action_name } if NewRelic::Security::Agent::Control::HTTPContext.get_context
-          NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id][:body] = options[:body] if NewRelic::Security::Agent::Control::HTTPContext.get_context
-        rescue => exception
-          NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
-        ensure
-          yield
-        end
-
         def headers_equals_on_enter(headers)
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-          NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id][:headers] = headers if NewRelic::Security::Agent::Control::HTTPContext.get_context && NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id]
+          NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[object_id][:headers] = headers if NewRelic::Security::Agent::Control::HTTPContext.get_context && NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[object_id]
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
         ensure
           yield
         end
 
-        def perform_on_enter(*args)
+        def perform_on_enter(*_args)
           event = nil
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-          context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[self.object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
+          context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
           uri = ::URI.parse(url)
-          ob = {}
-          ob[:Method] = context[:method] if context
-          ob[:scheme] = uri.scheme
-          ob[:host] = uri.host
-          ob[:port] = uri.port
-          ob[:URI] = uri.to_s
-          ob[:path] = uri.path
-          ob[:query] = uri.query
-          ob[:Body] = context[:body] if context
-          ob[:Headers] = context[:headers] if context
-          ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-          event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
+          event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [uri.to_s])
           headers_copy = {}
           headers_copy.merge!(context[:headers]) if context&.key?(:headers)
           NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(headers_copy, event) if event
-          self.headers = headers_copy if self.headers 
+          self.headers = headers_copy if headers 
           event
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
@@ -67,27 +46,13 @@ module NewRelic::Security
 
       module Multi
 
-        def perform_on_enter(*args)
+        def perform_on_enter(*_args)
           event = nil
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
           ic_args = []
           easy_handles.each do |easy|
-            context = NewRelic::Security::Agent::Control::HTTPContext.get_context.cache[easy.object_id] if NewRelic::Security::Agent::Control::HTTPContext.get_context
             uri = NewRelic::Security::Instrumentation::InstrumentationUtils.parse_uri(easy.url)
-            if uri
-              ob = {}
-              ob[:Method] = context[:method] if context
-              ob[:scheme] = uri.scheme
-              ob[:host] = uri.host
-              ob[:port] = uri.port
-              ob[:URI] = easy.url.to_s
-              ob[:path] = uri.path
-              ob[:query] = uri.query
-              ob[:Body] = context[:body] if context
-              ob[:Headers] = context[:headers] if context
-              ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-              ic_args << ob
-            end
+            ic_args << easy.url.to_s if uri
           end
           event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, ic_args) unless ic_args.empty?
           easy_handles.each do |easy|

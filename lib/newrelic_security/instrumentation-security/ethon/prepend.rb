@@ -4,10 +4,6 @@ module NewRelic::Security
       module Easy
         module Prepend
           include NewRelic::Security::Instrumentation::Ethon::Easy
-
-          def fabricate(url, action_name, options)
-            fabricate_on_enter(url, action_name, options) { return super }
-          end
   
           def headers=(headers)
             headers_equals_on_enter(headers) { return super }

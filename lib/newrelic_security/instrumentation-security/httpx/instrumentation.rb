@@ -9,21 +9,7 @@ module NewRelic::Security
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         ic_args = []
-        args.each do |arg|
-          ob = {}
-          ob[:Method] = arg.verb
-          uri = arg.uri
-          ob[:scheme]  = uri.scheme
-          ob[:host]    = uri.host
-          ob[:port]    = uri.port
-          ob[:URI]     = uri.to_s
-          ob[:path]    = uri.path
-          ob[:query]   = uri.query
-          ob[:Body]    = arg.body.bytesize.positive? ? arg.body.to_s : ""
-          ob[:Headers] = arg.headers
-          ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-          ic_args << ob
-        end
+        args.each { |arg| ic_args << arg.uri.to_s }
         event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, ic_args)
         args.each do |arg|
           NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(arg.headers, event) if event
