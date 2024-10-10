@@ -17,13 +17,15 @@ require 'newrelic_security/agent/control/critical_message'
 require 'newrelic_security/agent/control/event_counter'
 require 'newrelic_security/agent/control/event_stats'
 require 'newrelic_security/agent/control/exit_event'
+require 'newrelic_security/agent/control/application_runtime_error'
+require 'newrelic_security/agent/control/error_reporting'
 require 'newrelic_security/instrumentation-security/instrumentation_loader'
 
 module NewRelic::Security
   module Agent
     class Agent
 
-      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :iast_event_stats, :rasp_event_stats, :exit_event_stats
+      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :iast_event_stats, :rasp_event_stats, :exit_event_stats, :error_reporting
 
       def initialize
         NewRelic::Security::Agent.config
@@ -41,6 +43,7 @@ module NewRelic::Security
         @iast_event_stats = NewRelic::Security::Agent::Control::EventStats.new
         @rasp_event_stats = NewRelic::Security::Agent::Control::EventStats.new
         @exit_event_stats = NewRelic::Security::Agent::Control::EventStats.new
+        @error_reporting = NewRelic::Security::Agent::Control::ErrorReporting.new
       end
 
       def init

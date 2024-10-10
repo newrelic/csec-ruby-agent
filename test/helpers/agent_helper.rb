@@ -17,6 +17,9 @@ module NewRelic::Security
         def self.clear_context
           @http_context = nil
         end
+        def self.get_current_transaction
+          nil
+        end
       end
     end
     

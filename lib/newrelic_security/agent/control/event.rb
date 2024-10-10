@@ -30,7 +30,7 @@ module NewRelic::Security
           @appEntityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @httpRequest = Hash.new
           @httpResponse = Hash.new
-          @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s } }
+          @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s }, :appServerInfo => { :applicationDirectory => NewRelic::Security::Agent.config[:app_root], :serverBaseDirectory => NewRelic::Security::Agent.config[:app_root] } }
           @linkingMetadata = add_linking_metadata
           @pid = pid
           @parameters = args
@@ -115,7 +115,7 @@ module NewRelic::Security
           http_request[:contentType] = "TODO: "
           http_request[:isGrpc] = ctxt.is_grpc
           @httpRequest = http_request
-          @metaData = ctxt.metadata
+          @metaData.merge!(ctxt.metadata)
         end
 
         private
