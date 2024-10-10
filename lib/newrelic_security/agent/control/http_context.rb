@@ -10,9 +10,10 @@ module NewRelic::Security
       UNDERSCORE = '_'
       HYPHEN = '-'
       REQUEST_METHOD = 'REQUEST_METHOD'
+      HTTP_HOST = 'HTTP_HOST'
       PATH_INFO = 'PATH_INFO'
       RACK_INPUT = 'rack.input'
-      CGI_VARIABLES = ::Set.new(%W[ AUTH_TYPE CONTENT_LENGTH CONTENT_TYPE GATEWAY_INTERFACE HTTPS PATH_INFO PATH_TRANSLATED REQUEST_URI QUERY_STRING REMOTE_ADDR REMOTE_HOST REMOTE_IDENT REMOTE_USER REQUEST_METHOD SCRIPT_NAME SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE rack.url_scheme ])
+      CGI_VARIABLES = ::Set.new(%W[ AUTH_TYPE CONTENT_LENGTH CONTENT_TYPE GATEWAY_INTERFACE HTTPS HTTP_HOST PATH_INFO PATH_TRANSLATED REQUEST_URI QUERY_STRING REMOTE_ADDR REMOTE_HOST REMOTE_IDENT REMOTE_USER REQUEST_METHOD SCRIPT_NAME SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE rack.url_scheme ])
 
       class HTTPContext
         
@@ -66,6 +67,10 @@ module NewRelic::Security
 
         def self.reset_context
           ::NewRelic::Agent::Tracer.current_transaction.remove_instance_variable(:@security_context_data) if ::NewRelic::Agent::Tracer.current_transaction.instance_variable_defined?(:@security_context_data)
+        end
+
+        def self.get_current_transaction
+          ::NewRelic::Agent::Tracer.current_transaction
         end
       end
 
