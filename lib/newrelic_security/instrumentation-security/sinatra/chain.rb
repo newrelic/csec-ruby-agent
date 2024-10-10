@@ -20,6 +20,12 @@ module NewRelic::Security
               def route_eval(&block)
                 route_eval_on_enter { route_eval_without_security(&block) }
               end
+
+              alias_method :dispatch_without_security, :dispatch!
+
+              def dispatch!
+                dispatch_on_enter { dispatch_without_security }
+              end
             end
           end
         end

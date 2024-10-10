@@ -5,6 +5,7 @@ module NewRelic::Security
     module Control
       EVENT_QUEUE_SIZE = 10_000
       HEALTH_INTERVAL = 300
+      ERROR_REPORTING_INTERVAL = 30
 
       class EventProcessor
 
@@ -15,6 +16,7 @@ module NewRelic::Security
           @eventQ = ::SizedQueue.new(EVENT_QUEUE_SIZE)
           create_dequeue_threads
           create_keep_alive_thread
+          create_error_reporting_thread
           NewRelic::Security::Agent.init_logger.info "[STEP-5] => Security agent components started"
         end
 
@@ -126,6 +128,25 @@ module NewRelic::Security
           }
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in health check thread, #{exception.inspect}"
+        end
+
+        def create_error_reporting_thread
+          @error_reporting_thread = Thread.new {
+            Thread.current.name = "newrelic_security_error_reporting_thread"
+            while true do
+              sleep ERROR_REPORTING_INTERVAL
+              send_error_reporting_event if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
+            end
+          }
+        rescue Exception => exception
+          NewRelic::Security::Agent.logger.error "Exception in error_reporting thread, #{exception.inspect}"
+        end
+
+        def send_error_reporting_event
+          NewRelic::Security::Agent.agent.error_reporting&.exceptions_map&.each_value do |exception|
+            NewRelic::Security::Agent::Control::WebsocketClient.instance.send(exception)
+          end
+          NewRelic::Security::Agent.agent.error_reporting&.exceptions_map&.clear
         end
 
       end
