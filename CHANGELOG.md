@@ -1,5 +1,26 @@
 # New Relic Ruby Security Agent Release Notes
 
+## v0.2.0
+
+Version 0.2.0 introuduces Error reporting as part of security. Any unhandled or 5xx errors in application runtime will now be visible in IAST capability UI. Updated json_version: **1.2.4**
+
+- Feature: Unhandled and 5xx error reproting [PR#134](https://github.com/newrelic/csec-ruby-agent/pull/134)
+
+- Bugfix: Fix for API route not present in rails7 [PR#127](https://github.com/newrelic/csec-ruby-agent/pull/127)
+
+- Bugfix: Fix for Sqlite3 parameters sent in wrong fromat [PR#130](https://github.com/newrelic/csec-ruby-agent/pull/130)
+
+- Bugfix: Fix for multiple events have same id [PR#135](https://github.com/newrelic/csec-ruby-agent/pull/135)
+
+- Bugfix: Fix for NR_CSEC_VALIDATOR_HOME_TMP placeholder value not replaced during File Access fuzzing [PR#138](https://github.com/newrelic/csec-ruby-agent/pull/138)
+
+- Bugfix: Fix for appServerInfo fields are not present in File Operation events [PR#139](https://github.com/newrelic/csec-ruby-agent/pull/139)
+
+- Sending security agent critical errors to APM error inbox [PR#137](https://github.com/newrelic/csec-ruby-agent/pull/137)
+
+- Added key identifiers in entityGuid and acccountId in all json reporting [PR#101](https://github.com/newrelic/csec-ruby-agent/pull/101)
+
+
 ## v0.1.0
 
 Version 0.1.0 introduces `newrelic_security` agent for public preview under Newrelic pre-release software notice.
