@@ -24,6 +24,7 @@ module NewRelic::Security
         # NewRelic::Security::Agent.logger.debug "\n\nHTTP Context : #{::NewRelic::Agent::Tracer.current_transaction.instance_variable_get(:@security_context_data).inspect}\n\n"
         NewRelic::Security::Agent::Control::ReflectedXSS.check_xss(NewRelic::Security::Agent::Control::HTTPContext.get_context, retval) if NewRelic::Security::Agent.config[:'security.detection.rxss.enabled']
         NewRelic::Security::Agent::Utils.delete_created_files(NewRelic::Security::Agent::Control::HTTPContext.get_context)
+        NewRelic::Security::Agent.agent.error_reporting&.report_unhandled_or_5xx_exceptions(NewRelic::Security::Agent::Control::HTTPContext.get_current_transaction, NewRelic::Security::Agent::Control::HTTPContext.get_context, retval[0])
         NewRelic::Security::Agent::Control::HTTPContext.reset_context
         NewRelic::Security::Agent.logger.debug "Exit event : #{event}"
       rescue => exception
@@ -31,11 +32,11 @@ module NewRelic::Security
       ensure
         yield
       end
-      
+
     end
 
     module ActionDispatch::Journey::Router
-      
+
       def find_routes_on_enter(req)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
@@ -45,7 +46,7 @@ module NewRelic::Security
         yield
         return event
       end
-      
+
       def find_routes_on_exit(event, retval)
         NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
 
@@ -60,8 +61,32 @@ module NewRelic::Security
         yield
       end
     end
+
+    module ActionDispatch::Routing::RouteSet::Dispatcher
+
+      def serve_on_enter(req)
+        event = nil
+        NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
+        ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
+        ctxt.route = "#{ctxt.method}@#{req.route_uri_pattern.to_s.gsub(/\(\.:format\)/, EMPTY_STRING)}" if ctxt && req.respond_to?(:route_uri_pattern)
+      rescue => exception
+        NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
+      ensure
+        yield
+        return event
+      end
+
+      def serve_on_exit(event, retval)
+        NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
+      rescue => exception
+        NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
+      ensure
+        yield
+      end
+    end
   end
 end
 
 NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:rails, ::Rails::Engine, ::NewRelic::Security::Instrumentation::Rails::Engine)
 NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:rails, ::ActionDispatch::Journey::Router, ::NewRelic::Security::Instrumentation::ActionDispatch::Journey::Router)
+NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:rails, ::ActionDispatch::Routing::RouteSet::Dispatcher, ::NewRelic::Security::Instrumentation::ActionDispatch::Routing::RouteSet::Dispatcher)

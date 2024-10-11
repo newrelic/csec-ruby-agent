@@ -108,7 +108,7 @@ module NewRelic::Security
 
                     # INSERT event test
                     db.execute2("INSERT INTO fake_users (name, email, grade, blog) VALUES (?, ?, ?, ?)", ["abc", "me@abc.com", "A", "http://blog.abc.com"])
-                    args2 = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES (?, ?, ?, ?)", :parameters=>["[\"abc\", \"me@abc.com\", \"A\", \"http://blog.abc.com\"]"]}]
+                    args2 = [{:sql=>"INSERT INTO fake_users (name, email, grade, blog) VALUES (?, ?, ?, ?)", :parameters=>["abc", "me@abc.com", "A", "http://blog.abc.com"]}]
                     expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, SQLITE)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
                     assert_equal expected_event2.caseType, $event_list[0].caseType
