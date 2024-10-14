@@ -84,6 +84,18 @@ module NewRelic::Security
               if batch_size > 100 && remaining_record_capacity > batch_size
                 iast_data_transfer_request = NewRelic::Security::Agent::Control::IASTDataTransferRequest.new
                 iast_data_transfer_request.batchSize = batch_size * 2
+                # TODO: Below calculation of batch_size overrides above logic and can be removed once below one is stablises or rate limit feature is released.
+                if NewRelic::Security::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit']
+                  batch_size =
+                    if NewRelic::Security::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'] < 12
+                      1
+                    elsif NewRelic::Security::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'] > 3600
+                      300
+                    else
+                      NewRelic::Security::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'] / 12
+                    end
+                  iast_data_transfer_request.batchSize = batch_size
+                end
                 iast_data_transfer_request.pendingRequestIds = pending_request_ids.to_a
                 iast_data_transfer_request.completedRequests = completed_requests
                 NewRelic::Security::Agent.agent.event_processor.send_iast_data_transfer_request(iast_data_transfer_request)
@@ -122,18 +134,18 @@ module NewRelic::Security
         def fire_grpc_request(fuzz_request_id, request, reflected_metadata)
           service = Object.const_get(request[METHOD].split(SLASH)[0]).superclass
           method = request[METHOD].split(SLASH)[1]
-          @stub = service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure) unless @stub
+          @stub ||= service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure)
 
-          parsed_body =  request[BODY][1..-2].split(',')
-          if reflected_metadata[IS_GRPC_CLIENT_STREAM]
-            chunks_enum = Enumerator.new do |y|
+          parsed_body = request[BODY][1..-2].split(',')
+          chunks_enum = if reflected_metadata[IS_GRPC_CLIENT_STREAM]
+            Enumerator.new do |y|
               parsed_body.each do |b|
                 y << Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(b)
               end
             end
-          else
-            chunks_enum = Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY])
-          end
+                        else
+            Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY])
+                        end
           response = @stub.public_send(method, chunks_enum, metadata: request[HEADERS])
           # response = @stub.send(method, JSON.parse(request['body'], object_class: OpenStruct))
           # request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
