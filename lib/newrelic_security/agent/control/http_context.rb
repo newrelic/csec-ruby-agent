@@ -17,12 +17,13 @@ module NewRelic::Security
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :mutex
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :mutex, :path
 
         def initialize(env)
           @time_stamp = current_time_millis
           @req = env.select { |key, _| CGI_VARIABLES.include? key}
           @method = @req[REQUEST_METHOD]
+          @path = @req[PATH_INFO]
           @headers = env.select { |key, _| key.include?(HTTP_) }
           @headers = @headers.transform_keys{ |key| key[5..-1].gsub(UNDERSCORE, HYPHEN).downcase }
           request = Rack::Request.new(env) unless env.empty?
