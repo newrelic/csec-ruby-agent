@@ -115,8 +115,7 @@ module NewRelic::Security
 
         def check_and_exclude_from_iast_scan_for_api
           NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.api'].each do |api|
-            # TODO: remove below split with @ everywhere and store only route in context
-            return true if api&.match?(NewRelic::Security::Agent::Control::HTTPContext.get_context.route&.split('@')&.[](1))
+            return true if api&.match?(NewRelic::Security::Agent::Control::HTTPContext.get_context.path)
           end
           return false
         end
