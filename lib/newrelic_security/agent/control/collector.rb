@@ -115,7 +115,7 @@ module NewRelic::Security
 
         def check_and_exclude_from_iast_scan_for_api
           NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.api'].each do |api|
-            return true if api&.match?(NewRelic::Security::Agent::Control::HTTPContext.get_context.path)
+            return true if api&.match?(NewRelic::Security::Agent::Control::HTTPContext.get_context.url)
           end
           return false
         end
