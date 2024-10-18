@@ -12,6 +12,7 @@ module NewRelic::Security
       REQUEST_METHOD = 'REQUEST_METHOD'
       HTTP_HOST = 'HTTP_HOST'
       PATH_INFO = 'PATH_INFO'
+      QUERY_STRING = 'QUERY_STRING'
       RACK_INPUT = 'rack.input'
       CGI_VARIABLES = ::Set.new(%W[ AUTH_TYPE CONTENT_LENGTH CONTENT_TYPE GATEWAY_INTERFACE HTTPS HTTP_HOST PATH_INFO PATH_TRANSLATED REQUEST_URI QUERY_STRING REMOTE_ADDR REMOTE_HOST REMOTE_IDENT REMOTE_USER REQUEST_METHOD SCRIPT_NAME SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE rack.url_scheme ])
 
@@ -23,7 +24,7 @@ module NewRelic::Security
           @time_stamp = current_time_millis
           @req = env.select { |key, _| CGI_VARIABLES.include? key}
           @method = @req[REQUEST_METHOD]
-          @url = URI(@req[REQUEST_URI]).respond_to?(:request_uri) ? URI(@req[REQUEST_URI]).request_uri : @req[REQUEST_URI]
+          @url = "#{@req[PATH_INFO]}?#{@req[QUERY_STRING]}"
           @headers = env.select { |key, _| key.include?(HTTP_) }
           @headers = @headers.transform_keys{ |key| key[5..-1].gsub(UNDERSCORE, HYPHEN).downcase }
           request = Rack::Request.new(env) unless env.empty?
