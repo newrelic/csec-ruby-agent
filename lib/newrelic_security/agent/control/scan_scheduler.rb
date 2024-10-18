@@ -1,3 +1,5 @@
+require 'newrelic_security/parse-cron/cron_parser'
+
 module NewRelic::Security
   module Agent
     module Control
@@ -5,32 +7,32 @@ module NewRelic::Security
         def init_via_scan_scheduler
           if NewRelic::Security::Agent.config[:'security.scan_schedule.delay'].positive?
             NewRelic::Security::Agent.logger.info "IAST delay is set to: #{NewRelic::Security::Agent.config[:'security.scan_schedule.delay']}, current time: #{Time.now}"
-            start_agent_with_delay(NewRelic::Security::Agent.config[:'security.scan_schedule.delay'])
+            start_agent_with_delay(NewRelic::Security::Agent.config[:'security.scan_schedule.delay']*60)
           elsif !NewRelic::Security::Agent.config[:'security.scan_schedule.schedule'].to_s.empty?
-            puts "In ScanScheduler schedule check"
+            cron_expression_task(NewRelic::Security::Agent.config[:'security.scan_schedule.schedule'], NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
           else
             NewRelic::Security::Agent.agent.init
-            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration'], 0)
+            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, 0)
           end
         end
 
         def start_agent_with_delay(delay)
           if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
-            NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{delay} minutes when always_sample_traces is true, current time: #{Time.now}"
+            NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes when always_sample_traces is true, current time: #{Time.now}"
             NewRelic::Security::Agent.agent.init
-            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration'], delay)
+            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, delay)
           else
-            NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{delay} minutes, current time: #{Time.now}"
-            sleep delay * 60
+            NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes, current time: #{Time.now}"
+            sleep delay
             NewRelic::Security::Agent.agent.init
-            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration'], 0)
+            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, 0)
           end
         end
 
         def shutdown_at_duration_reached(duration, delay)
-          shutdown_at = Time.now.to_i + (duration * 60) + (delay * 60)
+          shutdown_at = Time.now.to_i + duration + delay
           return if duration <= 0
-          NewRelic::Security::Agent.logger.info "IAST Duration is set to: #{duration} minutes with delay #{delay} minutes, timestamp: #{shutdown_at} time, current time: #{Time.now}"
+          NewRelic::Security::Agent.logger.info "IAST Duration is set to: #{duration/60} minutes with delay #{(delay/60).ceil} minutes, timestamp: #{shutdown_at} time, current time: #{Time.now}"
           @shutdown_monitor_thread = Thread.new do
             Thread.current.name = "newrelic_security_shutdown_monitor_thread"
             loop do
@@ -45,6 +47,18 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.stop_websocket_client_if_open
               break
             end
+          end
+        end
+
+        def cron_expression_task(schedule, duration)
+          @cron_parser = NewRelic::Security::ParseCron::CronParser.new(schedule)
+          loop do
+            next_run = @cron_parser.next(Time.now)
+            NewRelic::Security::Agent.logger.info "Next init via cron is scheduled at : #{next_run}"
+            delay = next_run - Time.now
+            start_agent_with_delay(delay)
+            return if duration <= 0
+            sleep delay
           end
         end
         
