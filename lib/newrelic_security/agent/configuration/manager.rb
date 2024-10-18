@@ -39,7 +39,25 @@ module NewRelic::Security
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
-          @cache[:json_version] = :'1.2.4'
+          @cache[:json_version] = :'1.2.6'
+          @cache[:'security.exclude_from_iast_scan.api'] = convert_to_regexp_list(::NewRelic::Agent.config[:'security.exclude_from_iast_scan.api'])
+          @cache[:'security.exclude_from_iast_scan.http_request_parameters.header'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.header']
+          @cache[:'security.exclude_from_iast_scan.http_request_parameters.query'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.query']
+          @cache[:'security.exclude_from_iast_scan.http_request_parameters.body'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.body']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.sql_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.sql_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.nosql_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.nosql_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.ldap_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ldap_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.javascript_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.javascript_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.command_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.command_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.ssrf'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ssrf']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.rxss'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.rxss']
+          @cache[:'security.scan_schedule.delay'] = ::NewRelic::Agent.config[:'security.scan_schedule.delay']
+          @cache[:'security.scan_schedule.duration'] = ::NewRelic::Agent.config[:'security.scan_schedule.duration']
+          @cache[:'security.scan_schedule.schedule'] = ::NewRelic::Agent.config[:'security.scan_schedule.schedule']
+          @cache[:'security.scan_schedule.always_sample_traces'] = ::NewRelic::Agent.config[:'security.scan_schedule.always_sample_traces']
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new
@@ -170,6 +188,15 @@ module NewRelic::Security
 
         def generate_key(entity_guid)
           ::OpenSSL::PKCS5.pbkdf2_hmac(entity_guid, entity_guid[0..15], 1024, 32, SHA1)
+        end
+
+        def convert_to_regexp_list(value_list)
+          value_list.map do |value|
+            next unless value && !value.empty?
+            value = "^#{value}" if value[0] != '^'
+            value = "#{value}$" if value[-1] != '$'
+            /#{value}/
+          end
         end
       end
     end
