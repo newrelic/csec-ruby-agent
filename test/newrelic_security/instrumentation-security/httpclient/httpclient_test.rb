@@ -16,7 +16,7 @@ module NewRelic::Security
                     client = HTTPClient.new
 	                @output = client.get_content(url)
                     #puts @output
-                    args = [{:Method=>:get, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
+                    args = ["https://www.google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -29,7 +29,7 @@ module NewRelic::Security
                     client = HTTPClient.new
                     method = 'GET'
                     assert_equal 200, client.request(method, url).code
-                    args = [{:Method=>"GET", :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
+                    args = ["https://www.google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -41,7 +41,7 @@ module NewRelic::Security
                     url = "https://www.google.com"
                     client = HTTPClient.new
                     assert_equal 200, client.get(url, :follow_redirect => true).code
-                    args = [{:Method=>:get, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
+                    args = ["https://www.google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -53,7 +53,7 @@ module NewRelic::Security
                     url = "https://www.google.com"
                     client = HTTPClient.new
                     assert_equal 200, client.head(url).code
-                    args = [{:Method=>:head, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
+                    args = ["https://www.google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -72,7 +72,7 @@ module NewRelic::Security
                     @output = str
                     #puts @output
                     #assert_equal 200, @output 
-                    args = [{:Method=>:get, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
+                    args = ["https://www.google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType

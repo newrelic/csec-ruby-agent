@@ -143,23 +143,6 @@ module NewRelic::Security
         return nil
       end
 
-      def parse_typhoeus_request(request)
-        ob = {}
-        ob[:Method] = request.options[:method].nil? ? :get : request.options[:method]
-        ob[:URI] = request.base_url
-        ob[:Body] = request.options[:body]
-        ob[:Headers] = request.options[:headers]
-        uri_parsed = parse_uri(request.base_url)
-        if !uri_parsed.nil?
-          ob[:scheme] = uri_parsed.scheme
-          ob[:host] = uri_parsed.host
-          ob[:port] = uri_parsed.port
-          ob[:path] = uri_parsed.path
-          ob[:query] = uri_parsed.query
-        end
-        ob
-      end
-
     end
   end
 end

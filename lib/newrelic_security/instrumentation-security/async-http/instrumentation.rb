@@ -6,22 +6,11 @@ module NewRelic::Security
   module Instrumentation
     module AsyncHttp
 
-      def call_on_enter(method, url, headers, body)
+      def call_on_enter(_method, url, headers, _body)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-        ob = {}
-        ob[:Method] = method
         uri = ::URI.parse url
-        ob[:scheme]  = uri.scheme
-        ob[:host]    = uri.host
-        ob[:port]    = uri.port
-        ob[:URI]     = uri.to_s
-        ob[:path]    = uri.path
-        ob[:query]   = uri.query
-        ob[:Body] = body.respond_to?(:join) ? body.join.to_s : body.to_s
-        ob[:Headers] = headers.to_h
-        ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
+        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [uri.to_s])
         NewRelic::Security::Instrumentation::InstrumentationUtils.append_tracing_data(headers, event) if event
         event
       rescue => exception

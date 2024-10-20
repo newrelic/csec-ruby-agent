@@ -5,21 +5,11 @@ module NewRelic::Security
   module Instrumentation
     module Excon::Connection
 
-      def request_on_enter(params)
+      def request_on_enter(_params)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-        ob = {}
-        ob[:Method] = params[:method]
-        ob[:scheme]  = self.data[:scheme]
-        ob[:host]    = self.data[:host]
-        ob[:port]    = self.data[:port]
-        ob[:URI]     = self.data[:query].nil? ? "#{self.data[:host]}#{self.data[:path]}" : "#{self.data[:host]}#{self.data[:path]}?#{self.data[:query]}"
-        ob[:path]    = self.data[:path]
-        ob[:query]   = self.data[:query]
-        ob[:Body] = self.data[:body]
-        ob[:Headers] = self.data[:headers]
-        ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
+        uri = "#{self.data[:scheme]}://#{self.data[:host]}#{self.data[:path]}"
+        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [uri])
         NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(self.data[:headers], event) if event
         event
       rescue => exception
