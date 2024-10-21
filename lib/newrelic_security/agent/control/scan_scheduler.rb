@@ -42,6 +42,7 @@ module NewRelic::Security
               sleep 1
               next if Time.now.to_i < shutdown_at
               NewRelic::Security::Agent.logger.info "Shutdown IAST agent now at current time: #{Time.now}"
+              ::NewRelic::Agent.notice_error(StandardError.new("WS Connection closed by local"))
               NewRelic::Security::Agent.agent.iast_client&.fuzzQ&.clear
               NewRelic::Security::Agent.agent.iast_client&.completed_requests&.clear
               NewRelic::Security::Agent.agent.iast_client&.pending_request_ids&.clear
