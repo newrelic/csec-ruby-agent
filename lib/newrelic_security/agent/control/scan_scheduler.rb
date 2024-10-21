@@ -14,6 +14,9 @@ module NewRelic::Security
             NewRelic::Security::Agent.agent.init
             shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, 0)
           end
+        rescue StandardError => exception
+          NewRelic::Security::Agent.logger.error "Exception in IAST scan scheduler: #{exception.inspect} #{exception.backtrace}"
+          ::NewRelic::Agent.notice_error(exception)
         end
 
         def start_agent_with_delay(delay)

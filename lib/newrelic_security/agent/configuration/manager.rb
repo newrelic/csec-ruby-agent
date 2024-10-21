@@ -54,8 +54,8 @@ module NewRelic::Security
           @cache[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection']
           @cache[:'security.exclude_from_iast_scan.iast_detection_category.ssrf'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ssrf']
           @cache[:'security.exclude_from_iast_scan.iast_detection_category.rxss'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.rxss']
-          @cache[:'security.scan_schedule.delay'] = ::NewRelic::Agent.config[:'security.scan_schedule.delay']
-          @cache[:'security.scan_schedule.duration'] = ::NewRelic::Agent.config[:'security.scan_schedule.duration']
+          @cache[:'security.scan_schedule.delay'] = ::NewRelic::Agent.config[:'security.scan_schedule.delay'].to_i
+          @cache[:'security.scan_schedule.duration'] = ::NewRelic::Agent.config[:'security.scan_schedule.duration'].to_i
           @cache[:'security.scan_schedule.schedule'] = ::NewRelic::Agent.config[:'security.scan_schedule.schedule']
           @cache[:'security.scan_schedule.always_sample_traces'] = ::NewRelic::Agent.config[:'security.scan_schedule.always_sample_traces']
 
