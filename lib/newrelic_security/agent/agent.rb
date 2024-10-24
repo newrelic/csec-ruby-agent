@@ -78,11 +78,9 @@ module NewRelic::Security
       end
 
       def start_iast_client
-        @iast_client&.iast_dequeue_threads&.each { |t| t.kill if t }
+        @iast_client&.iast_dequeue_threads&.each { |t| t&.kill }
         @iast_client&.iast_data_transfer_request_processor_thread&.kill
         @iast_client = nil
-        sleep NewRelic::Security::Agent.config[:'security.scan_schedule.delay'] * 60 if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
-        NewRelic::Security::Agent.logger.info "Starting IAST client now at current time: #{Time.now}"
         @iast_client = NewRelic::Security::Agent::Control::IASTClient.new
       end
 

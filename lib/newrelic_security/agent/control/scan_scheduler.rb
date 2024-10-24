@@ -12,6 +12,7 @@ module NewRelic::Security
             cron_expression_task(NewRelic::Security::Agent.config[:'security.scan_schedule.schedule'], NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
           else
             NewRelic::Security::Agent.agent.init
+            NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
             shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, 0)
           end
         rescue StandardError => exception
@@ -23,11 +24,15 @@ module NewRelic::Security
           if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
             NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes when always_sample_traces is true, current time: #{Time.now}"
             NewRelic::Security::Agent.agent.init
+            sleep NewRelic::Security::Agent.config[:'security.scan_schedule.delay'] * 60 if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
+            NewRelic::Security::Agent.logger.info "Starting IAST client now at current time: #{Time.now}"
+            NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
             shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, delay)
           else
             NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes, current time: #{Time.now}"
             sleep delay
             NewRelic::Security::Agent.agent.init
+            NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
             shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, 0)
           end
         end
@@ -41,14 +46,19 @@ module NewRelic::Security
             loop do
               sleep 1
               next if Time.now.to_i < shutdown_at
-              NewRelic::Security::Agent.logger.info "Shutdown IAST agent now at current time: #{Time.now}"
-              ::NewRelic::Agent.notice_error(StandardError.new("WS Connection closed by local"))
-              NewRelic::Security::Agent.agent.iast_client&.fuzzQ&.clear
-              NewRelic::Security::Agent.agent.iast_client&.completed_requests&.clear
-              NewRelic::Security::Agent.agent.iast_client&.pending_request_ids&.clear
-              NewRelic::Security::Agent.agent.iast_client&.iast_data_transfer_request_processor_thread&.kill
-              NewRelic::Security::Agent.config.disable_security
-              NewRelic::Security::Agent.agent.stop_websocket_client_if_open
+              if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
+                NewRelic::Security::Agent.logger.info "Shutdown IAST Data transfer request processor only as 'security.scan_schedule.always_sample_traces' is #{NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']} now at current time: #{Time.now}"
+                NewRelic::Security::Agent.agent.iast_client&.iast_data_transfer_request_processor_thread&.kill
+              else
+                NewRelic::Security::Agent.logger.info "Shutdown IAST agent now at current time: #{Time.now}"
+                ::NewRelic::Agent.notice_error(StandardError.new("WS Connection closed by local"))
+                NewRelic::Security::Agent.agent.iast_client&.fuzzQ&.clear
+                NewRelic::Security::Agent.agent.iast_client&.completed_requests&.clear
+                NewRelic::Security::Agent.agent.iast_client&.pending_request_ids&.clear
+                NewRelic::Security::Agent.agent.iast_client&.iast_data_transfer_request_processor_thread&.kill
+                NewRelic::Security::Agent.config.disable_security
+                NewRelic::Security::Agent.agent.stop_websocket_client_if_open
+              end
               break
             end
           end
