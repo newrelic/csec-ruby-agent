@@ -49,12 +49,7 @@ module NewRelic::Security
               else
                 NewRelic::Security::Agent.logger.info "Shutdown IAST agent now at current time: #{Time.now}"
                 ::NewRelic::Agent.notice_error(StandardError.new("WS Connection closed by local"))
-                NewRelic::Security::Agent.agent.iast_client&.fuzzQ&.clear
-                NewRelic::Security::Agent.agent.iast_client&.completed_requests&.clear
-                NewRelic::Security::Agent.agent.iast_client&.pending_request_ids&.clear
-                NewRelic::Security::Agent.agent.iast_client&.iast_data_transfer_request_processor_thread&.kill
-                NewRelic::Security::Agent.config.disable_security
-                NewRelic::Security::Agent.agent.stop_websocket_client_if_open
+                NewRelic::Security::Agent.agent.shutdown_security_agent
               end
               break
             end

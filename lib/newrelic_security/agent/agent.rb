@@ -61,6 +61,15 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.error "Exception in security agent init: #{exception.inspect} #{exception.backtrace}\n"
       end
 
+      def shutdown_security_agent
+        @iast_client&.fuzzQ&.clear
+        @iast_client&.completed_requests&.clear
+        @iast_client&.pending_request_ids&.clear
+        @iast_client&.iast_data_transfer_request_processor_thread&.kill
+        NewRelic::Security::Agent.config.disable_security
+        stop_websocket_client_if_open
+      end
+
       def start_websocket_client
         stop_websocket_client_if_open
         @websocket_client = NewRelic::Security::Agent::Control::WebsocketClient.instance.connect
