@@ -13,7 +13,7 @@ module NewRelic::Security
           else
             NewRelic::Security::Agent.agent.init
             NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
-            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, 0)
+            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
           end
         rescue StandardError => exception
           NewRelic::Security::Agent.logger.error "Exception in IAST scan scheduler: #{exception.inspect} #{exception.backtrace}"
@@ -27,20 +27,20 @@ module NewRelic::Security
             sleep NewRelic::Security::Agent.config[:'security.scan_schedule.delay'] * 60 if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
             NewRelic::Security::Agent.logger.info "Starting IAST client now at current time: #{Time.now}"
             NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
-            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, delay)
+            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
           else
             NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes, current time: #{Time.now}"
             sleep delay
             NewRelic::Security::Agent.agent.init
             NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
-            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60, 0)
+            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
           end
         end
 
-        def shutdown_at_duration_reached(duration, delay)
-          shutdown_at = Time.now.to_i + duration + delay
+        def shutdown_at_duration_reached(duration)
+          shutdown_at = Time.now.to_i + duration
           return if duration <= 0
-          NewRelic::Security::Agent.logger.info "IAST Duration is set to: #{duration/60} minutes with delay #{(delay/60).ceil} minutes, timestamp: #{shutdown_at} time, current time: #{Time.now}"
+          NewRelic::Security::Agent.logger.info "IAST Duration is set to: #{duration/60} minutes, timestamp: #{shutdown_at} time, current time: #{Time.now}"
           @shutdown_monitor_thread = Thread.new do
             Thread.current.name = "newrelic_security_shutdown_monitor_thread"
             loop do
