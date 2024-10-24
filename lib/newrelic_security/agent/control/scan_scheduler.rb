@@ -21,20 +21,17 @@ module NewRelic::Security
         end
 
         def start_agent_with_delay(delay)
+          NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes when always_sample_traces is #{NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']}, current time: #{Time.now}"
           if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
-            NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes when always_sample_traces is true, current time: #{Time.now}"
             NewRelic::Security::Agent.agent.init
-            sleep NewRelic::Security::Agent.config[:'security.scan_schedule.delay'] * 60 if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
-            NewRelic::Security::Agent.logger.info "Starting IAST client now at current time: #{Time.now}"
-            NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
-            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
+            sleep delay if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
           else
-            NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes, current time: #{Time.now}"
             sleep delay
             NewRelic::Security::Agent.agent.init
-            NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
-            shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
           end
+          NewRelic::Security::Agent.logger.info "Starting IAST client now at current time: #{Time.now}"
+          NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
+          shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
         end
 
         def shutdown_at_duration_reached(duration)
