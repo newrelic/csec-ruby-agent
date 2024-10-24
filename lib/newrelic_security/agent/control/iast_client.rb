@@ -17,9 +17,8 @@ module NewRelic::Security
       IS_GRPC = 'isGrpc'
       INPUT_CLASS = 'inputClass'
       SERVER_PORT_1 = 'serverPort'
-      PROBING = 'probing'
-      INTERVAL = 'interval'
       IS_GRPC_CLIENT_STREAM = 'isGrpcClientStream'
+      PROBING_INTERVAL = 5
 
       class IASTClient
         
@@ -71,7 +70,8 @@ module NewRelic::Security
           @iast_data_transfer_request_processor_thread = Thread.new do
             Thread.current.name = "newrelic_security_iast_data_transfer_request_processor"
             loop do
-              sleep NewRelic::Security::Agent.config[:policy][VULNERABILITY_SCAN][IAST_SCAN][PROBING][INTERVAL]
+              # TODO: Check & remove this probing interval if not required, earlier this was used from policy sent by SE.
+              sleep PROBING_INTERVAL
               current_timestamp = current_time_millis
               cooldown_sleep_time = @cooldown_till_timestamp - current_timestamp
               sleep cooldown_sleep_time/1000 if cooldown_sleep_time > 0
@@ -122,18 +122,18 @@ module NewRelic::Security
         def fire_grpc_request(fuzz_request_id, request, reflected_metadata)
           service = Object.const_get(request[METHOD].split(SLASH)[0]).superclass
           method = request[METHOD].split(SLASH)[1]
-          @stub = service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure) unless @stub
+          @stub ||= service.rpc_stub_class.new("localhost:#{request[SERVER_PORT_1]}", :this_channel_is_insecure)
 
-          parsed_body =  request[BODY][1..-2].split(',')
-          if reflected_metadata[IS_GRPC_CLIENT_STREAM]
-            chunks_enum = Enumerator.new do |y|
+          parsed_body = request[BODY][1..-2].split(',')
+          chunks_enum = if reflected_metadata[IS_GRPC_CLIENT_STREAM]
+            Enumerator.new do |y|
               parsed_body.each do |b|
                 y << Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(b)
               end
             end
-          else
-            chunks_enum = Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY])
-          end
+                        else
+            Object.const_get(reflected_metadata[INPUT_CLASS]).decode_json(request[BODY])
+                        end
           response = @stub.public_send(method, chunks_enum, metadata: request[HEADERS])
           # response = @stub.send(method, JSON.parse(request['body'], object_class: OpenStruct))
           # request[HEADERS].delete(VERSION) if request[HEADERS].key?(VERSION)
