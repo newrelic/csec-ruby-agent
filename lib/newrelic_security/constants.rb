@@ -17,6 +17,7 @@ module NewRelic::Security
   NR_CSEC_FUZZ_REQUEST_ID = 'nr-csec-fuzz-request-id'
   NR_CSEC_TRACING_DATA = 'nr-csec-tracing-data'
   NR_CSEC_PARENT_ID = 'nr-csec-parent-id'
+  IAST = 'IAST'
   COLON_IAST_COLON = ':IAST:'
   NOSQL_DB_COMMAND = 'NOSQL_DB_COMMAND'
   SQL_DB_COMMAND = 'SQL_DB_COMMAND'
@@ -63,6 +64,4 @@ module NewRelic::Security
   CONTENT_TYPE1 = 'content-Type'
   PULL = 'PULL'
   SHA1 = 'sha1'
-  VULNERABILITY_SCAN = 'vulnerabilityScan'
-  IAST_SCAN = 'iastScan'
 end

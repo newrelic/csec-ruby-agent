@@ -15,8 +15,7 @@ module NewRelic::Security
       ASTERISK = '*'
 
       def is_IAST?
-        return false if NewRelic::Security::Agent.config[:policy].empty?
-        return NewRelic::Security::Agent.config[:policy][VULNERABILITY_SCAN][IAST_SCAN][ENABLED] if NewRelic::Security::Agent.config[:policy][VULNERABILITY_SCAN][ENABLED]
+        return true if NewRelic::Security::Agent.config[:mode] == IAST
         false
       end
 
