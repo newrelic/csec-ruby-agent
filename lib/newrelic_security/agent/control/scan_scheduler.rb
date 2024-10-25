@@ -29,15 +29,15 @@ module NewRelic::Security
             sleep delay
             NewRelic::Security::Agent.agent.init
           end
-          NewRelic::Security::Agent.logger.info "Starting IAST client now at current time: #{Time.now}"
           NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
           shutdown_at_duration_reached(NewRelic::Security::Agent.config[:'security.scan_schedule.duration']*60)
         end
 
         def shutdown_at_duration_reached(duration)
           shutdown_at = Time.now.to_i + duration
+          shut_down_time = (Time.now + duration).strftime("%a %d %b %Y %H:%M:%S")
           return if duration <= 0
-          NewRelic::Security::Agent.logger.info "IAST Duration is set to: #{duration/60} minutes, timestamp: #{shutdown_at} time, current time: #{Time.now}"
+          NewRelic::Security::Agent.logger.info "IAST Duration is set to: #{duration/60} minutes, timestamp: #{shut_down_time} time, current time: #{Time.now}"
           @shutdown_monitor_thread = Thread.new do
             Thread.current.name = "newrelic_security_shutdown_monitor_thread"
             loop do
@@ -60,7 +60,7 @@ module NewRelic::Security
           @cron_parser = NewRelic::Security::ParseCron::CronParser.new(schedule)
           loop do
             next_run = @cron_parser.next(Time.now)
-            NewRelic::Security::Agent.logger.info "Next init via cron is scheduled at : #{next_run}"
+            NewRelic::Security::Agent.logger.info "Next init via cron exp: #{schedule},  is scheduled at : #{next_run}"
             delay = next_run - Time.now
             start_agent_with_delay(delay)
             return if duration <= 0

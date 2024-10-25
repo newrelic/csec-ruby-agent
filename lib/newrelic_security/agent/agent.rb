@@ -90,6 +90,7 @@ module NewRelic::Security
         @iast_client&.iast_dequeue_threads&.each { |t| t&.kill }
         @iast_client&.iast_data_transfer_request_processor_thread&.kill
         @iast_client = nil
+        NewRelic::Security::Agent.logger.info "Starting IAST client now at current time: #{Time.now}"
         @iast_client = NewRelic::Security::Agent::Control::IASTClient.new
       end
 
