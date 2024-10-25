@@ -15,6 +15,18 @@ module NewRelic::Security
           end
         end
       end
+
+      module Router
+        module Prepend
+          include NewRelic::Security::Instrumentation::Padrino::Router
+
+          def call(env, &block)
+            retval = super
+            call_on_exit(retval) { return retval }
+          end
+
+        end
+      end
     end
   end
 end
