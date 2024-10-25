@@ -36,7 +36,6 @@ module NewRelic::Security
           @cache[:'security.scan_controllers.iast_scan_request_rate_limit'] = ::NewRelic::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'].to_i
           @cache[:framework] = detect_framework
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
-          @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
           @cache[:listen_port] = nil
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
