@@ -50,7 +50,7 @@ module NewRelic::Security
           @osVersion = os_version
           @serverInfo = Hash.new # TODO: Fill this
           @identifier = Hash.new # TODO: Fill this
-          @linkingMetadata = add_linking_metadata
+          @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
         end
 
         def as_json
@@ -119,13 +119,6 @@ module NewRelic::Security
 
         def os_version
           ::Gem::Platform.local.version
-        end
-
-        def add_linking_metadata
-          linking_metadata = Hash.new
-          linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
-          linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
-          # TODO: add other fields as well in linking metadata, for event and heathcheck as well
         end
 
       end

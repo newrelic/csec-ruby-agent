@@ -25,6 +25,16 @@ module NewRelic::Security
         false
       end
 
+      def add_linking_metadata
+        linking_metadata = {}
+        linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
+        if (ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context)
+          linking_metadata[:'trace.id'] = ctxt.trace_id
+          linking_metadata[:'span.id'] = ctxt.span_id
+        end
+        linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
+      end
+
       def parse_fuzz_header(ctxt)
         headers = ctxt.headers if ctxt
         if is_IAST? && is_IAST_request?(headers)

@@ -11,7 +11,7 @@ module NewRelic::Security
         attr_accessor :isIASTRequest, :httpRequest, :httpResponse
         attr_reader :jsonName
         
-        def initialize(_ctxt, http_response)
+        def initialize(ctxt, http_response)
           @collectorType = RUBY
           @language = Ruby
           @jsonName = :sec_http_response
@@ -27,9 +27,9 @@ module NewRelic::Security
           @appEntityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @httpRequest = {}
           @httpResponse = http_response.as_json
-          @linkingMetadata = add_linking_metadata
-          @traceId = nil
-          @isIASTRequest = false
+          @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
+          @traceId = ctxt.trace_id
+          @isIASTRequest = NewRelic::Security::Agent::Utils.is_IAST_request?(ctxt.headers)
         end
 
         def as_json
@@ -38,18 +38,8 @@ module NewRelic::Security
           end.to_h
         end
 
-        def to_json(*_args)
+        def to_json # rubocop:disable Lint/ToJSON
           as_json.to_json
-        end
-
-        private
-
-        def add_linking_metadata
-          linking_metadata = {}
-          linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
-          linking_metadata[:'trace.id'] = nil
-          linking_metadata[:'span.id'] = nil
-          linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
         end
 
       end

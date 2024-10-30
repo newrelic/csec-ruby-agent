@@ -23,7 +23,7 @@ module NewRelic::Security
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @appAccountId = NewRelic::Security::Agent.config[:account_id]
           @appEntityGuid = NewRelic::Security::Agent.config[:entity_guid]
-          @linkingMetadata = add_linking_metadata
+          @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
           @timestamp = current_time_millis
           @message = message
           @level = level          
@@ -38,7 +38,7 @@ module NewRelic::Security
           end.to_h
         end
 
-        def to_json
+        def to_json # rubocop:disable Lint/ToJSON
           as_json.to_json
         end
 
@@ -46,12 +46,6 @@ module NewRelic::Security
 
         def current_time_millis
           (Time.now.to_f * 1000).to_i
-        end
-
-        def add_linking_metadata
-          linking_metadata = Hash.new
-          linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
-          linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
         end
 
       end
