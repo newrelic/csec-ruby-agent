@@ -15,7 +15,6 @@ module NewRelic::Security
         HTML_COMMENT_END = '-->'
         FIVE_COLON = ':::::'
         SCRIPT = 'script'
-        Content_Type = 'Content-Type'
         QUERY_STRING = 'QUERY_STRING'
         REQUEST_URI = 'REQUEST_URI'
         APPLICATION_JSON = 'application/json'

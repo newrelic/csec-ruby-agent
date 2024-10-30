@@ -55,6 +55,7 @@ module NewRelic::Security
   REQUEST_METHOD = 'REQUEST_METHOD'
   PATH_INFO = 'PATH_INFO'
   CONTENT_TYPE = 'CONTENT_TYPE'
+  Content_Type = 'Content-Type'
   REQUEST_URI = 'REQUEST_URI'
   SERVER_PORT = 'SERVER_PORT'
   X_FORWARDED_FOR = 'x-forwarded-for'
