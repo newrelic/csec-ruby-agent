@@ -15,7 +15,6 @@ module NewRelic::Security
         HTML_COMMENT_END = '-->'
         FIVE_COLON = ':::::'
         SCRIPT = 'script'
-        Content_Type = 'Content-Type'
         QUERY_STRING = 'QUERY_STRING'
         REQUEST_URI = 'REQUEST_URI'
         APPLICATION_JSON = 'application/json'
@@ -43,21 +42,19 @@ module NewRelic::Security
 
         extend self
 
-        def check_xss(http_req, retval)
+        def check_xss(http_req, http_response)
           # TODO: Check if enableHTTPRequestPrinting is required.
-          return if http_req.nil? || retval.empty?
-          if retval[1].key?(Content_Type) && (retval[1][Content_Type].start_with?(*UNSUPPORTED_MEDIA_TYPES) || retval[1][Content_Type].start_with?(*UNSUPPORTED_CONTENT_TYPES))
+          return if http_req.nil? || http_response.nil?
+          if http_response.headers.key?(Content_Type) && (http_response.headers[Content_Type].start_with?(*UNSUPPORTED_MEDIA_TYPES) || http_response.headers[Content_Type].start_with?(*UNSUPPORTED_CONTENT_TYPES))
             return
           end
-          response_body = ::String.new
-          retval[2].each { |string| response_body << string }
-          construct = check_for_reflected_xss(http_req, retval[1], response_body)
+          construct = check_for_reflected_xss(http_req, http_response.headers, http_response.body)
           NewRelic::Security::Agent.logger.debug "RXSS Attack DATA: #{construct}"
           if !construct.empty? || NewRelic::Security::Agent::Utils.is_IAST?
             parameters = Array.new
             parameters << construct
-            parameters << response_body.force_encoding(ISO_8859_1).encode(UTF_8)
-            NewRelic::Security::Agent::Control::Collector.collect(REFLECTED_XSS, parameters, nil, :response_header => retval[1][Content_Type])
+            parameters << http_response.body.force_encoding(ISO_8859_1).encode(UTF_8)
+            NewRelic::Security::Agent::Control::Collector.collect(REFLECTED_XSS, parameters, nil, :response_header => http_response.headers[Content_Type])
           end
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in Reflected XSS detection : #{exception.inspect} #{exception.backtrace}"

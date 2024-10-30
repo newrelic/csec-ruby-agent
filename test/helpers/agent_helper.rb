@@ -8,7 +8,7 @@ module NewRelic::Security
           return @http_context if @http_context
         end
         def self.set_context(env)
-          @http_context = HTTPContext.new(env)
+          @http_context = HTTPContext.new(env, nil, nil)
         end
 
         def self.reset_context

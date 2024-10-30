@@ -31,7 +31,7 @@ module NewRelic::Security
           @httpRequest = Hash.new
           @httpResponse = Hash.new
           @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s }, :appServerInfo => { :applicationDirectory => NewRelic::Security::Agent.config[:app_root], :serverBaseDirectory => NewRelic::Security::Agent.config[:app_root] } }
-          @linkingMetadata = add_linking_metadata
+          @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
           @pid = pid
           @parameters = args
           @sourceMethod = nil
@@ -144,12 +144,6 @@ module NewRelic::Security
           ctxt.mutex.synchronize do
             ctxt.event_counter = ctxt.event_counter + 1
           end
-        end
-
-        def add_linking_metadata
-          linking_metadata = Hash.new
-          linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
-          linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
         end
 
       end

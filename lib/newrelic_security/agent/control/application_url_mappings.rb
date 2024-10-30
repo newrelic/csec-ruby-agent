@@ -26,7 +26,7 @@ module NewRelic::Security
           @framework = NewRelic::Security::Agent.config[:framework]
           @groupName = NewRelic::Security::Agent.config[:mode]
           @policyVersion = nil
-          @linkingMetadata = add_linking_metadata
+          @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
           @mappings = []
         end
 
@@ -36,7 +36,7 @@ module NewRelic::Security
           end.to_h
         end
 
-        def to_json
+        def to_json # rubocop:disable Lint/ToJSON
           as_json.to_json
         end
 
@@ -53,13 +53,6 @@ module NewRelic::Security
 
         def current_time_millis
           (Time.now.to_f * 1000).to_i
-        end
-
-        def add_linking_metadata
-          linking_metadata = {}
-          linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
-          linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
-          # TODO: add other fields as well in linking metadata, for event and heathcheck as well
         end
 
       end
