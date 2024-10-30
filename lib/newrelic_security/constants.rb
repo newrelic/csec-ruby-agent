@@ -15,6 +15,7 @@ module NewRelic::Security
   LOG_FILE_NAME = 'ruby-security-collector.log'
   NR_SECURITY_HOME_TMP = 'nr-security-home/tmp/'
   NR_CSEC_FUZZ_REQUEST_ID = 'nr-csec-fuzz-request-id'
+  VULNERABLE = 'VULNERABLE'
   NR_CSEC_TRACING_DATA = 'nr-csec-tracing-data'
   NR_CSEC_PARENT_ID = 'nr-csec-parent-id'
   COLON_IAST_COLON = ':IAST:'

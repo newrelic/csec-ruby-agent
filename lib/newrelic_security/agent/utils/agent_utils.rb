@@ -9,7 +9,6 @@ module NewRelic::Security
       extend self
 
       ENABLED = 'enabled'
-      VULNERABLE = 'VULNERABLE'
       AES_256_CBC = 'AES-256-CBC'
       H_ASTERIK = 'H*'
       ASTERISK = '*'

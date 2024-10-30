@@ -8,6 +8,8 @@ module NewRelic::Security
 
       class HTTPResponse
 
+        attr_accessor :statusCode, :headers, :body
+
         def initialize(status, headers, body)
           @statusCode = status
           @headers = headers
