@@ -30,9 +30,10 @@ module NewRelic::Security
           @cache[:enabled] = ::NewRelic::Agent.config[:'security.enabled']
           @cache[:mode] = ::NewRelic::Agent.config[:'security.mode']
           @cache[:validator_service_url] = ::NewRelic::Agent.config[:'security.validator_service_url']
-          @cache[:'security.detection.rci.enabled'] = ::NewRelic::Agent.config[:'security.detection.rci.enabled']
-          @cache[:'security.detection.rxss.enabled'] = ::NewRelic::Agent.config[:'security.detection.rxss.enabled']
-          @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
+          # TODO: Remove security.detection.* & security.request.body_limit in next major release
+          @cache[:'security.detection.rci.enabled'] = ::NewRelic::Agent.config[:'security.detection.rci.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.rci.enabled']
+          @cache[:'security.detection.rxss.enabled'] = ::NewRelic::Agent.config[:'security.detection.rxss.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.rxss.enabled']
+          @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
           @cache[:framework] = detect_framework
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
           @cache[:'security.request.body_limit'] = ::NewRelic::Agent.config[:'security.request.body_limit'].to_i > 0 ? ::NewRelic::Agent.config[:'security.request.body_limit'].to_i : 300
