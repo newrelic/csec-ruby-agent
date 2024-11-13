@@ -14,6 +14,10 @@ module NewRelic::Security
           def route_eval
             route_eval_on_enter { super }
           end
+
+          def dispatch!
+            dispatch_on_enter { super }
+          end
         end
       end
     end

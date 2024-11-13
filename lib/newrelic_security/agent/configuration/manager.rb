@@ -47,8 +47,7 @@ module NewRelic::Security
           @yaml_source = NewRelic::Security::Agent::Configuration::YamlSource.new
           @default_source = NewRelic::Security::Agent::Configuration::DefaultSource.new
         rescue Exception => exception
-          # TODO: remove this puts once agent stablizes
-          puts "Exception in Configuration::Manager.initialize : #{exception.inspect} #{exception.backtrace}"
+          ::NewRelic::Agent.notice_error(exception)
         end
   
         def [](key)
