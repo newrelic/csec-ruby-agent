@@ -27,7 +27,8 @@ module NewRelic::Security
           @cache[:log_level] = ::NewRelic::Agent.config[:log_level]
           @cache[:high_security] = ::NewRelic::Agent.config[:high_security]
           @cache[:'agent.enabled'] = ::NewRelic::Agent.config[:'security.agent.enabled']
-          @cache[:enabled] = ::NewRelic::Agent.config[:'security.enabled']
+          @cache[:'security.enabled'] = ::NewRelic::Agent.config[:'security.enabled']
+          @cache[:enabled] = false
           @cache[:mode] = ::NewRelic::Agent.config[:'security.mode']
           @cache[:validator_service_url] = ::NewRelic::Agent.config[:'security.validator_service_url']
           # TODO: Remove security.detection.* & security.request.body_limit in next major release
