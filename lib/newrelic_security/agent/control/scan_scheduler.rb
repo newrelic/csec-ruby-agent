@@ -23,7 +23,7 @@ module NewRelic::Security
         def start_agent_with_delay(delay)
           NewRelic::Security::Agent.logger.info "Security Agent delay scan time is set to: #{(delay/60).ceil} minutes when always_sample_traces is #{NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']}, current time: #{Time.now}"
           if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
-            NewRelic::Security::Agent.agent.init
+            NewRelic::Security::Agent.agent.init unless NewRelic::Security::Agent.config[:enabled]
             sleep delay if NewRelic::Security::Agent.config[:'security.scan_schedule.always_sample_traces']
           else
             sleep delay
