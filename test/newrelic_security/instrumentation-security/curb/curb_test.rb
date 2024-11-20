@@ -8,7 +8,7 @@ module NewRelic::Security
         module Instrumentation
             class TestCurb < Minitest::Test
                 TEST_URL = "https://www.google.com"
-                ARGS = [{:Method=>nil, :scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{}}]
+                ARGS = ["https://www.google.com"]
 
                 def setup
                     $event_list.clear()

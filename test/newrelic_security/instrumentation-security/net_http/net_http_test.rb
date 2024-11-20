@@ -25,7 +25,7 @@ module NewRelic::Security
                     request = Net::HTTP::Get.new(uri.request_uri)
                     response = http.request(request)
                     assert_equal "200", response.code
-                    args = [{:Method=>"GET", :scheme=>"http", :host=>"www.google.com", :port=>80, :path=>"/", :query=>nil, :URI=>"http://www.google.com:80/", :Body=>nil, :Headers=>{"accept-encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "accept"=>"*/*", "user-agent"=>"Ruby", "connection"=>"close"}}]
+                    args = ["http://www.google.com:80/"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -38,7 +38,7 @@ module NewRelic::Security
                     uri = URI(url)
                     @output = Net::HTTP.get(uri)
                     #puts @output
-                    args = [{:Method=>"GET", :scheme=>"http", :host=>"www.google.com", :port=>80, :URI=>"http://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{"accept-encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "accept"=>"*/*", "user-agent"=>"Ruby", "host"=>"www.google.com"}}]
+                    args = ["http://www.google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -53,7 +53,7 @@ module NewRelic::Security
 	                uri.query = URI.encode_www_form(uri_params)
                     @output = Net::HTTP.get_response(uri)
                     assert_equal "200", @output.code
-                    args = [{:Method=>"GET", :scheme=>"http", :host=>"www.google.com", :port=>80, :URI=>"http://www.google.com?limit=10&page=3", :path=>"", :query=>"limit=10&page=3", :Body=>nil, :Headers=>{"accept-encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "accept"=>"*/*", "user-agent"=>"Ruby", "host"=>"www.google.com"}}]
+                    args = ["http://www.google.com?limit=10&page=3"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -70,7 +70,7 @@ module NewRelic::Security
                         @output = http.request(request)
                     end
                     assert_equal "200", @output.code
-                    args = [{:Method=>"GET", :scheme=>"http", :host=>"www.google.com", :port=>80, :URI=>"http://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{"accept-encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "accept"=>"*/*", "user-agent"=>"Ruby", "host"=>"www.google.com"}}]
+                    args = ["http://www.google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -86,7 +86,7 @@ module NewRelic::Security
                         @output = http.request(request)
                     end
                     assert_equal "200", @output.code
-                    args = [{:Method=>"GET", :scheme=>"http", :host=>"www.google.com", :port=>80, :URI=>"http://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{"accept-encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "accept"=>"*/*", "user-agent"=>"Ruby", "host"=>"www.google.com"}}]
+                    args = ["http://www.google.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
@@ -101,7 +101,7 @@ module NewRelic::Security
                     response = http.request(uri)
                     @output = response.code
                     assert_equal "200", @output
-                    args = [{:Method=>"GET", :scheme=>"http", :host=>"www.google.com", :port=>80, :path=>"/", :query=>nil, :URI=>"http://www.google.com:80/", :Body=>nil, :Headers=>{"accept-encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "accept"=>"*/*", "user-agent"=>"Ruby", "connection"=>"keep-alive", "keep-alive"=>"30"}}]
+                    args = ["http://www.google.com:80/"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
