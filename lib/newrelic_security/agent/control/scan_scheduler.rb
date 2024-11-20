@@ -63,7 +63,7 @@ module NewRelic::Security
             NewRelic::Security::Agent.logger.info "Next init via cron exp: #{schedule},  is scheduled at : #{next_run}"
             delay = next_run - Time.now
             if NewRelic::Security::Agent.agent.iast_client&.iast_data_transfer_request_processor_thread&.alive?
-              sleep delay - 2
+              sleep delay > 2 ? delay - 2 : delay
             else
               start_agent_with_delay(delay) 
             end
