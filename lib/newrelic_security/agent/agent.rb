@@ -19,13 +19,14 @@ require 'newrelic_security/agent/control/event_stats'
 require 'newrelic_security/agent/control/exit_event'
 require 'newrelic_security/agent/control/application_runtime_error'
 require 'newrelic_security/agent/control/error_reporting'
+require 'newrelic_security/agent/control/scan_scheduler'
 require 'newrelic_security/instrumentation-security/instrumentation_loader'
 
 module NewRelic::Security
   module Agent
     class Agent
 
-      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :iast_event_stats, :rasp_event_stats, :exit_event_stats, :error_reporting
+      attr_accessor :websocket_client, :event_processor, :iast_client, :http_request_count, :event_processed_count, :event_sent_count, :event_drop_count, :route_map, :iast_event_stats, :rasp_event_stats, :exit_event_stats, :error_reporting, :scan_scheduler
 
       def initialize
         NewRelic::Security::Agent.config
@@ -44,6 +45,7 @@ module NewRelic::Security
         @rasp_event_stats = NewRelic::Security::Agent::Control::EventStats.new
         @exit_event_stats = NewRelic::Security::Agent::Control::EventStats.new
         @error_reporting = NewRelic::Security::Agent::Control::ErrorReporting.new
+        @scan_scheduler = NewRelic::Security::Agent::Control::ScanScheduler.new
       end
 
       def init
@@ -59,9 +61,22 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.error "Exception in security agent init: #{exception.inspect} #{exception.backtrace}\n"
       end
 
+      def shutdown_security_agent
+        @iast_client&.fuzzQ&.clear
+        @iast_client&.completed_requests&.clear
+        @iast_client&.pending_request_ids&.clear
+        @iast_client&.iast_data_transfer_request_processor_thread&.kill
+        NewRelic::Security::Agent.config.disable_security
+        stop_websocket_client_if_open
+      end
+
       def start_websocket_client
-        NewRelic::Security::Agent::Control::WebsocketClient.instance.close(false) if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
+        stop_websocket_client_if_open
         @websocket_client = NewRelic::Security::Agent::Control::WebsocketClient.instance.connect
+      end
+
+      def stop_websocket_client_if_open
+        NewRelic::Security::Agent::Control::WebsocketClient.instance.close(false) if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
       end
 
       def start_event_processor
@@ -72,9 +87,10 @@ module NewRelic::Security
       end
 
       def start_iast_client
-        @iast_client&.iast_dequeue_threads&.each { |t| t.kill if t }
+        @iast_client&.iast_dequeue_threads&.each { |t| t&.kill }
         @iast_client&.iast_data_transfer_request_processor_thread&.kill
         @iast_client = nil
+        NewRelic::Security::Agent.logger.info "Starting IAST client now at current time: #{Time.now}"
         @iast_client = NewRelic::Security::Agent::Control::IASTClient.new
       end
 

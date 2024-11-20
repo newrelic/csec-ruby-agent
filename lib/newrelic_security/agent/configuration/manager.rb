@@ -27,12 +27,14 @@ module NewRelic::Security
           @cache[:log_level] = ::NewRelic::Agent.config[:log_level]
           @cache[:high_security] = ::NewRelic::Agent.config[:high_security]
           @cache[:'agent.enabled'] = ::NewRelic::Agent.config[:'security.agent.enabled']
-          @cache[:enabled] = ::NewRelic::Agent.config[:'security.enabled']
+          @cache[:'security.enabled'] = ::NewRelic::Agent.config[:'security.enabled']
+          @cache[:enabled] = false
           @cache[:mode] = ::NewRelic::Agent.config[:'security.mode']
           @cache[:validator_service_url] = ::NewRelic::Agent.config[:'security.validator_service_url']
-          @cache[:'security.detection.rci.enabled'] = ::NewRelic::Agent.config[:'security.detection.rci.enabled']
-          @cache[:'security.detection.rxss.enabled'] = ::NewRelic::Agent.config[:'security.detection.rxss.enabled']
-          @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
+          # TODO: Remove security.detection.* & security.request.body_limit in next major release
+          @cache[:'security.detection.rci.enabled'] = ::NewRelic::Agent.config[:'security.detection.rci.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.rci.enabled']
+          @cache[:'security.detection.rxss.enabled'] = ::NewRelic::Agent.config[:'security.detection.rxss.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.rxss.enabled']
+          @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
           @cache[:'security.scan_controllers.iast_scan_request_rate_limit'] = ::NewRelic::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'].to_i
           @cache[:framework] = detect_framework
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
@@ -45,6 +47,24 @@ module NewRelic::Security
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
           @cache[:json_version] = :'1.2.8'
+          @cache[:'security.exclude_from_iast_scan.api'] = convert_to_regexp_list(::NewRelic::Agent.config[:'security.exclude_from_iast_scan.api'])
+          @cache[:'security.exclude_from_iast_scan.http_request_parameters.header'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.header']
+          @cache[:'security.exclude_from_iast_scan.http_request_parameters.query'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.query']
+          @cache[:'security.exclude_from_iast_scan.http_request_parameters.body'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.body']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.sql_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.sql_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.nosql_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.nosql_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.ldap_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ldap_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.javascript_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.javascript_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.command_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.command_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.ssrf'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ssrf']
+          @cache[:'security.exclude_from_iast_scan.iast_detection_category.rxss'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.rxss']
+          @cache[:'security.scan_schedule.delay'] = ::NewRelic::Agent.config[:'security.scan_schedule.delay'].to_i
+          @cache[:'security.scan_schedule.duration'] = ::NewRelic::Agent.config[:'security.scan_schedule.duration'].to_i
+          @cache[:'security.scan_schedule.schedule'] = ::NewRelic::Agent.config[:'security.scan_schedule.schedule']
+          @cache[:'security.scan_schedule.always_sample_traces'] = ::NewRelic::Agent.config[:'security.scan_schedule.always_sample_traces']
 
           @environment_source = NewRelic::Security::Agent::Configuration::EnvironmentSource.new
           @server_source = NewRelic::Security::Agent::Configuration::ServerSource.new
@@ -189,6 +209,14 @@ module NewRelic::Security
           (Time.now.to_f * 1000).to_i
         end
 
+        def convert_to_regexp_list(value_list)
+          value_list.map do |value|
+            next unless value && !value.empty?
+            value = "^#{value}" if value[0] != '^'
+            value = "#{value}$" if value[-1] != '$'
+            /#{value}/
+          end
+        end
       end
     end
   end
