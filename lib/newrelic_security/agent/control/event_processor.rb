@@ -48,6 +48,7 @@ module NewRelic::Security
           enqueue(event)
           if @first_event
             NewRelic::Security::Agent.init_logger.info "[STEP-8] => First event sent for validation. Security agent started successfully : #{event.to_json}"
+            NewRelic::Security::Agent.config.traffic_start_time = current_time_millis unless NewRelic::Security::Agent.config[:traffic_start_time]
             @first_event = false
           end
           event = nil
@@ -128,6 +129,10 @@ module NewRelic::Security
           }
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in health check thread, #{exception.inspect}"
+        end
+
+        def current_time_millis
+          (Time.now.to_f * 1000).to_i
         end
 
         def create_error_reporting_thread

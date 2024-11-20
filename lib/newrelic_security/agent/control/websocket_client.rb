@@ -22,6 +22,7 @@ module NewRelic::Security
       NR_CSEC_ENTITY_GUID = 'NR-CSEC-ENTITY-GUID'
       NR_CSEC_IAST_DATA_TRANSFER_MODE = 'NR-CSEC-IAST-DATA-TRANSFER-MODE'
       NR_CSEC_IGNORED_VUL_CATEGORIES = 'NR-CSEC-IGNORED-VUL-CATEGORIES'
+      NR_CSEC_PROCESS_START_TIME = 'NR-CSEC-PROCESS-START-TIME'
 
       class WebsocketClient
         include Singleton
@@ -45,6 +46,7 @@ module NewRelic::Security
           headers[NR_CSEC_ENTITY_GUID] = NewRelic::Security::Agent.config[:entity_guid]
           headers[NR_CSEC_IAST_DATA_TRANSFER_MODE] = PULL
           headers[NR_CSEC_IGNORED_VUL_CATEGORIES] = ingnored_vul_categories.join(COMMA)
+          headers[NR_CSEC_PROCESS_START_TIME] = NewRelic::Security::Agent.config[:process_start_time]
 
           begin
             cert_store = ::OpenSSL::X509::Store.new

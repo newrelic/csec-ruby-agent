@@ -18,7 +18,7 @@ module NewRelic::Security
           # to know the capabilities of Ldap server. In these
           # situations they don't provide the query parameter, so we filter
           # this event
-          NewRelic::Security::Agent.logger.info "Filtered #{self.class}.#{__method__} because of insufficient args. args : #{args}\n"
+          NewRelic::Security::Agent.logger.debug "Filtered #{self.class}.#{__method__} because of insufficient args. args : #{args}\n"
         end
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"

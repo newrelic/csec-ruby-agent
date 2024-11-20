@@ -53,6 +53,7 @@ module NewRelic::Security
               Thread.current.name = "newrelic_security_iast_thread-#{t}"
               loop do
                 fuzz_request = @fuzzQ.deq #thread blocks when the queue is empty
+                NewRelic::Security::Agent.config.scan_start_time = current_time_millis unless NewRelic::Security::Agent.config[:scan_start_time]
                 if fuzz_request.request[IS_GRPC]
                   fire_grpc_request(fuzz_request.id, fuzz_request.request, fuzz_request.reflected_metadata)
                 else
