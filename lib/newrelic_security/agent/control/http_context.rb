@@ -12,18 +12,20 @@ module NewRelic::Security
       REQUEST_METHOD = 'REQUEST_METHOD'
       HTTP_HOST = 'HTTP_HOST'
       PATH_INFO = 'PATH_INFO'
+      QUERY_STRING = 'QUERY_STRING'
       RACK_INPUT = 'rack.input'
       CGI_VARIABLES = ::Set.new(%W[ AUTH_TYPE CONTENT_LENGTH CONTENT_TYPE GATEWAY_INTERFACE HTTPS HTTP_HOST PATH_INFO PATH_TRANSLATED REQUEST_URI QUERY_STRING REMOTE_ADDR REMOTE_HOST REMOTE_IDENT REMOTE_USER REQUEST_METHOD SCRIPT_NAME SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE rack.url_scheme ])
       REQUEST_BODY_LIMIT = 500 #KB
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :mutex
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :mutex, :url
 
         def initialize(env)
           @time_stamp = current_time_millis
           @req = env.select { |key, _| CGI_VARIABLES.include? key}
           @method = @req[REQUEST_METHOD]
+          @url = "#{@req[PATH_INFO]}?#{@req[QUERY_STRING]}"
           @headers = env.select { |key, _| key.include?(HTTP_) }
           @headers = @headers.transform_keys{ |key| key[5..-1].gsub(UNDERSCORE, HYPHEN).downcase }
           request = Rack::Request.new(env) unless env.empty?

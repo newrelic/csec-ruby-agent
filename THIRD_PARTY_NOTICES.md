@@ -34,3 +34,11 @@ Distributed under the following license(s):
 
   * [The MIT License](http://opensource.org/licenses/MIT)
 
+
+## [parse-cron](https://github.com/siebertm/parse-cron)
+
+Copyright (C) 2013 Michael Siebert
+
+Distributed under the following license(s):
+
+  * [The MIT License](http://opensource.org/licenses/MIT)

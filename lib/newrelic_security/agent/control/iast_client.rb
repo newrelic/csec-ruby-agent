@@ -17,9 +17,8 @@ module NewRelic::Security
       IS_GRPC = 'isGrpc'
       INPUT_CLASS = 'inputClass'
       SERVER_PORT_1 = 'serverPort'
-      PROBING = 'probing'
-      INTERVAL = 'interval'
       IS_GRPC_CLIENT_STREAM = 'isGrpcClientStream'
+      PROBING_INTERVAL = 5
 
       class IASTClient
         
@@ -71,7 +70,8 @@ module NewRelic::Security
           @iast_data_transfer_request_processor_thread = Thread.new do
             Thread.current.name = "newrelic_security_iast_data_transfer_request_processor"
             loop do
-              sleep NewRelic::Security::Agent.config[:policy][VULNERABILITY_SCAN][IAST_SCAN][PROBING][INTERVAL]
+              # TODO: Check & remove this probing interval if not required, earlier this was used from policy sent by SE.
+              sleep PROBING_INTERVAL
               current_timestamp = current_time_millis
               cooldown_sleep_time = @cooldown_till_timestamp - current_timestamp
               sleep cooldown_sleep_time/1000 if cooldown_sleep_time > 0
@@ -98,7 +98,7 @@ module NewRelic::Security
                 end
                 iast_data_transfer_request.pendingRequestIds = pending_request_ids.to_a
                 iast_data_transfer_request.completedRequests = completed_requests
-                NewRelic::Security::Agent.agent.event_processor.send_iast_data_transfer_request(iast_data_transfer_request)
+                NewRelic::Security::Agent.agent.event_processor&.send_iast_data_transfer_request(iast_data_transfer_request)
               end
             end
           end
