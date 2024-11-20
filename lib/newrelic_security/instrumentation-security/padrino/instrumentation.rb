@@ -8,6 +8,7 @@ module NewRelic::Security
       def call_on_enter(env)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
+        return unless NewRelic::Security::Agent.config[:enabled]
         NewRelic::Security::Agent.config.update_port = NewRelic::Security::Agent::Utils.app_port(env) unless NewRelic::Security::Agent.config[:listen_port]
         NewRelic::Security::Agent::Utils.get_app_routes(:padrino, self) if NewRelic::Security::Agent.agent.route_map.empty?
         extracted_env = env.instance_variable_get(:@env)

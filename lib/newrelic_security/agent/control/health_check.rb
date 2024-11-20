@@ -35,6 +35,9 @@ module NewRelic::Security
           @iastEventStats = {}
           @raspEventStats = {}
           @exitEventStats = {}
+          @procStartTime = NewRelic::Security::Agent.config[:process_start_time]
+          @trafficStartedTime = NewRelic::Security::Agent.config[:traffic_start_time]
+          @scanStartTime = NewRelic::Security::Agent.config[:scan_start_time]
         end
 
         def as_json

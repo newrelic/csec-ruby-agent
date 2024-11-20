@@ -12,17 +12,20 @@ module NewRelic::Security
       REQUEST_METHOD = 'REQUEST_METHOD'
       HTTP_HOST = 'HTTP_HOST'
       PATH_INFO = 'PATH_INFO'
+      QUERY_STRING = 'QUERY_STRING'
       RACK_INPUT = 'rack.input'
       CGI_VARIABLES = ::Set.new(%W[ AUTH_TYPE CONTENT_LENGTH CONTENT_TYPE GATEWAY_INTERFACE HTTPS HTTP_HOST PATH_INFO PATH_TRANSLATED REQUEST_URI QUERY_STRING REMOTE_ADDR REMOTE_HOST REMOTE_IDENT REMOTE_USER REQUEST_METHOD SCRIPT_NAME SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE rack.url_scheme ])
+      REQUEST_BODY_LIMIT = 500 #KB
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :mutex
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :mutex, :url
 
         def initialize(env)
           @time_stamp = current_time_millis
           @req = env.select { |key, _| CGI_VARIABLES.include? key}
           @method = @req[REQUEST_METHOD]
+          @url = "#{@req[PATH_INFO]}?#{@req[QUERY_STRING]}"
           @headers = env.select { |key, _| key.include?(HTTP_) }
           @headers = @headers.transform_keys{ |key| key[5..-1].gsub(UNDERSCORE, HYPHEN).downcase }
           request = Rack::Request.new(env) unless env.empty?
@@ -31,18 +34,18 @@ module NewRelic::Security
           strio = env[RACK_INPUT]
           if strio.instance_of?(::StringIO)
 						offset = strio.tell
-						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024) #after read, offset changes
+						@body = strio.read(REQUEST_BODY_LIMIT * 1024) #after read, offset changes
 						strio.seek(offset)
             # In case of Grape and Roda strio.read giving empty result, added below approach to handle such cases
             @body = strio.string if @body.nil? && strio.size > 0
           elsif defined?(::Rack) && defined?(::Rack::Lint::InputWrapper) && strio.instance_of?(::Rack::Lint::InputWrapper)
-						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
+						@body = strio.read(REQUEST_BODY_LIMIT * 1024)
           elsif defined?(::Protocol::Rack::Input) && defined?(::Protocol::Rack::Input) && strio.instance_of?(::Protocol::Rack::Input)
-            @body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
+            @body = strio.read(REQUEST_BODY_LIMIT * 1024)
           elsif defined?(::PhusionPassenger::Utils::TeeInput) && strio.instance_of?(::PhusionPassenger::Utils::TeeInput)
-						@body = strio.read(NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024)
+						@body = strio.read(REQUEST_BODY_LIMIT * 1024)
           end
-          @data_truncated = @body && @body.size >= NewRelic::Security::Agent.config[:'security.request.body_limit'] * 1024
+          @data_truncated = @body && @body.size >= REQUEST_BODY_LIMIT * 1024
 					strio&.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
           @cache = Hash.new
