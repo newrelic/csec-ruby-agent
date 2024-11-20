@@ -85,6 +85,18 @@ module NewRelic::Security
               if batch_size > 100 && remaining_record_capacity > batch_size
                 iast_data_transfer_request = NewRelic::Security::Agent::Control::IASTDataTransferRequest.new
                 iast_data_transfer_request.batchSize = batch_size * 2
+                # TODO: Below calculation of batch_size overrides above logic and can be removed once below one is stablises or rate limit feature is released.
+                if NewRelic::Security::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit']
+                  batch_size =
+                    if NewRelic::Security::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'] < 12
+                      1
+                    elsif NewRelic::Security::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'] > 3600
+                      300
+                    else
+                      NewRelic::Security::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'] / 12
+                    end
+                  iast_data_transfer_request.batchSize = batch_size
+                end
                 iast_data_transfer_request.pendingRequestIds = pending_request_ids.to_a
                 iast_data_transfer_request.completedRequests = completed_requests
                 NewRelic::Security::Agent.agent.event_processor.send_iast_data_transfer_request(iast_data_transfer_request)
