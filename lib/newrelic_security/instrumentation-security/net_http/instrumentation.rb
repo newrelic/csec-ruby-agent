@@ -13,30 +13,13 @@ module NewRelic::Security
       def transport_request_on_enter(req)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-        ob = {}
-				ob[:Method] = req.method
-				if req.uri != nil && URI === req.uri
-					uri = req.uri
-					ob[:scheme]  = uri.scheme
-					ob[:host]    = uri.host
-					ob[:port]    = uri.port
-					ob[:URI]     = uri.to_s
-					ob[:path]    = uri.path
-					ob[:query]   = uri.query
-				else
-					ob[:scheme]  = self.use_ssl? ? HTTPS : HTTP
-					ob[:host]    = self.address
-					ob[:port]    = self.port
-					ob[:path]    = req.path
-					ob[:query]   = nil
-					ob[:URI] = "#{self.use_ssl? ? HTTPS_COLON_SLASH_SLAH : HTTP_COLON_SLASH_SLAH }#{self.address}:#{self.port}#{req.path}"
-				end
-				ob[:Body] = req.body
-				ob[:Headers] = req.to_hash.transform_values! { |v| v.join}
-        ob.each { |_, value| value.dup.force_encoding(ISO_8859_1).encode(UTF_8) if value.is_a?(String) }
-        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [ob])
+				uri = if req.uri && URI === req.uri
+          req.uri.to_s
+				      else
+                "#{self.use_ssl? ? HTTPS_COLON_SLASH_SLAH : HTTP_COLON_SLASH_SLAH }#{self.address}:#{self.port}#{req.path}"
+          end
+        event = NewRelic::Security::Agent::Control::Collector.collect(HTTP_REQUEST, [uri])
         NewRelic::Security::Instrumentation::InstrumentationUtils.add_tracing_data(req, event) if event
-        ob = nil
         event
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"

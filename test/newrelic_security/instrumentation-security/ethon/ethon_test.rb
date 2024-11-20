@@ -14,7 +14,7 @@ module NewRelic::Security
 
                 def test_get
                     url = "http://www.google.com"
-                    args = [{:scheme=>"http", :host=>"www.google.com", :port=>80, :URI=>"http://www.google.com", :path=>"", :query=>nil}]
+                    args = ["http://www.google.com"]
                     easy = Ethon::Easy.new(url: url)
                     response = easy.perform
                     @output = response
@@ -28,7 +28,7 @@ module NewRelic::Security
 
                 def test_get_ssl
                     url = "https://www.google.com"
-                    args = [{:scheme=>"https", :host=>"www.google.com", :port=>443, :URI=>"https://www.google.com", :path=>"", :query=>nil}]
+                    args = ["https://www.google.com"]
                     easy = Ethon::Easy.new(url: url)
                     response = easy.perform
                     @output = response
@@ -42,7 +42,7 @@ module NewRelic::Security
 
                 def test_post_json
                     url = "http://localhost:9291/books"
-                    args = [{:Method=>:post, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books", :path=>"/books", :query=>nil, :Body=>"{\"title\" : \"New Book\", \"author\": \"New Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
+                    args = ["http://localhost:9291/books"]
                     # response = HTTPX.post(url, :json => {:name => "testuser", :salary => "123", :age => "23"})
                     easy = Ethon::Easy.new
                     easy.http_request(url, :post, body: '{"title" : "New Book", "author": "New Author"}')
@@ -58,7 +58,7 @@ module NewRelic::Security
 
                 def test_put_json
                     url = "http://localhost:9291/books/1"
-                    args = [{:Method=>:put, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>"{\"title\": \"Update Book\", \"author\": \"Update Author\"}", :Headers=>{"Content-Type"=>"application/json"}}]
+                    args = ["http://localhost:9291/books/1"]
                     # response = HTTPX.put(url, :json => {:name => "testuser", :salary => "123",:age => "23"})
                     easy = Ethon::Easy.new
                     easy.http_request(url, :put, { body: '{"title": "Update Book", "author": "Update Author"}'})
@@ -74,7 +74,7 @@ module NewRelic::Security
 
                 def test_delete_json
                     url = "http://localhost:9291/books/1"
-                    args = [{:Method=>:delete, :scheme=>"http", :host=>"localhost", :port=>9291, :URI=>"http://localhost:9291/books/1", :path=>"/books/1", :query=>nil, :Body=>nil, :Headers=>{"User-Agent"=>"ethon"}}]
+                    args = ["http://localhost:9291/books/1"]
                     # response = HTTPX.delete(url)
                     easy = Ethon::Easy.new
                     easy.http_request(url, :delete)
@@ -102,7 +102,7 @@ module NewRelic::Security
 
                 def test_get
                     url = "http://www.google.com"
-                    args = [{:Method=>:get, :scheme=>"http", :host=>"www.google.com", :port=>80, :URI=>"http://www.google.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>nil}, {:Method=>:get, :scheme=>"https", :host=>"newrelic.com", :port=>443, :URI=>"https://newrelic.com", :path=>"", :query=>nil, :Body=>nil, :Headers=>{"User-Agent"=>"ethon"}}]
+                    args = ["http://www.google.com", "https://newrelic.com"]
 
                     multi = Ethon::Multi.new
                     easy = Ethon::Easy.new
