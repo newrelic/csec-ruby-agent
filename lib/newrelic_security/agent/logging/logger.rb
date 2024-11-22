@@ -4,34 +4,34 @@ require 'logger'
 module NewRelic::Security
   module Agent
     module Logging
-      LOG_FILE_SIZE = 50 * 1024 * 1024
+      LOG_FILE_SIZE = 100 * 1024 * 1024 * 1024
       MAX_LOG_FILES = 3
 
       class AgentLogger
         def initialize
           create_log_to_file
         end
-  
+
         def fatal(msg)
           @logger.fatal(msg)
         end
-  
+
         def error(msg)
           @logger.error(msg)
         end
-  
+
         def warn(msg)
           @logger.warn(msg)
         end
-  
+
         def info(msg)
           @logger.info(msg)
         end
-  
+
         def debug(msg)
           @logger.debug(msg)
         end
-  
+
         private
 
         def prepped_logger(target)
@@ -42,7 +42,7 @@ module NewRelic::Security
           @logger.freeze
           @logger
         end
-  
+
         LOG_LEVELS = {
           "debug" => ::Logger::DEBUG,
           "info" => ::Logger::INFO,
@@ -50,7 +50,7 @@ module NewRelic::Security
           "error" => ::Logger::ERROR,
           "fatal" => ::Logger::FATAL
         }
-  
+
         def self.log_level_for(level)
           LOG_LEVELS.fetch(level.to_s.downcase, ::Logger::INFO)
         end
@@ -71,7 +71,7 @@ module NewRelic::Security
             end
           else
             @logger = prepped_logger(STDOUT)
-            warn("Error creating log directory #{::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR)}, using standard out for logging.")  
+            warn("Error creating log directory #{::File.join(NewRelic::Security::Agent.config[:log_file_path], SEC_HOME_PATH, LOGS_DIR)}, using standard out for logging.")
           end
         end
 

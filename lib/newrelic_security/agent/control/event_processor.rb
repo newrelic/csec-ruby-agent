@@ -105,6 +105,7 @@ module NewRelic::Security
 
         def enqueue(message)
           @eventQ.push(message, true)
+          NewRelic::Security::Agent.logger.info "eventQ size: , #{@eventQ.size}"
         rescue Exception => exception
           NewRelic::Security::Agent.logger.error "Exception in event enqueue, #{exception.inspect}, Dropping message"
           if message.jsonName == :Event
@@ -122,7 +123,7 @@ module NewRelic::Security
         def create_keep_alive_thread
           @healthcheck_thread = Thread.new {
             Thread.current.name = "newrelic_security_healthcheck_thread"
-            while true do 
+            while true do
               sleep HEALTH_INTERVAL
               send_health if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
             end
