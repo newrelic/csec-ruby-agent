@@ -30,7 +30,20 @@ module NewRelic::Security
           @appEntityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @httpRequest = Hash.new
           @httpResponse = Hash.new
-          @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s }, :appServerInfo => { :applicationDirectory => NewRelic::Security::Agent.config[:app_root], :serverBaseDirectory => NewRelic::Security::Agent.config[:app_root] } }
+          @metaData = {
+            :reflectedMetaData => {
+              :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s
+            },
+            :appServerInfo => { 
+              :applicationDirectory => NewRelic::Security::Agent.config[:app_root], 
+              :serverBaseDirectory => NewRelic::Security::Agent.config[:app_root] 
+            },
+            :skipScanParameters => {
+              :header => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.header'],
+              :query => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.query'],
+              :body => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.body']
+            }
+          }
           @linkingMetadata = add_linking_metadata
           @pid = pid
           @parameters = args

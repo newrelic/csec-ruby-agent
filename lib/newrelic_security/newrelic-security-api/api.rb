@@ -14,7 +14,7 @@ module NewRelic::Security
     # @api public
     # 
     def is_security_active?
-      NewRelic::Security::Agent.config[:'agent.enabled'] && NewRelic::Security::Agent.config[:enabled]
+      NewRelic::Security::Agent.config[:'agent.enabled'] && NewRelic::Security::Agent.config[:'security.enabled'] && NewRelic::Security::Agent.config[:enabled]
     end
 
     #

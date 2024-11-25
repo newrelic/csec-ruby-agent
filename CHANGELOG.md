@@ -1,10 +1,71 @@
 # New Relic Ruby Security Agent Release Notes
 
+## v0.3.0
+
+Version 0.3.0 introduces more control on IAST scanning through new configs(exclude_from_iast_scan, scan_schedule & scan_controllers) and 
+features like API inventory for gRPC server and IAST scan start related timestamps.
+
+Updated json_version: **1.2.8**
+
+- Feature: IAST scan exclusion for apis, http request parameters(header, query & body) & IAST detection categories and scan scheduling through delay, duration & cron schedule. [PR#131](https://github.com/newrelic/csec-ruby-agent/pull/131)
+
+- Feature: IAST scan request rate limit to control IAST scan request firing. [PR#132](https://github.com/newrelic/csec-ruby-agent/pull/132)
+
+- Feature: API endpoints support for gRPC server applications. [PR#143](https://github.com/newrelic/csec-ruby-agent/pull/143)
+
+- Feature: Reporting of IAST scanning application procStartTime, trafficStartedTime & scanStartTime. [PR#136](https://github.com/newrelic/csec-ruby-agent/pull/136)
+
+- Misc Chore: Optimised SSRF events parameters to send only URL in parameters. [PR#129](https://github.com/newrelic/csec-ruby-agent/pull/129)
+
+##### New security configs
+
+```yaml
+security:
+  exclude_from_iast_scan:
+    api: []
+    http_request_parameters:
+      header: []
+      query: []
+      body: []
+    iast_detection_category:
+      insecure_settings: false
+      invalid_file_access: false
+      sql_injection: false
+      nosql_injection: false
+      ldap_injection: false
+      javascript_injection: false
+      command_injection: false
+      xpath_injection: false
+      ssrf: false
+      rxss: false
+  scan_schedule:
+    delay: 0
+    duration: 0
+    schedule: ""
+    always_sample_traces: false
+  scan_controllers:
+    iast_scan_request_rate_limit: 3600
+```
+
+##### Deprecated security configs (will be removed in next major release v1.0.0)
+```yaml
+security:
+  request:
+    body_limit: 300
+  detection:
+    rci:
+      enabled: true
+    rxss:
+      enabled: true
+    deserialization:
+      enabled: true
+```
+
 ## v0.2.0
 
 Version 0.2.0 introuduces Error reporting as part of security. Any unhandled or 5xx errors in application runtime will now be visible in IAST capability UI. Updated json_version: **1.2.4**
 
-- Feature: Unhandled and 5xx error reproting [PR#134](https://github.com/newrelic/csec-ruby-agent/pull/134)
+- Feature: Unhandled and 5xx error reporting [PR#134](https://github.com/newrelic/csec-ruby-agent/pull/134)
 
 - Bugfix: Fix for API route not present in rails7 [PR#127](https://github.com/newrelic/csec-ruby-agent/pull/127)
 

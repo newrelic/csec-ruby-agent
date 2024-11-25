@@ -15,8 +15,7 @@ module NewRelic::Security
       ASTERISK = '*'
 
       def is_IAST?
-        return false if NewRelic::Security::Agent.config[:policy].empty?
-        return NewRelic::Security::Agent.config[:policy][VULNERABILITY_SCAN][IAST_SCAN][ENABLED] if NewRelic::Security::Agent.config[:policy][VULNERABILITY_SCAN][ENABLED]
+        return true if NewRelic::Security::Agent.config[:mode] == IAST
         false
       end
 
@@ -96,7 +95,8 @@ module NewRelic::Security
 
       def get_app_routes(framework, router = nil)
         enable_object_space_in_jruby
-        if framework == :rails
+        case framework
+        when :rails
           ::Rails.application.routes.routes.each do |route|
             if route.verb.is_a?(::Regexp)
               method = route.verb.inspect.match(/[a-zA-Z]+/)
@@ -107,27 +107,31 @@ module NewRelic::Security
               }
             end
           end
-        elsif framework == :sinatra
+        when :sinatra
           ::Sinatra::Application.routes.each do |method, routes|
             routes.map { |r| r.first.to_s }.map do |route|
               NewRelic::Security::Agent.agent.route_map << "#{method}@#{route}"
             end
           end
-        elsif framework == :grape
+        when :grape
           ObjectSpace.each_object(::Grape::Endpoint) { |z|
             z.instance_variable_get(:@routes)&.each { |route|
               http_method = route.instance_variable_get(:@request_method) || route.instance_variable_get(:@options)[:method]
               NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
             }
           }
-        elsif framework == :padrino
+        when :padrino
           if router.instance_of?(::Padrino::PathRouter::Router)
             router.instance_variable_get(:@routes).each do |route|
               NewRelic::Security::Agent.agent.route_map << "#{route.instance_variable_get(:@verb)}@#{route.matcher.instance_variable_get(:@path)}"
             end
           end
-        elsif framework == :roda
+        when :roda
           NewRelic::Security::Agent.logger.warn "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
+        when :grpc
+          router.owner.superclass.public_instance_methods(false).each do |m|
+            NewRelic::Security::Agent.agent.route_map << "*@/#{router.owner}/#{m}"
+          end
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end

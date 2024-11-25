@@ -8,6 +8,7 @@ module NewRelic::Security
       def call_on_enter(env)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
+        return unless NewRelic::Security::Agent.config[:enabled]
         NewRelic::Security::Agent.config.update_port = NewRelic::Security::Agent::Utils.app_port(env) unless NewRelic::Security::Agent.config[:listen_port]
         NewRelic::Security::Agent::Utils.get_app_routes(:rails) if NewRelic::Security::Agent.agent.route_map.empty?
         NewRelic::Security::Agent::Control::HTTPContext.set_context(env)

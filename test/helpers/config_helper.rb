@@ -18,6 +18,7 @@ module NewRelic
             @cache[:policy] = Hash.new
             @cache[:'security.detection.rxss.enabled'] = true
             @cache[:'security.request.body_limit'] = 300
+            @cache[:enabled] = true
           end
         end
       end
