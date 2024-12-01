@@ -18,6 +18,9 @@ module NewRelic::Security
     POSTGRESQL_USER = 'postgres'
     POSTGRESQL_DATABASE = 'postgres'
 
+    REDIS_HOST = 'localhost'
+    REDIS_PORT = '6380'
+
     module DatabaseHelper
       extend self
 
@@ -106,6 +109,35 @@ module NewRelic::Security
       def remove_postgresql_container
         begin
           Docker::Container.get('pg_test').remove(force: true)
+        rescue
+        end
+      end
+
+      REDIS_CONFIG = {
+        'Image' => 'redis:latest',
+        'name' => 'redis_test',
+        'HostConfig' => {
+            'PortBindings' => {
+            '6379/tcp' => [{ 'HostPort' => REDIS_PORT }]
+            }
+        }
+      }
+
+      def create_redis_container
+        image = Docker::Image.create('fromImage' => 'redis:latest')
+        image.refresh!
+        begin
+            Docker::Container.get('redis_test').remove(force: true)
+        rescue
+        end
+        container = Docker::Container.create(REDIS_CONFIG)
+        container.start
+        sleep 10
+      end
+
+      def remove_redis_container
+        begin
+          Docker::Container.get('redis_test').remove(force: true)
         rescue
         end
       end
