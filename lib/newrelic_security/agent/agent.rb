@@ -62,6 +62,8 @@ module NewRelic::Security
       end
 
       def shutdown_security_agent
+        NewRelic::Security::Agent.logger.info "Flushing eventQ (#{NewRelic::Security::Agent.agent.event_processor.eventQ.size} events) and closing websocket connection"
+        NewRelic::Security::Agent.agent.event_processor&.eventQ&.clear
         @iast_client&.fuzzQ&.clear
         @iast_client&.completed_requests&.clear
         @iast_client&.pending_request_ids&.clear
@@ -117,8 +119,8 @@ module NewRelic::Security
         return false
       end
 
-      def reconnect(sleep_time = 15)
-        NewRelic::Security::Agent::Control::WebsocketClient.instance.close(false) if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
+      def reconnect(sleep_time, reconnect_at_will = false)
+        NewRelic::Security::Agent::Control::WebsocketClient.instance.close(reconnect_at_will) if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
         NewRelic::Security::Agent.logger.info "Trying to reconnect to websocket connection in #{sleep_time} sec..."
         sleep sleep_time
         NewRelic::Security::Agent.agent.start_websocket_client
