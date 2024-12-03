@@ -65,7 +65,7 @@ module NewRelic::Security
           if exc
             exception = {}
             exception[:message] = exc.message
-            exception[:cause] = exc.cause
+            exception[:cause] = { :message => exc.cause }
             exception[:stackTrace] = exc.backtrace.map(&:to_s)
           end
           critical_message = NewRelic::Security::Agent::Control::CriticalMessage.new(message, level, caller, thread_name, exception)
