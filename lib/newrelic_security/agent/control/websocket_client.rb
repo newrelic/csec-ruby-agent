@@ -81,7 +81,7 @@ module NewRelic::Security
             connection.on :error do |e|
               NewRelic::Security::Agent.logger.error "Error in websocket connection : #{e.inspect} #{e.backtrace}"
               ::NewRelic::Agent.notice_error(e)
-              Thread.new { NewRelic::Security::Agent.agent.reconnect(15, true) }
+              Thread.new { NewRelic::Security::Agent::Control::WebsocketClient.instance.close(true) }
             end
           rescue Errno::EPIPE => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
