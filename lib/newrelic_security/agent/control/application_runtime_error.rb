@@ -81,7 +81,7 @@ module NewRelic::Security
 
         def generate_trace_id(ctxt, category)
           @exception[:stackTrace]
-          method, route = ctxt.route.split(AT_THE_RATE) if ctxt.route
+          method, route = ctxt.route.split(AT_THE_RATE) if ctxt&.route
           if @exception[:stackTrace]
             ::Digest::SHA256.hexdigest("#{@exception[:stackTrace].join(PIPE)}#{category}#{route}#{method}").to_s
           else
