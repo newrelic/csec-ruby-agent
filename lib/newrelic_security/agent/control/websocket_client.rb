@@ -126,7 +126,9 @@ module NewRelic::Security
         end
 
         def close(reconnect = true)
-          NewRelic::Security::Agent.agent.shutdown_security_agent
+          NewRelic::Security::Agent.logger.info "Flushing eventQ (#{NewRelic::Security::Agent.agent.event_processor.eventQ.size} events) and closing websocket connection"
+          NewRelic::Security::Agent.agent.event_processor&.eventQ&.clear
+          @iast_client&.iast_data_transfer_request_processor_thread&.kill
           @ws.close(reconnect) if @ws
         end
 
