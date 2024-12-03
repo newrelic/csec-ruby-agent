@@ -93,7 +93,7 @@ module NewRelic::Security
           NewRelic::Security::Agent.agent.iast_client.completed_requests.clear if NewRelic::Security::Agent.agent.iast_client
           NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear if NewRelic::Security::Agent.agent.iast_client
           NewRelic::Security::Agent.config.disable_security
-          Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
+          Thread.new { NewRelic::Security::Agent.agent.reconnect(0, true) }
         end
 
         def current_time_millis
