@@ -40,8 +40,9 @@ module NewRelic::Security
             # TODO: when do refactoring of ctxt.route, use both route and method to generate key
             ctxt.route&.+ response_code.to_s
                 else
-            application_runtime_error.exception[:type] + application_runtime_error.exception[:stackTrace][0]
+            application_runtime_error.exception[:type]&.+ (application_runtime_error.exception[:stackTrace]&[0])
                 end
+          return if key.nil? || key.empty?
           application_runtime_error.counter = @exceptions_map[key].counter + 1 if @exceptions_map.key?(key)
           @exceptions_map[key] = application_runtime_error
         rescue StandardError => exception
