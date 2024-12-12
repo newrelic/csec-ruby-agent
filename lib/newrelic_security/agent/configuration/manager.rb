@@ -167,7 +167,8 @@ module NewRelic::Security
           end
           ::SecureRandom.uuid
         rescue Exception => exception
-          NewRelic::Security::Agent.logger.error "Exception in generate_uuid : #{exception.inspect} #{exception.backtrace}"
+          NewRelic::Security::Agent.logger.warn "Error in generate_uuid, generating it through default approach : #{exception.inspect} #{exception.backtrace}"
+          ::SecureRandom.uuid
         end
 
         def create_uuid
