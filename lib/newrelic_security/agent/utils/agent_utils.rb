@@ -201,14 +201,14 @@ module NewRelic::Security
       end
 
       def enable_object_space_in_jruby
-        if RUBY_ENGINE == 'jruby' && !JRuby.objectspace
+        if RUBY_ENGINE == 'jruby' && JRuby.respond_to?(:objectspace) && !JRuby.objectspace
           JRuby.objectspace = true
           NewRelic::Security::Agent.config.jruby_objectspace_enabled = true
         end
       end
 
       def disable_object_space_in_jruby
-        if RUBY_ENGINE == 'jruby' && JRuby.objectspace
+        if RUBY_ENGINE == 'jruby' && JRuby.respond_to?(:objectspace) && JRuby.objectspace
           JRuby.objectspace = false
           NewRelic::Security::Agent.config.jruby_objectspace_enabled = false
         end
