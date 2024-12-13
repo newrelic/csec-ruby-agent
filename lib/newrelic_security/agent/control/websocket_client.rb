@@ -61,6 +61,7 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.event_processor.send_app_info
               NewRelic::Security::Agent.agent.event_processor.send_application_url_mappings
               NewRelic::Security::Agent.config.enable_security
+              NewRelic::Security::Agent::Control::WebsocketClient.instance.start_ping_thread
             end
         
             connection.on :message do |msg|
@@ -75,13 +76,14 @@ module NewRelic::Security
             connection.on :close do |e|
               NewRelic::Security::Agent.logger.info "Closing websocket connection : #{e.inspect}\n"
               NewRelic::Security::Agent.config.disable_security
-              Thread.new { NewRelic::Security::Agent.agent.reconnect(0) } if e
+              reconnect_interval = e.instance_of?(TrueClass) ? 0 : 15
+              Thread.new { NewRelic::Security::Agent.agent.reconnect(reconnect_interval) } if e
             end
 
             connection.on :error do |e|
               NewRelic::Security::Agent.logger.error "Error in websocket connection : #{e.inspect} #{e.backtrace}"
               ::NewRelic::Agent.notice_error(e)
-              Thread.new { NewRelic::Security::Agent::Control::WebsocketClient.instance.close(true) }
+              Thread.new { NewRelic::Security::Agent::Control::WebsocketClient.instance.close(e) }
             end
           rescue Errno::EPIPE => exception
             NewRelic::Security::Agent.logger.error "Unable to connect to validator_service: #{exception.inspect}"
@@ -126,6 +128,10 @@ module NewRelic::Security
         end
 
         def close(reconnect = true)
+          NewRelic::Security::Agent.logger.info "Flushing eventQ (#{NewRelic::Security::Agent.agent.event_processor.eventQ.size} events) and closing websocket connection"
+          NewRelic::Security::Agent.agent.event_processor&.eventQ&.clear
+          @iast_client&.iast_data_transfer_request_processor_thread&.kill
+          stop_ping_thread
           @ws.close(reconnect) if @ws
         end
 
@@ -134,7 +140,21 @@ module NewRelic::Security
           false
         end
 
+        def start_ping_thread
+          @ping_thread = Thread.new do
+            loop do
+              sleep 30
+              @ws.send(EMPTY_STRING, :type => :ping)
+            end
+          end
+        end
+
         private
+
+        def stop_ping_thread
+          @ping_thread&.kill
+          @ping_thread = nil
+        end
 
         def ingnored_vul_categories
           list = []
