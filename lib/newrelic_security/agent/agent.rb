@@ -62,6 +62,8 @@ module NewRelic::Security
       end
 
       def shutdown_security_agent
+        NewRelic::Security::Agent.logger.info "Flushing eventQ (#{NewRelic::Security::Agent.agent.event_processor.eventQ.size} events) and closing websocket connection"
+        NewRelic::Security::Agent.agent.event_processor&.eventQ&.clear
         @iast_client&.fuzzQ&.clear
         @iast_client&.completed_requests&.clear
         @iast_client&.pending_request_ids&.clear

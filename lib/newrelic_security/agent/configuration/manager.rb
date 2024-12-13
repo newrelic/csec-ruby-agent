@@ -42,6 +42,8 @@ module NewRelic::Security
           @cache[:process_start_time] = current_time_millis # TODO: Ruby doesn't provide process start time in pure ruby implementation using agent loading time for now.
           @cache[:traffic_start_time] = nil
           @cache[:scan_start_time] = nil
+          @cache[:'security.scan_controllers.scan_instance_count'] = ::NewRelic::Agent.config[:'security.scan_controllers.scan_instance_count']
+          @cache[:'security.iast_test_identifier'] = ::NewRelic::Agent.config[:'security.iast_test_identifier']
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
           @cache[:json_version] = :'1.2.9'
