@@ -73,6 +73,10 @@ module NewRelic::Security
           else
             NewRelic::Security::Agent.agent.rasp_event_stats.error_count.increment
           end
+        ensure
+          event = nil
+          stk = nil
+          route = nil
         end
 
         private

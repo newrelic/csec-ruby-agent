@@ -9,7 +9,7 @@ module NewRelic::Security
 
       class EventProcessor
 
-        attr_accessor :eventQ, :event_dequeue_thread, :healthcheck_thread
+        attr_accessor :eventQ, :event_dequeue_threads, :healthcheck_thread
 
         def initialize
           @first_event = true
@@ -57,6 +57,7 @@ module NewRelic::Security
         def send_health
           health = NewRelic::Security::Agent::Control::Health.new
           health.update_health_check
+          NewRelic::Security::Agent.logger.info "Sending healthcheck : #{health.to_json}"
           NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
           health = nil
         end
@@ -87,15 +88,17 @@ module NewRelic::Security
         private
 
         def create_dequeue_threads
-          # TODO: Create 3 or more consumers for event sending
-          @event_dequeue_thread = Thread.new do
-            Thread.current.name = "newrelic_security_event_thread"
-            loop do
-              begin
-                data_to_be_sent = @eventQ.pop
-                NewRelic::Security::Agent::Control::WebsocketClient.instance.send(data_to_be_sent)
-              rescue => exception
-                NewRelic::Security::Agent.logger.error "Exception in event pop operation : #{exception.inspect}"
+          @event_dequeue_threads = []
+          3.times do |t|
+            @event_dequeue_threads<< Thread.new do
+              Thread.current.name = "newrelic_security_event_thread-#{t}"
+              loop do
+                begin
+                  data_to_be_sent = @eventQ.pop
+                  NewRelic::Security::Agent::Control::WebsocketClient.instance.send(data_to_be_sent)
+                rescue => exception
+                  NewRelic::Security::Agent.logger.error "Exception in event pop operation : #{exception.inspect}"
+                end
               end
             end
           end
@@ -124,6 +127,7 @@ module NewRelic::Security
             Thread.current.name = "newrelic_security_healthcheck_thread"
             while true do 
               sleep HEALTH_INTERVAL
+              NewRelic::Security::Agent.logger.info "EventQ size : #{NewRelic::Security::Agent.agent.event_processor.eventQ.size}"
               send_health if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
             end
           }
