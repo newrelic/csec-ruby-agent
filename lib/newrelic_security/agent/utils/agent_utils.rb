@@ -132,6 +132,8 @@ module NewRelic::Security
           router.owner.superclass.public_instance_methods(false).each do |m|
             NewRelic::Security::Agent.agent.route_map << "*@/#{router.owner}/#{m}"
           end
+        when :rack
+          # TODO: API enpointes(routes) extraction for rack
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end
