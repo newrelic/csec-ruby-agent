@@ -21,6 +21,7 @@ module NewRelic::Security
       end
       
       def call_on_exit(event, retval)
+        NewRelic::Security::Agent::Utils.parse_cookie(retval[1]["Set-Cookie"])
         NewRelic::Security::Agent.logger.debug "OnExit :  #{self.class}.#{__method__}"
         # NewRelic::Security::Agent.logger.debug "\n\nHTTP Context : #{::NewRelic::Agent::Tracer.current_transaction.instance_variable_get(:@security_context_data).inspect}\n\n"
         NewRelic::Security::Agent::Control::ReflectedXSS.check_xss(NewRelic::Security::Agent::Control::HTTPContext.get_context, retval) if NewRelic::Security::Agent.config[:'security.detection.rxss.enabled']

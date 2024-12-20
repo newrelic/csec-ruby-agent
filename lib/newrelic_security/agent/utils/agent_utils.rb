@@ -219,6 +219,48 @@ module NewRelic::Security
       def filtered_log(log)
         log.gsub(license_key, ASTERISK * license_key.size)
       end
+
+      def parse_cookie(raw_cookie_string)
+        NewRelic::Security::Agent.logger.debug "Raw cookie string : #{raw_cookie_string}"
+        cookie_parts = raw_cookie_string.split('; ')
+        parsed_cookie = {}
+        cookie_parts.each do |part|
+          key, value = part.split('=', 2)
+          case key.downcase
+          when 'path'
+            parsed_cookie[:path] = value
+          when 'expires'
+            parsed_cookie[:expires] = value
+          when 'domain'
+            parsed_cookie[:domain] = value
+          when 'secure'
+            parsed_cookie[:isSecure] = true
+          when 'httponly'
+            parsed_cookie[:isHttpOnly] = true
+          when 'samesite'
+            parsed_cookie[:isSameSiteStrict] = parse_samesite_value(value)
+          else
+            parsed_cookie[:name] = key
+            parsed_cookie[:value] = value
+          end
+        end
+        NewRelic::Security::Agent.logger.debug "Parsed Cookie : #{parsed_cookie}"
+      end
+
+      def parse_samesite_value(value)
+        case value
+        when false, nil
+          false
+        when :none, 'None', :None
+          false
+        when :lax, 'Lax', :Lax
+          false
+        when true, :strict, 'Strict', :Strict
+          true
+        else
+          raise ArgumentError, "Invalid SameSite value: #{value[:same_site].inspect}"
+        end
+      end
     end
   end
 end
