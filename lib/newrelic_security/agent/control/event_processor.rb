@@ -26,7 +26,7 @@ module NewRelic::Security
           app_info.update_app_info
           NewRelic::Security::Agent.logger.info "Sending application info : #{app_info.to_json}"
           NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info.to_json}"
-          enqueue(app_info)
+          # enqueue(app_info)
           app_info = nil
         end
 
@@ -34,7 +34,7 @@ module NewRelic::Security
           application_url_mappings = NewRelic::Security::Agent::Control::ApplicationURLMappings.new
           application_url_mappings.update_application_url_mappings
           NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings.to_json}"
-          enqueue(application_url_mappings)
+          # enqueue(application_url_mappings)
           application_url_mappings = nil
         end
 
@@ -45,7 +45,7 @@ module NewRelic::Security
           else
             NewRelic::Security::Agent.agent.rasp_event_stats.processed.increment
           end
-          enqueue(event)
+          # enqueue(event)
           if @first_event
             NewRelic::Security::Agent.init_logger.info "[STEP-8] => First event sent for validation. Security agent started successfully : #{event.to_json}"
             NewRelic::Security::Agent.config.traffic_start_time = current_time_millis unless NewRelic::Security::Agent.config[:traffic_start_time]
@@ -58,7 +58,7 @@ module NewRelic::Security
           health = NewRelic::Security::Agent::Control::Health.new
           health.update_health_check
           NewRelic::Security::Agent.logger.info "Sending healthcheck : #{health.to_json}"
-          NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
+          # NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
           health = nil
         end
 
@@ -70,7 +70,7 @@ module NewRelic::Security
             exception[:stackTrace] = exc.backtrace.map(&:to_s)
           end
           critical_message = NewRelic::Security::Agent::Control::CriticalMessage.new(message, level, caller, thread_name, exception)
-          enqueue(critical_message)
+          # enqueue(critical_message)
           critical_message = nil
         end
 
@@ -95,7 +95,7 @@ module NewRelic::Security
               loop do
                 begin
                   data_to_be_sent = @eventQ.pop
-                  NewRelic::Security::Agent::Control::WebsocketClient.instance.send(data_to_be_sent)
+                  # NewRelic::Security::Agent::Control::WebsocketClient.instance.send(data_to_be_sent)
                 rescue => exception
                   NewRelic::Security::Agent.logger.error "Exception in event pop operation : #{exception.inspect}"
                 end
