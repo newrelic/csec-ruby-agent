@@ -27,7 +27,7 @@ module NewRelic::Security
           app_info_json = app_info.to_json
           NewRelic::Security::Agent.logger.info "Sending application info : #{app_info_json}"
           NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info_json}"
-          enqueue(app_info)
+          # enqueue(app_info)
           app_info = nil
           app_info_json = nil
         end
@@ -37,7 +37,7 @@ module NewRelic::Security
           application_url_mappings.update_application_url_mappings
           application_url_mappings_json = application_url_mappings.to_json
           NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings_json}"
-          enqueue(application_url_mappings)
+          # enqueue(application_url_mappings)
           application_url_mappings = nil
           application_url_mappings_json = nil
         end
@@ -86,8 +86,8 @@ module NewRelic::Security
           exit_event = nil
         end
 
-        def send_iast_data_transfer_request(iast_data_transfer_request)
-          enqueue(iast_data_transfer_request)
+        def send_iast_data_transfer_request(_iast_data_transfer_request)
+          # enqueue(iast_data_transfer_request)
           iast_data_transfer_request = nil
         end
 
