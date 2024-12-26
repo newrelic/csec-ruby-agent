@@ -24,18 +24,22 @@ module NewRelic::Security
           NewRelic::Security::Agent.init_logger.info "[STEP-3] => Gathering information about the application"
           app_info = NewRelic::Security::Agent::Control::AppInfo.new
           app_info.update_app_info
-          NewRelic::Security::Agent.logger.info "Sending application info : #{app_info.to_json}"
-          NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info.to_json}"
-          # enqueue(app_info)
+          app_info_json = app_info.to_json
+          NewRelic::Security::Agent.logger.info "Sending application info : #{app_info_json}"
+          NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info_json}"
+          enqueue(app_info)
           app_info = nil
+          app_info_json = nil
         end
 
         def send_application_url_mappings
           application_url_mappings = NewRelic::Security::Agent::Control::ApplicationURLMappings.new
           application_url_mappings.update_application_url_mappings
-          NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings.to_json}"
-          # enqueue(application_url_mappings)
+          application_url_mappings_json = application_url_mappings.to_json
+          NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings_json}"
+          enqueue(application_url_mappings)
           application_url_mappings = nil
+          application_url_mappings_json = nil
         end
 
         def send_event(event)
@@ -57,9 +61,11 @@ module NewRelic::Security
         def send_health
           health = NewRelic::Security::Agent::Control::Health.new
           health.update_health_check
-          NewRelic::Security::Agent.logger.info "Sending healthcheck : #{health.to_json}"
-          # NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
+          health_json = health.to_json
+          NewRelic::Security::Agent.logger.info "Sending healthcheck : #{health_json}"
+          NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
           health = nil
+          health_json = nil
         end
 
         def send_critical_message(message, level, caller, thread_name, exc)
