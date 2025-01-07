@@ -9,6 +9,7 @@ task :test_bundle do
   if RUBY_VERSION < '2.5.0'
     sh 'gem install bundler -v 1.17.2'
     exec('bundle _1.17.2_ install --gemfile Gemfile_test')
+    exec('bundle _1.17.2_ update --gemfile Gemfile_test')
   else
     exec('bundle install --gemfile Gemfile_test')
   end
