@@ -97,17 +97,13 @@ module NewRelic::Security
                 binwrite_on_exit(event, retval) { return retval }
               end
 
-              # alias_method :popen_without_security, :popen
+              alias_method :popen_without_security, :popen
               
-              def popen_with_csec(*var, &block)
+              def popen(*var, &block)
                 retval = nil
-                event = popen_on_enter(*var) { retval = popen_without_security(*var, &block) }
+                event = popen_on_enter(*var, &block) { retval = popen_without_security(*var, &block) }
                 popen_on_exit(event) { return retval }
               end
-
-              alias_method(:popen_without_security, :popen)
-              alias_method(:popen, :popen_with_csec)
-
             end
           end
         end
