@@ -280,9 +280,8 @@ module NewRelic::Security
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure
-        puts "popen_on_enter ensure : #{caller_locations[0..5]}"
         yield
-        # return event
+        return event
       end
       
       def popen_on_exit(event)
