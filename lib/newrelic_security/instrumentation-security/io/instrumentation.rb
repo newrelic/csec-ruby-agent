@@ -281,7 +281,7 @@ module NewRelic::Security
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure
         yield
-        return event
+        # return event
       end
       
       def popen_on_exit(event)
