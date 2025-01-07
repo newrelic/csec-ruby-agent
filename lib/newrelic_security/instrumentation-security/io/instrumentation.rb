@@ -265,7 +265,7 @@ module NewRelic::Security
         yield
       end
 
-      def popen_on_enter(*var, &block)
+      def popen_on_enter(*var)
         event = nil
         NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
         ic_args = []
