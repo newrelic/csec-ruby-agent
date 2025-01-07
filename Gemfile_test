@@ -23,7 +23,8 @@ else
 end
 gem 'loofah', '~> 2.19.0'
 gem 'sinatra'
-gem 'padrino', '~> 0.15.0'
+gem 'tilt', '~> 2.4.0' if RUBY_VERSION < '2.5.0'
+gem 'padrino'
 gem 'grape'
 gem 'roda'
 gem 'docker-api'
