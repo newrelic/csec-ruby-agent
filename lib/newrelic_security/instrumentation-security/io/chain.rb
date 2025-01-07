@@ -101,7 +101,10 @@ module NewRelic::Security
               
               def popen(*var, &block)
                 retval = nil
-                event = popen_on_enter(*var) { retval = popen_without_security(*var, &block) }
+                event = popen_on_enter(*var) { 
+                  puts "block called"
+                  retval = popen_without_security(*var, &block) 
+                }
                 popen_on_exit(event) { return retval }
               end
             end
