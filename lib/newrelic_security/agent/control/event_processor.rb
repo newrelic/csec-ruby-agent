@@ -61,11 +61,8 @@ module NewRelic::Security
         def send_health
           health = NewRelic::Security::Agent::Control::Health.new
           health.update_health_check
-          health_json = health.to_json
-          NewRelic::Security::Agent.logger.info "Sending healthcheck : #{health_json}"
           NewRelic::Security::Agent::Control::WebsocketClient.instance.send(health)
           health = nil
-          health_json = nil
         end
 
         def send_critical_message(message, level, caller, thread_name, exc)
