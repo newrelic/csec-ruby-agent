@@ -280,7 +280,7 @@ module NewRelic::Security
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure
-        yield
+        yield if block_given?
         return event
       end
       
