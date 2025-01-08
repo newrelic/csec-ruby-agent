@@ -130,7 +130,6 @@ module NewRelic::Security
             Thread.current.name = "newrelic_security_healthcheck_thread"
             while true do 
               sleep HEALTH_INTERVAL
-              NewRelic::Security::Agent.logger.info "EventQ size : #{NewRelic::Security::Agent.agent.event_processor.eventQ.size}"
               send_health if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
             end
           }
