@@ -99,9 +99,9 @@ module NewRelic::Security
 
               alias_method :popen_without_security, :popen
               
-              def popen(*var)
+              def popen(*var, &block)
                 retval = nil
-                event = popen_on_enter(*var) { retval = popen_without_security(*var) }
+                event = popen_on_enter(*var) { retval = popen_without_security(*var, &block) }
                 popen_on_exit(event) { return retval }
               end
             end

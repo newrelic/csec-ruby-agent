@@ -82,7 +82,7 @@ module NewRelic::Security
       end
 
       def start_event_processor
-        @event_processor&.event_dequeue_thread&.kill 
+        @event_processor&.event_dequeue_threads&.each { |t| t&.kill }
         @event_processor&.healthcheck_thread&.kill
         @event_processor = nil
         @event_processor = NewRelic::Security::Agent::Control::EventProcessor.new

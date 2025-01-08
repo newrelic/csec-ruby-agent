@@ -63,6 +63,7 @@ module NewRelic::Security
             @ws = connection
 
             connection.on :open do
+              headers = nil
               NewRelic::Security::Agent.logger.debug "Websocket connected with IC, AgentEventMachine #{NewRelic::Security::Agent::Utils.filtered_log(connection.inspect)}"
               NewRelic::Security::Agent.init_logger.info "[STEP-4] => Web socket connection to SaaS validator established successfully"
               NewRelic::Security::Agent.agent.event_processor.send_app_info
@@ -116,25 +117,31 @@ module NewRelic::Security
         end
 
         def send(message)
-          message_json = message.to_json
-          NewRelic::Security::Agent.logger.debug "Sending #{message.jsonName} : #{message_json}"
-          res = @ws.send(message_json)
-          if res && message.jsonName == :Event
-            NewRelic::Security::Agent.agent.event_sent_count.increment
-            if NewRelic::Security::Agent::Utils.is_IAST_request?(message.httpRequest[:headers])
-              NewRelic::Security::Agent.agent.iast_event_stats.sent.increment
-            else
-              NewRelic::Security::Agent.agent.rasp_event_stats.sent.increment
+          message_json = nil
+          begin
+            message_json = message.to_json
+            NewRelic::Security::Agent.logger.debug "Sending #{message.jsonName} : #{message_json}"
+            res = @ws.send(message_json)
+            if res && message.jsonName == :Event
+              NewRelic::Security::Agent.agent.event_sent_count.increment
+              if NewRelic::Security::Agent::Utils.is_IAST_request?(message.httpRequest[:headers])
+                NewRelic::Security::Agent.agent.iast_event_stats.sent.increment
+              else
+                NewRelic::Security::Agent.agent.rasp_event_stats.sent.increment
+              end
             end
+            NewRelic::Security::Agent.agent.exit_event_stats.sent.increment if res && message.jsonName == :'exit-event'
+          rescue Exception => exception
+            NewRelic::Security::Agent.logger.error "Exception in sending message : #{exception.inspect} #{exception.backtrace}"
+            NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
+            NewRelic::Security::Agent.agent.event_processor.send_critical_message(exception.message, "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
+          ensure
+            message_json = nil
           end
-          NewRelic::Security::Agent.agent.exit_event_stats.sent.increment if res && message.jsonName == :'exit-event'
-        rescue Exception => exception
-          NewRelic::Security::Agent.logger.error "Exception in sending message : #{exception.inspect} #{exception.backtrace}"
-          NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
-          NewRelic::Security::Agent.agent.event_processor.send_critical_message(exception.message, "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
         end
 
         def close(reconnect = true)
+          NewRelic::Security::Agent.config.disable_security
           NewRelic::Security::Agent.logger.info "Flushing eventQ (#{NewRelic::Security::Agent.agent.event_processor.eventQ.size} events) and closing websocket connection"
           NewRelic::Security::Agent.agent.event_processor&.eventQ&.clear
           @iast_client&.iast_data_transfer_request_processor_thread&.kill
