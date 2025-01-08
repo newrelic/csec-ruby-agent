@@ -45,7 +45,7 @@ module NewRelic::Security
           # In rails 5 method name keeps chaning for same api call (ex: _app_views_sqli_sqlinjectionattackcase_html_erb__1999281606898621405_2624809100).
           # Hence, considering only frame absolute_path & lineno for apiId calculation.
           user_frame_index = get_user_frame_index(stk)
-          event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route.gsub(/\d+$/, EMPTY_STRING))}"
+          event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route&.gsub(/\d+$/, EMPTY_STRING))}"
           stk.delete_if { |frame| frame.path.match?(/newrelic_security/) || frame.path.match?(/new_relic/) }
           user_frame_index = get_user_frame_index(stk)
           return if case_type != REFLECTED_XSS && user_frame_index == -1 # TODO: Add log message here: "Filtered because User Stk frame NOT FOUND   \r\n"
