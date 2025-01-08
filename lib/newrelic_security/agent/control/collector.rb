@@ -60,7 +60,7 @@ module NewRelic::Security
             event.lineNumber = stk[0].lineno
           end
           event.stacktrace = stk[0..user_frame_index].map(&:to_s)
-          NewRelic::Security::Agent.agent.event_processor.send_event(event)
+          NewRelic::Security::Agent.agent.event_processor&.send_event(event)
           if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0] && NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId]
             NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
           end
@@ -73,6 +73,10 @@ module NewRelic::Security
           else
             NewRelic::Security::Agent.agent.rasp_event_stats.error_count.increment
           end
+        ensure
+          event = nil
+          stk = nil
+          route = nil
         end
 
         private
