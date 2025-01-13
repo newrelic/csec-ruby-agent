@@ -37,6 +37,7 @@ module NewRelic::Security
           @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
           @cache[:'security.scan_controllers.iast_scan_request_rate_limit'] = ::NewRelic::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'].to_i
           @cache[:framework] = detect_framework
+          @cache[:app_class] = detect_app_class
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
           @cache[:listen_port] = nil
           @cache[:process_start_time] = current_time_millis # TODO: Ruby doesn't provide process start time in pure ruby implementation using agent loading time for now.
@@ -155,6 +156,16 @@ module NewRelic::Security
           return :sinatra if defined?(::Sinatra)
           return :roda if defined?(::Roda)
           return :grape if defined?(::Grape)
+          return :rack if defined?(::Rack) && defined?(Rack::Builder)
+        end
+
+        def detect_app_class
+          target_class = nil
+          ObjectSpace.each_object(::Rack::Builder) do |z| target_class = z.instance_variable_get(:@run).target end
+          target_class
+        rescue StandardError => exception
+          NewRelic::Security::Agent.logger.error "Exception in detect_app_class : #{exception.inspect} #{exception.backtrace}"
+          nil
         end
 
         def generate_uuid
