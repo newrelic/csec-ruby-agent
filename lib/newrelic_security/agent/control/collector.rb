@@ -85,6 +85,7 @@ module NewRelic::Security
         def get_user_frame_index(stk)
           return -1 if NewRelic::Security::Agent.config[:app_root].nil?
           stk.each_with_index do |val, index|
+            next if stk[index + 1] && stk[index + 1].path.start_with?(NewRelic::Security::Agent.config[:app_root])
             return index if val.path.start_with?(NewRelic::Security::Agent.config[:app_root])
           end
           return -1
