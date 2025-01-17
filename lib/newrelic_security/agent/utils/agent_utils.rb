@@ -114,12 +114,20 @@ module NewRelic::Security
             end
           end
         when :grape
-          ObjectSpace.each_object(::Grape::Endpoint) { |z|
-            z.instance_variable_get(:@routes)&.each { |route|
-              http_method = route.instance_variable_get(:@request_method) || route.instance_variable_get(:@options)[:method]
-              NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
-            }
-          }
+          if defined?(::Grape::API)
+            ObjectSpace.each_object(Class).select { |klass| klass < ::Grape::API }.each do |api_class|
+              api_class.routes.each do |route|
+                http_method = route.request_method || route.options[:method]
+                NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
+              end
+            end
+          end
+          # ObjectSpace.each_object(::Grape::Endpoint) { |z|
+          #   z.instance_variable_get(:@routes)&.each { |route|
+          #     http_method = route.instance_variable_get(:@request_method) || route.instance_variable_get(:@options)[:method]
+          #     NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
+          #   }
+          # }
         when :padrino
           if router.instance_of?(::Padrino::PathRouter::Router)
             router.instance_variable_get(:@routes).each do |route|
