@@ -56,6 +56,14 @@ module NewRelic::Security
               event = open_on_enter(*args, **kwargs) { retval = open_without_security(*args, **kwargs) }
               open_on_exit(event, retval) { return retval }
             end
+
+            alias_method :rand_without_security, :rand
+
+            def rand(*args)
+              retval = nil
+              event = rand_on_enter { retval = rand_without_security(*args) }
+              rand_on_exit(event) { return retval }
+            end
             
           end
         end
