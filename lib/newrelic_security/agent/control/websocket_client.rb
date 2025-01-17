@@ -132,7 +132,7 @@ module NewRelic::Security
             end
             NewRelic::Security::Agent.agent.exit_event_stats.sent.increment if res && message.jsonName == :'exit-event'
           rescue Exception => exception
-            NewRelic::Security::Agent.logger.error "Exception in sending message : #{exception.inspect} #{exception.backtrace}"
+            NewRelic::Security::Agent.logger.error "Exception in sending message : #{exception.inspect} #{exception.backtrace}, message: #{message_json}"
             NewRelic::Security::Agent.agent.event_drop_count.increment if message.jsonName == :Event
             NewRelic::Security::Agent.agent.event_processor.send_critical_message(exception.message, "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
           ensure
