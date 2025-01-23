@@ -69,7 +69,6 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.event_processor.send_app_info
               NewRelic::Security::Agent.agent.event_processor.send_application_url_mappings
               NewRelic::Security::Agent.config.enable_security
-              NewRelic::Security::Agent.agent.start_iast_client if NewRelic::Security::Agent::Utils.is_IAST?
               NewRelic::Security::Agent::Control::WebsocketClient.instance.start_ping_thread
             end
         
@@ -122,8 +121,7 @@ module NewRelic::Security
           begin
             message_json = message.to_json
             NewRelic::Security::Agent.logger.debug "Sending #{message.jsonName} : #{message_json}"
-            NewRelic::Security::Agent.agent.reconnect(15) unless is_open?
-            res = @ws.send(message_json) if is_open?
+            res = @ws.send(message_json)
             if res && message.jsonName == :Event
               NewRelic::Security::Agent.agent.event_sent_count.increment
               if NewRelic::Security::Agent::Utils.is_IAST_request?(message.httpRequest[:headers])
