@@ -83,6 +83,7 @@ module NewRelic::Security
 
             connection.on :close do |e|
               NewRelic::Security::Agent.logger.info "Closing websocket connection : #{e.inspect}\n"
+              puts "Closing websocket connection : #{e.inspect}\n"
               NewRelic::Security::Agent.config.disable_security
               reconnect_interval = e.instance_of?(TrueClass) ? 0 : 15
               Thread.new { NewRelic::Security::Agent.agent.reconnect(reconnect_interval) } if e
