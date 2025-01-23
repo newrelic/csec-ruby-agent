@@ -35,7 +35,7 @@ module NewRelic::Security
         def send_application_url_mappings
           application_url_mappings = NewRelic::Security::Agent::Control::ApplicationURLMappings.new
           application_url_mappings.update_application_url_mappings
-          application_url_mappings_json = application_url_mappings.to_json
+          application_url_mappings_json = application_url_mappings.to_json.force_encoding(ISO_8859_1).encode(UTF_8)
           NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings_json}"
           enqueue(application_url_mappings)
           application_url_mappings = nil
