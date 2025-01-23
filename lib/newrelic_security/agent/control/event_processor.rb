@@ -24,7 +24,7 @@ module NewRelic::Security
           NewRelic::Security::Agent.init_logger.info "[STEP-3] => Gathering information about the application"
           app_info = NewRelic::Security::Agent::Control::AppInfo.new
           app_info.update_app_info
-          app_info_json = app_info.to_json
+          app_info_json = app_info.to_json.force_encoding(ISO_8859_1).encode(UTF_8)
           NewRelic::Security::Agent.logger.info "Sending application info : #{app_info_json}"
           NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info_json}"
           enqueue(app_info)
