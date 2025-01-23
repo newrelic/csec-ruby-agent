@@ -46,6 +46,7 @@ The newrelic_security must be explicitly enabled in order to perform IAST analys
 - Padrino: 0.15 or higher
 - Grape: 1.2 or higher
 - Roda: 3.19 or higher
+- Rack: 1.6 or higher
 - gRPC: 1 or higher
 ### Web servers
 - Puma: 3 or higher
