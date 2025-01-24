@@ -100,7 +100,7 @@ module NewRelic::Security
                 iast_data_transfer_request.pendingRequestIds = pending_request_ids.to_a
                 iast_data_transfer_request.completedRequests = completed_requests
                 NewRelic::Security::Agent.logger.debug "Sending IAST data transfer request #{NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?}"
-                puts "Sending IAST data transfer request #{NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?}"
+                puts "Sending IAST data transfer request #{NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?} #{Time.now}"
                 NewRelic::Security::Agent.agent.event_processor&.send_iast_data_transfer_request(iast_data_transfer_request) if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
               end
             end
