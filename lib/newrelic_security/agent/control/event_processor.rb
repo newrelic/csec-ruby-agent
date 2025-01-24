@@ -24,7 +24,7 @@ module NewRelic::Security
           NewRelic::Security::Agent.init_logger.info "[STEP-3] => Gathering information about the application"
           app_info = NewRelic::Security::Agent::Control::AppInfo.new
           app_info.update_app_info
-          app_info_json = app_info.to_json.force_encoding(ISO_8859_1).encode(UTF_8)
+          app_info_json = app_info.to_json
           NewRelic::Security::Agent.logger.info "Sending application info : #{app_info_json}"
           NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info_json}"
           enqueue(app_info)
@@ -35,7 +35,7 @@ module NewRelic::Security
         def send_application_url_mappings
           application_url_mappings = NewRelic::Security::Agent::Control::ApplicationURLMappings.new
           application_url_mappings.update_application_url_mappings
-          application_url_mappings_json = application_url_mappings.to_json.force_encoding(ISO_8859_1).encode(UTF_8)
+          application_url_mappings_json = application_url_mappings.to_json
           NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings_json}"
           enqueue(application_url_mappings)
           application_url_mappings = nil
@@ -130,8 +130,6 @@ module NewRelic::Security
             Thread.current.name = "newrelic_security_healthcheck_thread"
             while true do 
               sleep HEALTH_INTERVAL
-              NewRelic::Security::Agent.logger.debug "Sending heathcheck #{NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?}"
-              puts "Sending heathcheck #{NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?}"
               send_health if NewRelic::Security::Agent::Control::WebsocketClient.instance.is_open?
             end
           }

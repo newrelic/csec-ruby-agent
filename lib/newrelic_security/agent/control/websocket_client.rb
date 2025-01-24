@@ -70,7 +70,7 @@ module NewRelic::Security
               NewRelic::Security::Agent.agent.event_processor.send_app_info
               NewRelic::Security::Agent.agent.event_processor.send_application_url_mappings
               NewRelic::Security::Agent.config.enable_security
-              # NewRelic::Security::Agent::Control::WebsocketClient.instance.start_ping_thread
+              NewRelic::Security::Agent::Control::WebsocketClient.instance.start_ping_thread
             end
         
             connection.on :message do |msg|
@@ -84,7 +84,6 @@ module NewRelic::Security
 
             connection.on :close do |e|
               NewRelic::Security::Agent.logger.info "Closing websocket connection : #{e.inspect}\n"
-              puts "Closing websocket connection : #{e.inspect}\n"
               NewRelic::Security::Agent.config.disable_security
               reconnect_interval = e.instance_of?(TrueClass) ? 0 : 15
               Thread.new { NewRelic::Security::Agent.agent.reconnect(reconnect_interval) } if e
@@ -149,7 +148,7 @@ module NewRelic::Security
           NewRelic::Security::Agent.logger.info "Flushing eventQ (#{NewRelic::Security::Agent.agent.event_processor.eventQ.size} events) and closing websocket connection"
           NewRelic::Security::Agent.agent.event_processor&.eventQ&.clear
           @iast_client&.iast_data_transfer_request_processor_thread&.kill
-          # stop_ping_thread
+          stop_ping_thread
           @ws.close(reconnect) if @ws
         end
 
@@ -158,21 +157,21 @@ module NewRelic::Security
           false
         end
 
-        # def start_ping_thread
-        #   @ping_thread = Thread.new do
-        #     loop do
-        #       sleep 30
-        #       @ws.send(EMPTY_STRING, :type => :ping)
-        #     end
-        #   end
-        # end
+        def start_ping_thread
+          @ping_thread = Thread.new do
+            loop do
+              sleep 30
+              @ws.send(EMPTY_STRING, :type => :ping)
+            end
+          end
+        end
 
         private
 
-        # def stop_ping_thread
-        #   @ping_thread&.kill
-        #   @ping_thread = nil
-        # end
+        def stop_ping_thread
+          @ping_thread&.kill
+          @ping_thread = nil
+        end
 
         def ingnored_vul_categories
           list = []
