@@ -32,6 +32,11 @@ module NewRelic::Security
   SQLITE = 'SQLITE'
   MYSQL = 'MYSQL'
   POSTGRES = 'POSTGRES'
+  EQUAL = '='
+  SECURE_COOKIE = 'SECURE_COOKIE'
+  SET_COOKIE = 'Set-Cookie'
+  BACKSLASH_N = "\n"
+  SEMICOLON_SPACE = '; '
   ISO_8859_1 = 'ISO-8859-1'
   UTF_8 = 'UTF-8'
   RAILS = 'rails'

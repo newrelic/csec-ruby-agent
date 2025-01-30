@@ -10,7 +10,6 @@ module NewRelic::Security
 
         LESS_THAN = '<'
         GREATER_THAN = '>'
-        EQUAL = '='
         HTML_COMMENT_START = '!--'
         HTML_COMMENT_END = '-->'
         FIVE_COLON = ':::::'
