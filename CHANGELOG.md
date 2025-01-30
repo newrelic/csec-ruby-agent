@@ -1,5 +1,33 @@
 # New Relic Ruby Security Agent Release Notes
 
+## v0.4.0
+
+Version 0.4.0 introuduces Rack framework support, GraphQL support & CI/CD integration as part of security. Updated json_version: **1.2.9**
+
+- Feature: Rack framework support [PR#149](https://github.com/newrelic/csec-ruby-agent/pull/149)
+
+- Feature: GraphQL support [PR#133](https://github.com/newrelic/csec-ruby-agent/pull/133)
+
+- Feature: CI/CD integration support [PR#146](https://github.com/newrelic/csec-ruby-agent/pull/146)
+
+- Bugfix: Fix for Agent is sending 404 http error in runtime error json [PR#147](https://github.com/newrelic/csec-ruby-agent/pull/147)
+
+- Bugfix: Fix for Exception occurred in generating unhandled exception in Sinatra jruby app [PR#150](https://github.com/newrelic/csec-ruby-agent/pull/150)
+
+- Bugfix: Fix for Do not send empty url endpoint json & Reconnect in random interval between 5-15 secs [PR#151](https://github.com/newrelic/csec-ruby-agent/pull/151)
+
+- Bugfix: Fix for Wrong formated critical error message [PR#148](https://github.com/newrelic/csec-ruby-agent/pull/148)
+
+- BugFix: Fix for Vulnerability is missed in text/json because of small stackTrace [PR#155](https://github.com/newrelic/csec-ruby-agent/pull/155)
+
+- BugFix: Fix for API endpoints not detected in grape framework in JRuby environment [PR#158](https://github.com/newrelic/csec-ruby-agent/pull/158)
+
+- BugFix: Fix for XML content type vulnerability not detected [PR#159](https://github.com/newrelic/csec-ruby-agent/pull/159)
+
+- BugFix: Fix for Concurrency issue observed in JRuby environment, BufferOverflowException observed in writing events to websocket [PR#161](https://github.com/newrelic/csec-ruby-agent/pull/161)
+
+- Memory usage optimisations [PR#153](https://github.com/newrelic/csec-ruby-agent/pull/153)
+
 ## v0.3.0
 
 Version 0.3.0 introduces more control on IAST scanning through new configs(exclude_from_iast_scan, scan_schedule & scan_controllers) and 
