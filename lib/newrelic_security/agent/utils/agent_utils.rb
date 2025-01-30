@@ -114,12 +114,14 @@ module NewRelic::Security
             end
           end
         when :grape
-          ObjectSpace.each_object(::Grape::Endpoint) { |z|
-            z.instance_variable_get(:@routes)&.each { |route|
-              http_method = route.instance_variable_get(:@request_method) || route.instance_variable_get(:@options)[:method]
-              NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
-            }
-          }
+          if defined?(::Grape::API)
+            ObjectSpace.each_object(Class).select { |klass| klass < ::Grape::API }.each do |api_class|
+              api_class.routes.each do |route|
+                http_method = route.request_method || route.options[:method]
+                NewRelic::Security::Agent.agent.route_map << "#{http_method}@#{route.pattern.origin}"
+              end
+            end
+          end
         when :padrino
           if router.instance_of?(::Padrino::PathRouter::Router)
             router.instance_variable_get(:@routes).each do |route|
@@ -127,17 +129,19 @@ module NewRelic::Security
             end
           end
         when :roda
-          NewRelic::Security::Agent.logger.warn "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
+          NewRelic::Security::Agent.logger.debug "TODO: Roda is a routing tree web toolkit, which generates route dynamically, hence route extraction is not possible."
         when :grpc
           router.owner.superclass.public_instance_methods(false).each do |m|
             NewRelic::Security::Agent.agent.route_map << "*@/#{router.owner}/#{m}"
           end
+        when :rack
+          # TODO: API enpointes(routes) extraction for rack
         else
           NewRelic::Security::Agent.logger.error "Unable to get app routes as Framework not detected"
         end
         disable_object_space_in_jruby if NewRelic::Security::Agent.config[:jruby_objectspace_enabled]
         NewRelic::Security::Agent.logger.debug "ALL ROUTES : #{NewRelic::Security::Agent.agent.route_map}"
-        NewRelic::Security::Agent.agent.event_processor&.send_application_url_mappings
+        NewRelic::Security::Agent.agent.event_processor&.send_application_url_mappings unless NewRelic::Security::Agent.agent.route_map.empty?
       rescue Exception => exception
         NewRelic::Security::Agent.logger.error "Error in get app routes : #{exception.inspect} #{exception.backtrace}"
       end
@@ -199,14 +203,14 @@ module NewRelic::Security
       end
 
       def enable_object_space_in_jruby
-        if RUBY_ENGINE == 'jruby' && !JRuby.objectspace
+        if RUBY_ENGINE == 'jruby' && JRuby.respond_to?(:objectspace) && !JRuby.objectspace
           JRuby.objectspace = true
           NewRelic::Security::Agent.config.jruby_objectspace_enabled = true
         end
       end
 
       def disable_object_space_in_jruby
-        if RUBY_ENGINE == 'jruby' && JRuby.objectspace
+        if RUBY_ENGINE == 'jruby' && JRuby.respond_to?(:objectspace) && JRuby.objectspace
           JRuby.objectspace = false
           NewRelic::Security::Agent.config.jruby_objectspace_enabled = false
         end

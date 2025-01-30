@@ -9,7 +9,7 @@ module NewRelic::Security
 
       class EventProcessor
 
-        attr_accessor :eventQ, :event_dequeue_thread, :healthcheck_thread
+        attr_accessor :eventQ, :event_dequeue_threads, :healthcheck_thread
 
         def initialize
           @first_event = true
@@ -24,18 +24,22 @@ module NewRelic::Security
           NewRelic::Security::Agent.init_logger.info "[STEP-3] => Gathering information about the application"
           app_info = NewRelic::Security::Agent::Control::AppInfo.new
           app_info.update_app_info
-          NewRelic::Security::Agent.logger.info "Sending application info : #{app_info.to_json}"
-          NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info.to_json}"
+          app_info_json = app_info.to_json
+          NewRelic::Security::Agent.logger.info "Sending application info : #{app_info_json}"
+          NewRelic::Security::Agent.init_logger.info "Sending application info : #{app_info_json}"
           enqueue(app_info)
           app_info = nil
+          app_info_json = nil
         end
 
         def send_application_url_mappings
           application_url_mappings = NewRelic::Security::Agent::Control::ApplicationURLMappings.new
           application_url_mappings.update_application_url_mappings
-          NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings.to_json}"
+          application_url_mappings_json = application_url_mappings.to_json
+          NewRelic::Security::Agent.logger.info "Sending application URL Mappings : #{application_url_mappings_json}"
           enqueue(application_url_mappings)
           application_url_mappings = nil
+          application_url_mappings_json = nil
         end
 
         def send_event(event)
@@ -65,7 +69,7 @@ module NewRelic::Security
           if exc
             exception = {}
             exception[:message] = exc.message
-            exception[:cause] = exc.cause
+            exception[:cause] = { :message => exc.cause }
             exception[:stackTrace] = exc.backtrace.map(&:to_s)
           end
           critical_message = NewRelic::Security::Agent::Control::CriticalMessage.new(message, level, caller, thread_name, exception)
@@ -87,15 +91,17 @@ module NewRelic::Security
         private
 
         def create_dequeue_threads
-          # TODO: Create 3 or more consumers for event sending
-          @event_dequeue_thread = Thread.new do
-            Thread.current.name = "newrelic_security_event_thread"
-            loop do
-              begin
-                data_to_be_sent = @eventQ.pop
-                NewRelic::Security::Agent::Control::WebsocketClient.instance.send(data_to_be_sent)
-              rescue => exception
-                NewRelic::Security::Agent.logger.error "Exception in event pop operation : #{exception.inspect}"
+          @event_dequeue_threads = []
+          3.times do |t|
+            @event_dequeue_threads<< Thread.new do
+              Thread.current.name = "newrelic_security_event_thread-#{t}"
+              loop do
+                begin
+                  data_to_be_sent = @eventQ.pop
+                  NewRelic::Security::Agent::Control::WebsocketClient.instance.send(data_to_be_sent)
+                rescue => exception
+                  NewRelic::Security::Agent.logger.error "Exception in event pop operation : #{exception.inspect}"
+                end
               end
             end
           end

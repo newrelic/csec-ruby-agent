@@ -19,7 +19,7 @@ module NewRelic::Security
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :mutex, :url
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :custom_data_type, :mutex, :url
 
         def initialize(env)
           @time_stamp = current_time_millis
@@ -48,6 +48,7 @@ module NewRelic::Security
           @data_truncated = @body && @body.size >= REQUEST_BODY_LIMIT * 1024
 					strio&.rewind
 					@body = @body.force_encoding(Encoding::UTF_8) if @body.is_a?(String)
+          @custom_data_type = {}
           @cache = Hash.new
           @fuzz_files = ::Set.new
           @event_counter = 0
