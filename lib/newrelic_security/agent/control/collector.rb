@@ -45,6 +45,7 @@ module NewRelic::Security
           # In rails 5 method name keeps chaning for same api call (ex: _app_views_sqli_sqlinjectionattackcase_html_erb__1999281606898621405_2624809100).
           # Hence, considering only frame absolute_path & lineno for apiId calculation.
           user_frame_index = get_user_frame_index(stk)
+          route = route&.gsub(/\d+/, EMPTY_STRING) if NewRelic::Security::Agent.config[:framework] == :rack || NewRelic::Security::Agent.config[:framework] == :roda
           event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route)}"
           stk.delete_if { |frame| frame.path.match?(/newrelic_security/) || frame.path.match?(/new_relic/) }
           user_frame_index = get_user_frame_index(stk)
@@ -60,7 +61,7 @@ module NewRelic::Security
             event.lineNumber = stk[0].lineno
           end
           event.stacktrace = stk[0..user_frame_index].map(&:to_s)
-          NewRelic::Security::Agent.agent.event_processor.send_event(event)
+          NewRelic::Security::Agent.agent.event_processor&.send_event(event)
           if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0] && NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId]
             NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
           end
@@ -73,6 +74,10 @@ module NewRelic::Security
           else
             NewRelic::Security::Agent.agent.rasp_event_stats.error_count.increment
           end
+        ensure
+          event = nil
+          stk = nil
+          route = nil
         end
 
         private
@@ -80,6 +85,7 @@ module NewRelic::Security
         def get_user_frame_index(stk)
           return -1 if NewRelic::Security::Agent.config[:app_root].nil?
           stk.each_with_index do |val, index|
+            next if stk[index + 1] && stk[index + 1].path.start_with?(NewRelic::Security::Agent.config[:app_root])
             return index if val.path.start_with?(NewRelic::Security::Agent.config[:app_root])
           end
           return -1

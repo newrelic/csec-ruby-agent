@@ -264,7 +264,7 @@ module NewRelic::Security
                 def test_popen
                     current_path = __dir__
                     cmd = "ls " + current_path
-                    f = IO.popen(cmd)
+                    f = ::IO.popen(cmd)
                     output = f.read
                     #puts output
                     f.close
