@@ -164,7 +164,7 @@ module NewRelic::Security
         def rand_on_enter
           event = nil
           NewRelic::Security::Agent.logger.debug "OnEnter : #{self.class}.#{__method__}"
-          event = NewRelic::Security::Agent::Control::Collector.collect(RANDOM, [KERNEL], RANDOM)
+          event = NewRelic::Security::Agent::Control::Collector.collect(RANDOM, [KERNEL], WEAKRANDOM)
         rescue => exception
           NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
         ensure
