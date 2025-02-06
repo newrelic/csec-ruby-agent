@@ -183,6 +183,7 @@ module NewRelic::Security
           list << XPATH if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection']
           list << HTTP_REQUEST if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ssrf']
           list << REFLECTED_XSS if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.rxss']
+          list << RANDOM << SECURERANDOM if NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']
           list
         end
       end

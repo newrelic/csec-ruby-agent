@@ -28,5 +28,7 @@ module NewRelic::Security
   end
 end
 
-NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:random, ::Random, ::NewRelic::Security::Instrumentation::RandomClass)
-NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:random, ::Random.singleton_class, ::NewRelic::Security::Instrumentation::RandomClass)
+unless NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']
+  NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:random, ::Random, ::NewRelic::Security::Instrumentation::RandomClass)
+  NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:random, ::Random.singleton_class, ::NewRelic::Security::Instrumentation::RandomClass)
+end

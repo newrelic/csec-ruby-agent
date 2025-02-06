@@ -57,12 +57,14 @@ module NewRelic::Security
               open_on_exit(event, retval) { return retval }
             end
 
-            alias_method :rand_without_security, :rand
+            unless NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']
+              alias_method :rand_without_security, :rand
 
-            def rand(*args)
-              retval = nil
-              event = rand_on_enter { retval = rand_without_security(*args) }
-              rand_on_exit(event) { return retval }
+              def rand(*args)
+                retval = nil
+                event = rand_on_enter { retval = rand_without_security(*args) }
+                rand_on_exit(event) { return retval }
+              end
             end
             
           end

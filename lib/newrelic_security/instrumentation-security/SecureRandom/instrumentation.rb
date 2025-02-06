@@ -28,4 +28,4 @@ module NewRelic::Security
   end
 end
 
-NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:random, ::SecureRandom.singleton_class, ::NewRelic::Security::Instrumentation::SecureRandomClass)
+NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:random, ::SecureRandom.singleton_class, ::NewRelic::Security::Instrumentation::SecureRandomClass) unless NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']
