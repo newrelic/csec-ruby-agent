@@ -30,4 +30,4 @@ module NewRelic::Security
   end
 end
 
-NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:digest, ::Digest::Class.singleton_class, ::NewRelic::Security::Instrumentation::DigestClass)
+NewRelic::Security::Instrumentation::InstrumentationLoader.install_instrumentation(:digest, ::Digest::Class.singleton_class, ::NewRelic::Security::Instrumentation::DigestClass) unless NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']

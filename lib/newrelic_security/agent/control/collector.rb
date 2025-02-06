@@ -144,7 +144,7 @@ module NewRelic::Security
             NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ssrf']
           when REFLECTED_XSS
             NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.rxss']
-          when RANDOM, SECURERANDOM
+          when RANDOM, HASH
             NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']
           else
             false
