@@ -108,8 +108,8 @@ module NewRelic::Security
                 processed_data.add(body)
               end
             when APPLICATION_XML
-              # Unescaping of xml data is remaining
-              processed_data.add(body)
+              xml_data = ::CGI.unescapeHTML(body)
+              processed_data.add(xml_data)
             when APPLICATION_X_WWW_FORM_URLENCODED
               body = ::CGI.unescape(body, UTF_8)
               processed_data.add(body)
