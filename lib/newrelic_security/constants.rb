@@ -4,6 +4,7 @@ module NewRelic::Security
   EMPTY_STRING = ""
   RUBY = 'RUBY'
   Ruby = 'Ruby'
+  NEWRELIC_SECURITY = 'newrelicsecurity'
   LANGUAGE_COLLECTOR = 'LANGUAGE_COLLECTOR'
   STANDARD_OUT = 'STDOUT'
   NR_CSEC_VALIDATOR_HOME_TMP = '{{NR_CSEC_VALIDATOR_HOME_TMP}}'
@@ -36,6 +37,7 @@ module NewRelic::Security
   SECURERANDOM = 'SECURERANDOM'
   KERNEL = 'Kernel'
   POSTGRES = 'POSTGRES'
+  HASH = 'HASH'
   ISO_8859_1 = 'ISO-8859-1'
   UTF_8 = 'UTF-8'
   RAILS = 'rails'
