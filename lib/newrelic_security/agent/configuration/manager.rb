@@ -37,7 +37,7 @@ module NewRelic::Security
           @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
           @cache[:'security.scan_controllers.iast_scan_request_rate_limit'] = ::NewRelic::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'].to_i
           @cache[:framework] = detect_framework
-          @cache[:app_class] = detect_app_class
+          @cache[:app_class] = detect_app_class if @cache[:framework] == :rack
           @cache[:'security.application_info.port'] = ::NewRelic::Agent.config[:'security.application_info.port'].to_i
           @cache[:listen_port] = nil
           @cache[:process_start_time] = current_time_millis # TODO: Ruby doesn't provide process start time in pure ruby implementation using agent loading time for now.
