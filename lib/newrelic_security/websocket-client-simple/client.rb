@@ -72,7 +72,11 @@ module NewRelic::Security
                     end
                   end
                 rescue IOError => e
-                  close false
+                  if e.inspect =~ /stream closed in another thread/
+                    close false
+                  else
+                    emit :error, e
+                  end
                 rescue => e
                   emit :error, e
                 end
