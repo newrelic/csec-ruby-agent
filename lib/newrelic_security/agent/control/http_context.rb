@@ -29,7 +29,7 @@ module NewRelic::Security
           @headers = env.select { |key, _| key.include?(HTTP_) }
           @headers = @headers.transform_keys{ |key| key[5..-1].gsub(UNDERSCORE, HYPHEN).downcase }
           request = Rack::Request.new(env) unless env.empty?
-          @request_port = request.port
+          @request_port = request&.port
 					@params = request&.params
 					@params&.each { |k, v| v.force_encoding(Encoding::UTF_8) if v.is_a?(String) }
           strio = env[RACK_INPUT]
