@@ -107,6 +107,7 @@ module NewRelic::Security
           http_request[:customDataType] = ctxt.custom_data_type
           http_request[:dataTruncated] = ctxt.data_truncated
           @httpRequest = http_request
+          @metaData[:reflectedMetaData][:listen_port] = ctxt.request_port.to_s
           @metaData[:isClientDetectedFromXFF] = ctxt.headers.has_key?(X_FORWARDED_FOR) ? true : false
         end
 
