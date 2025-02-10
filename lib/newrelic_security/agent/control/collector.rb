@@ -19,6 +19,8 @@ module NewRelic::Security
         def collect(case_type, args, event_category = nil, **keyword_args)
           return unless NewRelic::Security::Agent.config[:enabled]
           return if NewRelic::Security::Agent::Control::HTTPContext.get_context.nil? && NewRelic::Security::Agent::Control::GRPCContext.get_context.nil?
+          return if check_and_exclude_from_iast_scan_for_api
+          return if check_and_exclude_from_iast_scan_for_detection_category(case_type)
           args.map! { |file| Pathname.new(file).relative? ? File.join(Dir.pwd, file) : file } if [FILE_OPERATION, FILE_INTEGRITY].include?(case_type)
 
           event = NewRelic::Security::Agent::Control::Event.new(case_type, args, event_category)
@@ -43,8 +45,9 @@ module NewRelic::Security
           # In rails 5 method name keeps chaning for same api call (ex: _app_views_sqli_sqlinjectionattackcase_html_erb__1999281606898621405_2624809100).
           # Hence, considering only frame absolute_path & lineno for apiId calculation.
           user_frame_index = get_user_frame_index(stk)
+          route = route&.gsub(/\d+/, EMPTY_STRING) if NewRelic::Security::Agent.config[:framework] == :rack || NewRelic::Security::Agent.config[:framework] == :roda
           event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route)}"
-          stk.delete_if {|frame| frame.path.match(/newrelic_security/) || frame.path.match(/new_relic/)}
+          stk.delete_if { |frame| frame.path.match?(/newrelic_security/) || frame.path.match?(/new_relic/) }
           user_frame_index = get_user_frame_index(stk)
           return if case_type != REFLECTED_XSS && user_frame_index == -1 # TODO: Add log message here: "Filtered because User Stk frame NOT FOUND   \r\n"
           if user_frame_index != -1
@@ -58,9 +61,9 @@ module NewRelic::Security
             event.lineNumber = stk[0].lineno
           end
           event.stacktrace = stk[0..user_frame_index].map(&:to_s)
-          NewRelic::Security::Agent.agent.event_processor.send_event(event)
-          if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0]
-            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id if NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId]
+          NewRelic::Security::Agent.agent.event_processor&.send_event(event)
+          if event.httpRequest[:headers].key?(NR_CSEC_FUZZ_REQUEST_ID) && event.apiId == event.httpRequest[:headers][NR_CSEC_FUZZ_REQUEST_ID].split(COLON_IAST_COLON)[0] && NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId]
+            NewRelic::Security::Agent.agent.iast_client.completed_requests[event.parentId] << event.id
           end
           event
         rescue Exception => exception
@@ -71,6 +74,10 @@ module NewRelic::Security
           else
             NewRelic::Security::Agent.agent.rasp_event_stats.error_count.increment
           end
+        ensure
+          event = nil
+          stk = nil
+          route = nil
         end
 
         private
@@ -78,6 +85,7 @@ module NewRelic::Security
         def get_user_frame_index(stk)
           return -1 if NewRelic::Security::Agent.config[:app_root].nil?
           stk.each_with_index do |val, index|
+            next if stk[index + 1] && stk[index + 1].path.start_with?(NewRelic::Security::Agent.config[:app_root])
             return index if val.path.start_with?(NewRelic::Security::Agent.config[:app_root])
           end
           return -1
@@ -111,6 +119,37 @@ module NewRelic::Security
           }
         end
 
+        def check_and_exclude_from_iast_scan_for_api
+          NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.api'].each do |api|
+            return true if api&.match?(NewRelic::Security::Agent::Control::HTTPContext.get_context.url)
+          end
+          return false
+        end
+
+        def check_and_exclude_from_iast_scan_for_detection_category(case_type)
+          case case_type
+          when FILE_OPERATION, FILE_INTEGRITY
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access']
+          when SQL_DB_COMMAND
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.sql_injection']
+          when NOSQL_DB_COMMAND
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.nosql_injection']
+          when LDAP
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ldap_injection']
+          when SYSTEM_COMMAND
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.command_injection']
+          when XPATH
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.xpath_injection']
+          when HTTP_REQUEST
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.ssrf']
+          when REFLECTED_XSS
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.rxss']
+          when RANDOM, SECURERANDOM
+            NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.iast_detection_category.insecure_settings']
+          else
+            false
+          end
+        end
       end
     end
   end

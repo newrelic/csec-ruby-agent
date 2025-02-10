@@ -30,7 +30,20 @@ module NewRelic::Security
           @appEntityGuid = NewRelic::Security::Agent.config[:entity_guid]
           @httpRequest = Hash.new
           @httpResponse = Hash.new
-          @metaData = { :reflectedMetaData => { :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s }, :appServerInfo => { :applicationDirectory => NewRelic::Security::Agent.config[:app_root], :serverBaseDirectory => NewRelic::Security::Agent.config[:app_root] } }
+          @metaData = {
+            :reflectedMetaData => {
+              :listen_port => NewRelic::Security::Agent.config[:listen_port].to_s
+            },
+            :appServerInfo => { 
+              :applicationDirectory => NewRelic::Security::Agent.config[:app_root], 
+              :serverBaseDirectory => NewRelic::Security::Agent.config[:app_root] 
+            },
+            :skipScanParameters => {
+              :header => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.header'],
+              :query => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.query'],
+              :body => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.body']
+            }
+          }
           @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
           @pid = pid
           @parameters = args
@@ -91,6 +104,7 @@ module NewRelic::Security
           http_request[:headers] = ctxt.headers
           http_request[:contentType] = ctxt.req[CONTENT_TYPE] if ctxt.req.has_key?(CONTENT_TYPE)
           http_request[:headers][CONTENT_TYPE1] = ctxt.req[CONTENT_TYPE] if ctxt.req.has_key?(CONTENT_TYPE)
+          http_request[:customDataType] = ctxt.custom_data_type
           http_request[:dataTruncated] = ctxt.data_truncated
           @httpRequest = http_request
           @metaData[:isClientDetectedFromXFF] = ctxt.headers.has_key?(X_FORWARDED_FOR) ? true : false

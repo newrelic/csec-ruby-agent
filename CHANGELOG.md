@@ -1,10 +1,99 @@
 # New Relic Ruby Security Agent Release Notes
 
+## v0.4.0
+
+Version 0.4.0 introuduces Rack framework support, GraphQL support & CI/CD integration as part of security. Updated json_version: **1.2.9**
+
+- Feature: Rack framework support [PR#149](https://github.com/newrelic/csec-ruby-agent/pull/149)
+
+- Feature: GraphQL support [PR#133](https://github.com/newrelic/csec-ruby-agent/pull/133)
+
+- Feature: CI/CD integration support [PR#146](https://github.com/newrelic/csec-ruby-agent/pull/146)
+
+- Bugfix: Fix for Agent is sending 404 http error in runtime error json [PR#147](https://github.com/newrelic/csec-ruby-agent/pull/147)
+
+- Bugfix: Fix for Exception occurred in generating unhandled exception in Sinatra jruby app [PR#150](https://github.com/newrelic/csec-ruby-agent/pull/150)
+
+- Bugfix: Fix for Do not send empty url endpoint json & Reconnect in random interval between 5-15 secs [PR#151](https://github.com/newrelic/csec-ruby-agent/pull/151)
+
+- Bugfix: Fix for Wrong formated critical error message [PR#148](https://github.com/newrelic/csec-ruby-agent/pull/148)
+
+- BugFix: Fix for Vulnerability is missed in text/json because of small stackTrace [PR#155](https://github.com/newrelic/csec-ruby-agent/pull/155)
+
+- BugFix: Fix for API endpoints not detected in grape framework in JRuby environment [PR#158](https://github.com/newrelic/csec-ruby-agent/pull/158)
+
+- BugFix: Fix for XML content type vulnerability not detected [PR#159](https://github.com/newrelic/csec-ruby-agent/pull/159)
+
+- BugFix: Fix for Concurrency issue observed in JRuby environment, BufferOverflowException observed in writing events to websocket [PR#161](https://github.com/newrelic/csec-ruby-agent/pull/161)
+
+- Memory usage optimisations [PR#153](https://github.com/newrelic/csec-ruby-agent/pull/153)
+
+## v0.3.0
+
+Version 0.3.0 introduces more control on IAST scanning through new configs(exclude_from_iast_scan, scan_schedule & scan_controllers) and 
+features like API inventory for gRPC server and IAST scan start related timestamps.
+
+Updated json_version: **1.2.8**
+
+- Feature: IAST scan exclusion for apis, http request parameters(header, query & body) & IAST detection categories and scan scheduling through delay, duration & cron schedule. [PR#131](https://github.com/newrelic/csec-ruby-agent/pull/131)
+
+- Feature: IAST scan request rate limit to control IAST scan request firing. [PR#132](https://github.com/newrelic/csec-ruby-agent/pull/132)
+
+- Feature: API endpoints support for gRPC server applications. [PR#143](https://github.com/newrelic/csec-ruby-agent/pull/143)
+
+- Feature: Reporting of IAST scanning application procStartTime, trafficStartedTime & scanStartTime. [PR#136](https://github.com/newrelic/csec-ruby-agent/pull/136)
+
+- Misc Chore: Optimised SSRF events parameters to send only URL in parameters. [PR#129](https://github.com/newrelic/csec-ruby-agent/pull/129)
+
+##### New security configs
+
+```yaml
+security:
+  exclude_from_iast_scan:
+    api: []
+    http_request_parameters:
+      header: []
+      query: []
+      body: []
+    iast_detection_category:
+      insecure_settings: false
+      invalid_file_access: false
+      sql_injection: false
+      nosql_injection: false
+      ldap_injection: false
+      javascript_injection: false
+      command_injection: false
+      xpath_injection: false
+      ssrf: false
+      rxss: false
+  scan_schedule:
+    delay: 0
+    duration: 0
+    schedule: ""
+    always_sample_traces: false
+  scan_controllers:
+    iast_scan_request_rate_limit: 3600
+```
+
+##### Deprecated security configs (will be removed in next major release v1.0.0)
+```yaml
+security:
+  request:
+    body_limit: 300
+  detection:
+    rci:
+      enabled: true
+    rxss:
+      enabled: true
+    deserialization:
+      enabled: true
+```
+
 ## v0.2.0
 
 Version 0.2.0 introuduces Error reporting as part of security. Any unhandled or 5xx errors in application runtime will now be visible in IAST capability UI. Updated json_version: **1.2.4**
 
-- Feature: Unhandled and 5xx error reproting [PR#134](https://github.com/newrelic/csec-ruby-agent/pull/134)
+- Feature: Unhandled and 5xx error reporting [PR#134](https://github.com/newrelic/csec-ruby-agent/pull/134)
 
 - Bugfix: Fix for API route not present in rails7 [PR#127](https://github.com/newrelic/csec-ruby-agent/pull/127)
 

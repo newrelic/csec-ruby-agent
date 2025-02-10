@@ -40,22 +40,24 @@ module NewRelic::Security
             # TODO: when do refactoring of ctxt.route, use both route and method to generate key
             ctxt.route&.+ response_code.to_s
                 else
-            application_runtime_error.exception[:type] + application_runtime_error.exception[:stackTrace][0]
+            application_runtime_error.exception[:type]&.+ application_runtime_error.exception[:stackTrace]&.first
                 end
+          return if key.nil? || key.empty?
           application_runtime_error.counter = @exceptions_map[key].counter + 1 if @exceptions_map.key?(key)
           @exceptions_map[key] = application_runtime_error
-        rescue Exception => exception
+        rescue StandardError => exception
           NewRelic::Security::Agent.logger.error "Exception in generating unhandled exception: #{exception.inspect} #{exception.backtrace}\n"
         end
 
-        def extract_noticed_error(current_transaction, ctxt, response_code)
+        def extract_noticed_error(current_transaction, ctxt, http_response_code)
+          return if http_response_code&.between?(400, 499)
           # TODO: Below operation is expensive, talk to APM to get optimized way to do this
           current_transaction.exceptions.each do |_, span|
             current_transaction.segments.each do |segment|
-              generate_unhandled_exception(segment.noticed_error, ctxt, response_code) if span[:span_id] == segment.guid
+              generate_unhandled_exception(segment.noticed_error, ctxt, http_response_code) if span[:span_id] == segment.guid
             end
           end
-        rescue Exception => exception
+        rescue StandardError => exception
           NewRelic::Security::Agent.logger.error "Exception in extract_noticed_error: #{exception.inspect} #{exception.backtrace}\n"
         end
 
@@ -64,7 +66,7 @@ module NewRelic::Security
           if current_transaction.exceptions.empty? && http_response_code&.between?(500, 599)
             generate_unhandled_exception(nil, ctxt, response_code)
           else
-            extract_noticed_error(current_transaction, ctxt, response_code) unless current_transaction.exceptions.empty?
+            extract_noticed_error(current_transaction, ctxt, http_response_code) unless current_transaction.exceptions.empty?
           end
         end
 

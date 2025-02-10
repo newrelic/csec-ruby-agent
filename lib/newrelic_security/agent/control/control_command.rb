@@ -1,4 +1,5 @@
 require 'json'
+require 'securerandom'
 
 module NewRelic::Security
   module Agent
@@ -49,8 +50,6 @@ module NewRelic::Security
               message_object[:arguments].each { |processed_id| NewRelic::Security::Agent.agent.iast_client.completed_requests.delete(processed_id) }
             when 100
               NewRelic::Security::Agent.logger.debug "Control command : '100', #{message_object.to_json}"
-              ::NewRelic::Agent.instance.events.notify(:security_policy_received, message_object[:data])
-              # TODO: Update policy from file here, if enabled.
             when 101
 
             when 102
@@ -95,7 +94,7 @@ module NewRelic::Security
           NewRelic::Security::Agent.agent.iast_client.completed_requests.clear if NewRelic::Security::Agent.agent.iast_client
           NewRelic::Security::Agent.agent.iast_client.pending_request_ids.clear if NewRelic::Security::Agent.agent.iast_client
           NewRelic::Security::Agent.config.disable_security
-          Thread.new { NewRelic::Security::Agent.agent.reconnect(0) }
+          Thread.new { NewRelic::Security::Agent.agent.reconnect(SecureRandom.random_number(10) + 5) }
         end
 
         def current_time_millis

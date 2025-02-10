@@ -105,8 +105,8 @@ module NewRelic::Security
                 processed_data.add(body)
               end
             when APPLICATION_XML
-              # Unescaping of xml data is remaining
-              processed_data.add(body)
+              xml_data = ::CGI.unescapeHTML(body)
+              processed_data.add(xml_data)
             when APPLICATION_X_WWW_FORM_URLENCODED
               body = ::CGI.unescape(body, UTF_8)
               processed_data.add(body)
@@ -131,7 +131,7 @@ module NewRelic::Security
               # do while loop in java code here
               old_processed_body = processed_body
               body = ::JSON.parse(processed_body)
-              processed_data.add(body) if old_processed_body != body && body.to_s.include?(LESS_THAN)
+              processed_data.add(body.to_s) if old_processed_body != body && body.to_s.include?(LESS_THAN)
             when APPLICATION_XML
               # Unescaping of xml data is remaining
               processed_data.add(processed_data)
@@ -173,7 +173,6 @@ module NewRelic::Security
           start_pos = 0
           tmp_curr_pos = 0
           tmp_start_pos = 0
-      
           while curr_pos < data.length
             matcher = TAG_NAME_REGEX.match(data, curr_pos)
             is_attack_construct = false

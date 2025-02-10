@@ -75,7 +75,7 @@ module NewRelic::Security
           binwrite_on_exit(event, retval) { return retval }
         end
 
-        def popen(*var)
+        def popen(*var, &block)
           retval = nil
           event = popen_on_enter(*var) { retval = super }
           popen_on_exit(event) { return retval }
