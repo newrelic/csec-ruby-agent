@@ -226,11 +226,10 @@ module NewRelic::Security
 
       def parse_cookie(set_cookie_header)
         secure_cookie_params = []
-        puts "Set Cookie Header : #{set_cookie_header}"
         set_cookie_header.split(BACKSLASH_N).each do |raw_cookie_string|
           NewRelic::Security::Agent.logger.debug "Raw cookie string : #{raw_cookie_string}"
           cookie_parts = raw_cookie_string.split(SEMICOLON_SPACE)
-          parsed_cookie = {}
+          parsed_cookie = { :isSecure => false }
           cookie_parts.each do |part|
             key, value = part.split(EQUAL, 2)
             case key.downcase.to_sym
