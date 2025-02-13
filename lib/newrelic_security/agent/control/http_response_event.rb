@@ -14,8 +14,8 @@ module NewRelic::Security
         def initialize(ctxt, http_response)
           @collectorType = RUBY
           @language = Ruby
-          @jsonName = :sec_http_response
-          @eventType = :sec_http_response
+          @jsonName = :'sec-http-response'
+          @eventType = :'sec-http-response'
           @framework = NewRelic::Security::Agent.config[:framework]
           @groupName = NewRelic::Security::Agent.config[:mode]
           @policyVersion = nil
