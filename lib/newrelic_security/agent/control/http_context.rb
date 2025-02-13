@@ -20,8 +20,9 @@ module NewRelic::Security
       class HTTPContext
         
         attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :custom_data_type, :mutex, :url
+        attr_reader :trace_id, :span_id
 
-        def initialize(env)
+        def initialize(env, trace_id, span_id)
           @time_stamp = current_time_millis
           @req = env.select { |key, _| CGI_VARIABLES.include? key}
           @method = @req[REQUEST_METHOD]
@@ -53,6 +54,8 @@ module NewRelic::Security
           @fuzz_files = ::Set.new
           @event_counter = 0
           @mutex = Mutex.new
+          @trace_id = trace_id
+          @span_id = span_id
           NewRelic::Security::Agent.agent.http_request_count.increment
           NewRelic::Security::Agent.agent.iast_client.completed_requests[@headers[NR_CSEC_PARENT_ID]] = [] if @headers.key?(NR_CSEC_PARENT_ID)
         end
@@ -66,7 +69,8 @@ module NewRelic::Security
         end
 
         def self.set_context(env)
-          ::NewRelic::Agent::Tracer.current_transaction.instance_variable_set(:@security_context_data, HTTPContext.new(env))
+          current_transaction = get_current_transaction
+          current_transaction.instance_variable_set(:@security_context_data, HTTPContext.new(env, current_transaction.trace_id, current_transaction.current_segment.guid))
         end
 
         def self.reset_context

@@ -9,7 +9,6 @@ module NewRelic::Security
       extend self
 
       ENABLED = 'enabled'
-      VULNERABLE = 'VULNERABLE'
       AES_256_CBC = 'AES-256-CBC'
       H_ASTERIK = 'H*'
       ASTERISK = '*'
@@ -22,6 +21,16 @@ module NewRelic::Security
       def is_IAST_request?(headers)
         return true if headers&.key?(NR_CSEC_FUZZ_REQUEST_ID)
         false
+      end
+
+      def add_linking_metadata
+        linking_metadata = {}
+        linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
+        if (ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context)
+          linking_metadata[:'trace.id'] = ctxt.trace_id
+          linking_metadata[:'span.id'] = ctxt.span_id
+        end
+        linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
       end
 
       def parse_fuzz_header(ctxt)

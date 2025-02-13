@@ -35,6 +35,7 @@ module NewRelic::Security
           @cache[:'security.detection.rci.enabled'] = ::NewRelic::Agent.config[:'security.detection.rci.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.rci.enabled']
           @cache[:'security.detection.rxss.enabled'] = ::NewRelic::Agent.config[:'security.detection.rxss.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.rxss.enabled']
           @cache[:'security.detection.deserialization.enabled'] = ::NewRelic::Agent.config[:'security.detection.deserialization.enabled'].nil? ? true : ::NewRelic::Agent.config[:'security.detection.deserialization.enabled']
+          @cache[:'security.scan_controllers.report_http_response_body'] = ::NewRelic::Agent.config[:'security.scan_controllers.report_http_response_body']
           @cache[:'security.scan_controllers.iast_scan_request_rate_limit'] = ::NewRelic::Agent.config[:'security.scan_controllers.iast_scan_request_rate_limit'].to_i
           @cache[:framework] = detect_framework
           @cache[:app_class] = detect_app_class if @cache[:framework] == :rack
@@ -47,7 +48,7 @@ module NewRelic::Security
           @cache[:'security.iast_test_identifier'] = ::NewRelic::Agent.config[:'security.iast_test_identifier']
           @cache[:app_root] = NewRelic::Security::Agent::Utils.app_root
           @cache[:jruby_objectspace_enabled] = false
-          @cache[:json_version] = :'1.2.9'
+          @cache[:json_version] = :'1.2.10'
           @cache[:'security.exclude_from_iast_scan.api'] = convert_to_regexp_list(::NewRelic::Agent.config[:'security.exclude_from_iast_scan.api'])
           @cache[:'security.exclude_from_iast_scan.http_request_parameters.header'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.header']
           @cache[:'security.exclude_from_iast_scan.http_request_parameters.query'] = ::NewRelic::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.query']

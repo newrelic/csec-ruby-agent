@@ -58,6 +58,11 @@ module NewRelic::Security
           event = nil
         end
 
+        def send_http_response_event(http_response_event)
+          enqueue(http_response_event)
+          http_response_event = nil
+        end
+
         def send_health
           health = NewRelic::Security::Agent::Control::Health.new
           health.update_health_check

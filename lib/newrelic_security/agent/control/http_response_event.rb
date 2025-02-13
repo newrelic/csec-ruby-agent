@@ -6,14 +6,16 @@ module NewRelic::Security
   module Agent
     module Control
 
-      class CriticalMessage
+      class HTTPResponseEvent
 
+        attr_accessor :isIASTRequest, :httpRequest, :httpResponse
         attr_reader :jsonName
         
-        def initialize(message, level, caller, thread_name, exception = nil)
+        def initialize(ctxt, http_response)
           @collectorType = RUBY
           @language = Ruby
-          @jsonName = :'critical-messages'
+          @jsonName = :'sec-http-response'
+          @eventType = :'sec-http-response'
           @framework = NewRelic::Security::Agent.config[:framework]
           @groupName = NewRelic::Security::Agent.config[:mode]
           @policyVersion = nil
@@ -23,13 +25,11 @@ module NewRelic::Security
           @applicationUUID = NewRelic::Security::Agent.config[:uuid]
           @appAccountId = NewRelic::Security::Agent.config[:account_id]
           @appEntityGuid = NewRelic::Security::Agent.config[:entity_guid]
+          @httpRequest = {}
+          @httpResponse = http_response.as_json
           @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
-          @timestamp = current_time_millis
-          @message = message
-          @level = level          
-          @caller = caller
-          @threadName = thread_name
-          @exception = exception
+          @traceId = ctxt.trace_id
+          @isIASTRequest = NewRelic::Security::Agent::Utils.is_IAST_request?(ctxt.headers)
         end
 
         def as_json
@@ -40,12 +40,6 @@ module NewRelic::Security
 
         def to_json # rubocop:disable Lint/ToJSON
           as_json.to_json
-        end
-
-        private
-
-        def current_time_millis
-          (Time.now.to_f * 1000).to_i
         end
 
       end

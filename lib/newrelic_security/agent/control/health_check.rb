@@ -29,7 +29,7 @@ module NewRelic::Security
           @httpRequestCount = 0
           @protectedVulnerabilties = nil
           @protectedDB = nil
-          @linkingMetadata = add_linking_metadata
+          @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
           @stats = {}
           @serviceStatus = {} # TODO: Fill this
           @iastEventStats = {}
@@ -82,12 +82,6 @@ module NewRelic::Security
         
         def current_time_millis
           (Time.now.to_f * 1000).to_i
-        end
-
-        def add_linking_metadata
-          linking_metadata = Hash.new
-          linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
-          linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
         end
 
         def system_total_memory_mb

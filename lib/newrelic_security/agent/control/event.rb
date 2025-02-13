@@ -44,7 +44,7 @@ module NewRelic::Security
               :body => NewRelic::Security::Agent.config[:'security.exclude_from_iast_scan.http_request_parameters.body']
             }
           }
-          @linkingMetadata = add_linking_metadata
+          @linkingMetadata = NewRelic::Security::Agent::Utils.add_linking_metadata
           @pid = pid
           @parameters = args
           @sourceMethod = nil
@@ -158,12 +158,6 @@ module NewRelic::Security
           ctxt.mutex.synchronize do
             ctxt.event_counter = ctxt.event_counter + 1
           end
-        end
-
-        def add_linking_metadata
-          linking_metadata = Hash.new
-          linking_metadata[:agentRunId] = NewRelic::Security::Agent.config[:agent_run_id]
-          linking_metadata.merge!(NewRelic::Security::Agent.config[:linking_metadata])
         end
 
       end
