@@ -19,7 +19,7 @@ module NewRelic::Security
 
       class HTTPContext
         
-        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :custom_data_type, :mutex, :url
+        attr_accessor :time_stamp, :req, :method, :headers, :params, :body, :data_truncated, :route, :cache, :fuzz_files, :event_counter, :custom_data_type, :mutex, :url, :request_port
 
         def initialize(env)
           @time_stamp = current_time_millis
@@ -29,6 +29,7 @@ module NewRelic::Security
           @headers = env.select { |key, _| key.include?(HTTP_) }
           @headers = @headers.transform_keys{ |key| key[5..-1].gsub(UNDERSCORE, HYPHEN).downcase }
           request = Rack::Request.new(env) unless env.empty?
+          @request_port = NewRelic::Security::Agent::Utils.app_port(env)
 					@params = request&.params
 					@params&.each { |k, v| v.force_encoding(Encoding::UTF_8) if v.is_a?(String) }
           strio = env[RACK_INPUT]

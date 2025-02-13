@@ -57,7 +57,7 @@ module NewRelic::Security
                 if fuzz_request.request[IS_GRPC]
                   fire_grpc_request(fuzz_request.id, fuzz_request.request, fuzz_request.reflected_metadata)
                 else
-                  fire_request(fuzz_request.id, fuzz_request.request)
+                  fire_request(fuzz_request.id, fuzz_request.request, fuzz_request.reflected_metadata)
                 end
                 fuzz_request = nil
               end
@@ -111,9 +111,9 @@ module NewRelic::Security
           (Time.now.to_f * 1000).to_i
         end
 
-        def fire_request(fuzz_request_id, request)
+        def fire_request(fuzz_request_id, request, reflected_metadata)
           unless ::Thread.current[:http]
-            Thread.current[:http] = ::Net::HTTP.new('127.0.0.1', NewRelic::Security::Agent.config[:listen_port])
+            Thread.current[:http] = ::Net::HTTP.new('127.0.0.1', reflected_metadata[LISTEN_PORT].to_i )
             Thread.current[:http].open_timeout = 5
             if request[PROTOCOL] == HTTPS
               Thread.current[:http].use_ssl = true
@@ -127,6 +127,7 @@ module NewRelic::Security
           NewRelic::Security::Agent.logger.debug "IAST fuzz request : time taken : #{time_after_request - time_before_request}ms, #{request.inspect} \nresponse: #{response.inspect}\n"
         rescue Exception => exception
           NewRelic::Security::Agent.logger.debug "Unable to fire IAST fuzz request Request : #{request.inspect} Exception : #{exception.inspect} #{exception.backtrace}"
+          NewRelic::Security::Agent.agent.event_processor.send_critical_message("Unable to fire IAST fuzz request Request : #{request.inspect}", "SEVERE", caller_locations[0].to_s, Thread.current.name, exception)
         ensure
           NewRelic::Security::Agent.agent.iast_client.completed_requests[fuzz_request_id] = []
           NewRelic::Security::Agent.agent.iast_client.pending_request_ids.delete(fuzz_request_id)
