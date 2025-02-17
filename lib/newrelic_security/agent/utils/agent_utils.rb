@@ -223,6 +223,15 @@ module NewRelic::Security
       def filtered_log(log)
         log.gsub(license_key, ASTERISK * license_key.size)
       end
+
+      def extract_session_params(session)
+        params = []
+        session.keys.each do |key|
+          params << key
+          params << session[key]
+        end
+        params
+      end
     end
   end
 end
