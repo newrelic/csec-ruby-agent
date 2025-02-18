@@ -35,6 +35,11 @@ gem 'httpx'
 gem 'typhoeus'
 gem 'async-http'
 gem 'ethon'
+if RUBY_VERSION < '2.5'
+  gem 'dalli', '=2.7.11'
+else
+  gem 'dalli'
+end
 if RUBY_ENGINE == 'jruby'
   gem 'activerecord-jdbc-adapter'
   gem 'jdbc-sqlite3'
