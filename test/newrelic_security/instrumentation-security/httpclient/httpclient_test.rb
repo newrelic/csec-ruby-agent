@@ -68,7 +68,10 @@ module NewRelic::Security
                     client.debug_dev = str
                     conn = client.get_async(url)
                     #puts conn.code
-                    Thread.pass while !conn.finished?
+                    # bounded wait: conn.finished? can otherwise spin forever (no timeout in httpclient's async API)
+                    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 10
+                    Thread.pass while !conn.finished? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+                    assert conn.finished?, "async HTTPClient request did not finish within 10s"
                     @output = str
                     #puts @output
                     #assert_equal 200, @output 
