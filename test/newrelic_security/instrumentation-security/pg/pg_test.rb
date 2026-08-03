@@ -214,6 +214,11 @@ module NewRelic::Security
                 end
 
                 def test_exec_prepared_escapes_quote_in_statement_name
+                    # guard against a leaked HTTPContext from an earlier test (e.g. grape_test.rb)
+                    # short-circuiting the pg_prepared_statements lookup via its cache.
+                    # NB: reset_context is a no-op in the test HTTPContext mock (test/helpers/agent_helper.rb);
+                    # clear_context is the one that actually clears the leaked @http_context class ivar.
+                    NewRelic::Security::Agent::Control::HTTPContext.clear_context
                     client = PG::Connection.open(:dbname => POSTGRESQL_DATABASE, :user => POSTGRESQL_USER, :host => POSTGRESQL_HOST, :port => POSTGRESQL_PORT)
                     statement_name = "quo'te"
                     client.prepare(statement_name, 'SELECT 1')
