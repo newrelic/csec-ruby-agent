@@ -74,7 +74,7 @@ module NewRelic::Security
                     # bounded wait: conn.finished? can otherwise spin forever (no timeout in httpclient's async API)
                     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 10
                     Thread.pass while !conn.finished? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
-                    assert conn.finished?, "async HTTPClient request did not finish within 10s"
+                    assert_predicate conn, :finished?, "async HTTPClient request did not finish within 10s"
                     @output = str
                     #puts @output
                     #assert_equal 200, @output
