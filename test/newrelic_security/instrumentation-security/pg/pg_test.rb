@@ -221,7 +221,7 @@ module NewRelic::Security
 
                     # would previously raise a PG syntax error internally (unescaped ' in the
                     # pg_prepared_statements lookup), silently dropping both events below
-                    result = client.exec_prepared(statement_name)
+                    result = client.exec_prepared(statement_name, [])
                     assert_equal '1', result.getvalue(0, 0)
 
                     args = [{:sql=>"select statement from pg_prepared_statements where name = 'quo''te'", :parameters=>[]}]
