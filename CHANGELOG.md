@@ -1,5 +1,9 @@
 # New Relic Ruby Security Agent Release Notes
 
+## v0.4.1
+
+- Bugfix: Fix for potential SQL injection in the pg exec_prepared statement-name lookup, flagged by CodeQL as rb/shell-command-constructed-from-input [PR#167](https://github.com/newrelic/csec-ruby-agent/pull/167)
+
 ## v0.4.0
 
 Version 0.4.0 introuduces Rack framework support, GraphQL support & CI/CD integration as part of security. Updated json_version: **1.2.9**
