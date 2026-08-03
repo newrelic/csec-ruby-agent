@@ -20,6 +20,7 @@ if RUBY_VERSION >= '3.0.0'
   gem 'rails', '~>6.0.0'
 elsif RUBY_VERSION < '2.5.0'
   gem 'rails', '~>4'
+  gem 'bigdecimal', '< 2.0' # rails ~>4's activesupport calls BigDecimal.new, removed in bigdecimal 2.0
 else
   gem 'rails'
 end
