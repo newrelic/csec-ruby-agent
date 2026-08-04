@@ -62,17 +62,23 @@ module NewRelic::Security
                 end
 
                 def test_async
-                    url = "https://www.google.com"
+                    # www.google.com's response never flips conn.finished? under HTTPClient's
+                    # async path on this env (reproduces with plain httpclient, no instrumentation
+                    # loaded); www.newrelic.com completes reliably, so use it here.
+                    url = "https://www.newrelic.com"
                     client = HTTPClient.new
                     str = ""
                     client.debug_dev = str
                     conn = client.get_async(url)
                     #puts conn.code
-                    Thread.pass while !conn.finished?
+                    # bounded wait: conn.finished? can otherwise spin forever (no timeout in httpclient's async API)
+                    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 10
+                    Thread.pass while !conn.finished? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+                    assert_predicate conn, :finished?, "async HTTPClient request did not finish within 10s"
                     @output = str
                     #puts @output
-                    #assert_equal 200, @output 
-                    args = ["https://www.google.com"]
+                    #assert_equal 200, @output
+                    args = ["https://www.newrelic.com"]
                     expected_event = NewRelic::Security::Agent::Control::Event.new(HTTP_REQUEST, args, nil)
                     assert_equal 1, NewRelic::Security::Agent::Control::Collector.get_event_count(HTTP_REQUEST)
                     assert_equal expected_event.caseType, $event_list[0].caseType
