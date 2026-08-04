@@ -213,6 +213,37 @@ module NewRelic::Security
                     client.close()
                 end
 
+                def test_exec_prepared_escapes_quote_in_statement_name
+                    # guard against a leaked HTTPContext from an earlier test (e.g. grape_test.rb)
+                    # short-circuiting the pg_prepared_statements lookup via its cache.
+                    # NB: reset_context is a no-op in the test HTTPContext mock (test/helpers/agent_helper.rb);
+                    # clear_context is the one that actually clears the leaked @http_context class ivar.
+                    NewRelic::Security::Agent::Control::HTTPContext.clear_context
+                    client = PG::Connection.open(:dbname => POSTGRESQL_DATABASE, :user => POSTGRESQL_USER, :host => POSTGRESQL_HOST, :port => POSTGRESQL_PORT)
+                    statement_name = "quo'te"
+                    client.prepare(statement_name, 'SELECT 1')
+                    $event_list.clear()
+
+                    # would previously raise a PG syntax error internally (unescaped ' in the
+                    # pg_prepared_statements lookup), silently dropping both events below
+                    result = client.exec_prepared(statement_name, [])
+                    assert_equal '1', result.getvalue(0, 0)
+
+                    args = [{:sql=>"select statement from pg_prepared_statements where name = 'quo''te'", :parameters=>[]}]
+                    args2 = [{:sql=>"SELECT 1", :parameters=>[]}]
+                    expected_event = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args, POSTGRES)
+                    expected_event2 = NewRelic::Security::Agent::Control::Event.new(SQL_DB_COMMAND, args2, POSTGRES)
+                    assert_equal 2, NewRelic::Security::Agent::Control::Collector.get_event_count(SQL_DB_COMMAND)
+                    assert_equal expected_event.caseType, $event_list[0].caseType
+                    assert_equal expected_event.parameters, $event_list[0].parameters
+                    assert_equal expected_event.eventCategory, $event_list[0].eventCategory
+                    assert_equal expected_event2.caseType, $event_list[1].caseType
+                    assert_equal expected_event2.parameters, $event_list[1].parameters
+                    assert_equal expected_event2.eventCategory, $event_list[1].eventCategory
+                    $event_list.clear()
+                    client.close()
+                end
+
                 Minitest.after_run do
                     NewRelic::Security::Test::DatabaseHelper.remove_postgresql_container
                 end
