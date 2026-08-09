@@ -36,6 +36,7 @@ module NewRelic::Security
   SECURERANDOM = 'SECURERANDOM'
   KERNEL = 'Kernel'
   POSTGRES = 'POSTGRES'
+  TRUSTBOUNDARY = 'TRUSTBOUNDARY'
   ISO_8859_1 = 'ISO-8859-1'
   UTF_8 = 'UTF-8'
   RAILS = 'rails'
@@ -68,4 +69,5 @@ module NewRelic::Security
   CONTENT_TYPE1 = 'content-Type'
   PULL = 'PULL'
   SHA1 = 'sha1'
+  RACK_SESSION = 'rack.session'
 end

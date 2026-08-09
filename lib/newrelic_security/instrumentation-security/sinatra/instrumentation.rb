@@ -13,6 +13,7 @@ module NewRelic::Security
         NewRelic::Security::Agent::Utils.get_app_routes(:sinatra) if NewRelic::Security::Agent.agent.route_map.empty?
         NewRelic::Security::Agent::Control::HTTPContext.set_context(env)
         NewRelic::Security::Agent::Utils.parse_fuzz_header(NewRelic::Security::Agent::Control::HTTPContext.get_context)
+        NewRelic::Security::Agent::Control::Collector.collect(TRUSTBOUNDARY, NewRelic::Security::Agent::Utils.extract_session_params(env[RACK_SESSION])) if env[RACK_SESSION]
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure

@@ -15,6 +15,7 @@ module NewRelic::Security
         ctxt = NewRelic::Security::Agent::Control::HTTPContext.get_context
         ctxt.route = "#{env[REQUEST_METHOD]}@#{env[PATH_INFO]}" if ctxt
         NewRelic::Security::Agent::Utils.parse_fuzz_header(NewRelic::Security::Agent::Control::HTTPContext.get_context)
+        NewRelic::Security::Agent::Control::Collector.collect(TRUSTBOUNDARY, NewRelic::Security::Agent::Utils.extract_session_params(env[RACK_SESSION])) if env[RACK_SESSION]
       rescue => exception
         NewRelic::Security::Agent.logger.error "Exception in hook in #{self.class}.#{__method__}, #{exception.inspect}, #{exception.backtrace}"
       ensure
