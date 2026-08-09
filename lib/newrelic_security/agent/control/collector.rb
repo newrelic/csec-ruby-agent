@@ -49,7 +49,7 @@ module NewRelic::Security
           event.apiId = "#{case_type}-#{calculate_api_id(stk[0..user_frame_index].map { |frame| "#{frame.absolute_path}:#{frame.lineno}" }, event.httpRequest[:method], route)}"
           stk.delete_if { |frame| frame.path.match?(/newrelic_security/) || frame.path.match?(/new_relic/) }
           user_frame_index = get_user_frame_index(stk)
-          return if case_type != REFLECTED_XSS && user_frame_index == -1 # TODO: Add log message here: "Filtered because User Stk frame NOT FOUND   \r\n"
+          return if ![REFLECTED_XSS, SECURE_COOKIE].include?(case_type) && user_frame_index == -1 # TODO: Add log message here: "Filtered because User Stk frame NOT FOUND   \r\n"
           if user_frame_index != -1
             event.userMethodName = stk[user_frame_index].label.to_s
             event.userFileName = stk[user_frame_index].path
