@@ -18,6 +18,9 @@ module NewRelic::Security
     POSTGRESQL_USER = 'postgres'
     POSTGRESQL_DATABASE = 'postgres'
 
+    ELASTICSEARCH_HOST = 'localhost'
+    ELASTICSEARCH_PORT = '9200'
+
     module DatabaseHelper
       extend self
 
@@ -106,6 +109,37 @@ module NewRelic::Security
       def remove_postgresql_container
         begin
           Docker::Container.get('pg_test').remove(force: true)
+        rescue
+        end
+      end
+
+      ELASTICSEARCH_CONFIG = {
+            'Image' => 'elasticsearch:8.14.1',
+            'name' => 'es_test',
+            'Env' => ['discovery.type=single-node',
+                      'xpack.security.enabled=false'],
+            'HostConfig' => {
+                'PortBindings' => {
+                '9200/tcp' => [{ 'HostPort' => ELASTICSEARCH_PORT }]
+                }
+            }
+        }
+
+      def create_elasticsearch_container
+        image = Docker::Image.create('fromImage' => 'elasticsearch:8.14.1')
+        image.refresh!
+        begin
+            Docker::Container.get('es_test').remove(force: true)
+        rescue
+        end
+        container = Docker::Container.create(ELASTICSEARCH_CONFIG)
+        container.start
+        sleep 20
+      end
+
+      def remove_elasticsearch_container
+        begin
+          Docker::Container.get('es_test').remove(force: true)
         rescue
         end
       end
