@@ -1,5 +1,9 @@
 # New Relic Ruby Security Agent Release Notes
 
+## v0.4.2
+
+- Chore: Publish gem via RubyGems Trusted Publishing, removing long-lived API key and MFA secrets [PR#NNN](https://github.com/newrelic/csec-ruby-agent/pull/NNN)
+
 ## v0.4.1
 
 - Bugfix: Fix for potential SQL injection in the pg exec_prepared statement-name lookup, flagged by CodeQL as rb/shell-command-constructed-from-input [PR#167](https://github.com/newrelic/csec-ruby-agent/pull/167)
