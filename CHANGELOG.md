@@ -2,7 +2,7 @@
 
 ## v0.4.2
 
-- Chore: Publish gem via RubyGems Trusted Publishing, removing long-lived API key and MFA secrets [PR#NNN](https://github.com/newrelic/csec-ruby-agent/pull/NNN)
+- Chore: Publish gem via RubyGems Trusted Publishing, removing long-lived API key and MFA secrets [PR#170](https://github.com/newrelic/csec-ruby-agent/pull/170)
 
 ## v0.4.1
 
